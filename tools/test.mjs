@@ -17,6 +17,8 @@ ok(B.standardWeight(170, 'm') === 63.6 && B.standardWeight(170, 'f') === 60.7, '
 ok(B.broca(170) === 63, '브로카 63');
 ok(B.toNormal(170, 75).dir === 'lose' && B.toNormal(170, 75).kg === 8.8, '75kg → 8.8kg 감량', JSON.stringify(B.toNormal(170, 75)));
 ok(B.toNormal(170, 50).dir === 'gain' && B.toNormal(170, 50).kg === 3.5, '50kg → 3.5kg 증량');
+ok(B.toNormal(176, 71).dir === 'ok' && B.toNormal(152, 53).dir === 'ok', 'BMI 22.9로 반올림되는 경계는 정상');
+ok(D.iso(D.addMonths(D.utc(2025, 1, 31), 1)) === '2025-02-28' && D.iso(D.addMonths(D.utc(2024, 2, 29), 12)) === '2025-02-28', '달 더하기 말일 처리');
 ok(B.weeksFor(8.8) === 19.4, '8.8kg ÷ 500kcal/일 = 19.4주', B.weeksFor(8.8));
 
 /* 기초대사량 */

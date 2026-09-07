@@ -7,8 +7,8 @@ import * as B from '../engine/body.mjs';
 import * as K from '../engine/kcal.mjs';
 import * as D from '../engine/dates.mjs';
 import { num, pct } from '../engine/fmt.mjs';
-import { FOODS, FOOD_CATS, FOODS_ASOF } from '../data/foods.mjs';
-import { EXERCISES } from '../data/exercises.mjs';
+import { FOODS, FOOD_CATS, FOODS_ASOF, FOOD_ALIAS } from '../data/foods.mjs';
+import { EXERCISES, EX_ALIAS } from '../data/exercises.mjs';
 import { makeBundle } from './bundle.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -109,27 +109,29 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ k: f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase(), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ k: e.short.toLowerCase(), name: e.short, slug: e.slug })) })}</script>`;
+const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })) })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
   const url = bmiUrl(h, w), b = B.bmiOf(h, w), r = B.normalRange(h), tn = B.toNormal(h, w);
   const swM = B.standardWeight(h, 'm'), swF = B.standardWeight(h, 'f');
-  const title = `키 ${h}cm 몸무게 ${w}kg — BMI ${b.bmi}, ${b.label} (정상 ${r.min}~${r.max}kg)`;
+  const title = `키 ${h}cm 몸무게 ${w}kg — BMI ${b.bmi} ${b.label.replace(/\s*\(.*\)/, '')} · 정상 체중 ${r.min}~${r.max}kg`;
   const desc = `키 ${h}cm에 몸무게 ${w}kg이면 BMI ${b.bmi}로 ${b.label}입니다. 정상 체중 범위 ${r.min}~${r.max}kg, 표준체중 남 ${swM}kg·여 ${swF}kg${tn.dir === 'ok' ? '' : `, 정상까지 ${tn.kg}kg ${tn.dir === 'lose' ? '감량' : '증량'}`}. 나이별 기초대사량·하루 칼로리, 운동 소모 칼로리, 물 섭취량까지.`;
   const wt = B.water(w), pr = B.protein(w);
-  const planRows = tn.dir === 'ok' ? [] : [300, 500, 750].map((d) => ({ cells: [`하루 ${num(d)}kcal ${tn.dir === 'lose' ? '덜' : '더'} 먹기`, `${B.weeksFor(tn.kg, d)}주`, `${k1(d * 7 / 7700)}kg`] }));
+  const dur = (kg, d = 500) => { const wk = B.weeksFor(kg, d); return wk < 2 ? `${Math.ceil(kg * 7700 / d)}일` : `${wk}주`; };
+  const m2 = Math.pow(h / 100, 2), up = k1(23 * m2 - w), down = k1(w - 18.5 * m2);
+  const planRows = tn.dir === 'ok' ? [] : [300, 500, 750].map((d) => ({ cells: [`하루 ${num(d)}kcal ${tn.dir === 'lose' ? '덜' : '더'} 먹기`, dur(tn.kg, d), `${k1(d * 7 / 7700)}kg`] }));
   const bmrRows = AGES.map((a) => { const bm = B.bmr('m', h, w, a), bf = B.bmr('f', h, w, a); return { cells: [`${a}세`, num(bm), num(B.tdee(bm, 'light')), num(bf), num(B.tdee(bf, 'light'))] }; });
   const body = `
 ${crumb([['/bmi/', 'BMI'], [bmiUrl(h), `${h}cm`], [null, `${w}kg`]])}
 <h1 class="title">키 ${h}cm · 몸무게 ${w}kg</h1>
 <p class="meta">BMI ${b.bmi} — ${b.label} · 대한비만학회 기준 · 남녀 공통</p>
-${lead(`키 ${h}cm에 몸무게 ${w}kg이면 체질량지수(BMI)는 ${b.bmi}로 <b>${b.label}</b>에 해당합니다. 이 키의 정상 체중 범위는 ${r.min}~${r.max}kg이고, 표준체중은 남성 ${swM}kg·여성 ${swF}kg입니다. ${tn.dir === 'ok' ? `정상 범위 안이라 지금 몸무게를 유지하면 됩니다. 위로 ${k1(r.max - w)}kg, 아래로 ${k1(w - r.min)}kg 여유가 있습니다.` : tn.dir === 'lose' ? `정상 범위에 들어가려면 ${tn.kg}kg을 빼야 하고, 하루 500kcal씩 줄이면 약 ${B.weeksFor(tn.kg)}주 걸립니다.` : `정상 범위에 들어가려면 ${tn.kg}kg을 늘려야 하고, 하루 500kcal씩 더 먹으면 약 ${B.weeksFor(tn.kg)}주 걸립니다.`}`)}
+${lead(`키 ${h}cm에 몸무게 ${w}kg이면 체질량지수(BMI)는 ${b.bmi}로 <b>${b.label}</b>에 해당합니다. 이 키의 정상 체중 범위는 ${r.min}~${r.max}kg이고, 표준체중은 남성 ${swM}kg·여성 ${swF}kg입니다. ${tn.dir === 'ok' ? `정상 범위 안이라 지금 몸무게를 유지하면 됩니다. ${up < 0.5 ? '다만 범위의 위쪽 끝이라 조금만 늘어도 비만 전단계입니다.' : down < 0.5 ? '다만 범위의 아래쪽 끝이라 조금만 줄어도 저체중입니다.' : `위로 ${up}kg, 아래로 ${down}kg 여유가 있습니다.`}` : tn.dir === 'lose' ? `정상 범위에 들어가려면 ${tn.kg}kg을 빼야 하고, 하루 500kcal씩 줄이면 약 ${dur(tn.kg)} 걸립니다.` : `정상 범위에 들어가려면 ${tn.kg}kg을 늘려야 하고, 하루 500kcal씩 더 먹으면 약 ${dur(tn.kg)} 걸립니다.`}`)}
 ${hero({ label: '체질량지수 (BMI)', value: b.bmi, unit: '', sub: `${b.label} · 정상 18.5~22.9 · 몸무게 ÷ 키(m)² = ${w} ÷ ${(h / 100).toFixed(2)}²`, bars: [Math.min(1, b.bmi / 40)], legendL: '0', legendR: '40' })}
 ${tiles([{ label: '정상 체중 범위', value: `${r.min}~${r.max}kg` }, { label: '표준체중 (남)', value: `${swM}kg` }, { label: '표준체중 (여)', value: `${swF}kg` }])}
-${tn.dir === 'ok' ? section('정상 범위 안', null, `<div class="callout">지금 몸무게는 정상 범위 안입니다. <b>${k1(r.max - w)}kg</b> 더 늘면 비만 전단계, <b>${k1(w - r.min)}kg</b> 줄면 저체중이 됩니다. 체중보다 허리둘레(남 90cm·여 85cm 미만)와 근육량을 챙기는 것이 건강에는 더 중요합니다.</div>`) : section(tn.dir === 'lose' ? `정상 범위까지 ${tn.kg}kg 감량` : `정상 범위까지 ${tn.kg}kg 증량`, '체지방 1kg ≈ 7,700kcal · 하루 결손(또는 잉여)량으로 나눈 기간', table(['방법', '걸리는 기간', '1주에'], planRows) + `<div class="callout">${tn.dir === 'lose' ? '한 주에 0.5~1kg 이상 빼면 근육이 함께 빠지고 요요가 옵니다. 하루 500kcal 줄이기 = 밥 반 공기 + 간식 하나 정도입니다.' : '근육으로 늘리려면 단백질을 몸무게 1kg당 1.6g 안팎 먹고 근력 운동을 곁들이세요.'}</div>`)}
+${tn.dir === 'ok' ? section('정상 범위 안', null, `<div class="callout">지금 몸무게는 정상 범위 안입니다. <b>${up < 0.5 ? '0.5kg 미만' : up + 'kg'}</b> 더 늘면 비만 전단계, <b>${down < 0.5 ? '0.5kg 미만' : down + 'kg'}</b> 줄면 저체중이 됩니다. 체중보다 허리둘레(남 90cm·여 85cm 미만)와 근육량을 챙기는 것이 건강에는 더 중요합니다.</div>`) : section(tn.dir === 'lose' ? `정상 범위까지 ${tn.kg}kg 감량` : `정상 범위까지 ${tn.kg}kg 증량`, '체지방 1kg ≈ 7,700kcal · 하루 결손(또는 잉여)량으로 나눈 기간', table(['방법', '걸리는 기간', '1주에'], planRows) + `<div class="callout">${tn.dir === 'lose' ? '한 주에 1kg 넘게 빼면 근육이 함께 빠지고 요요가 오기 쉽습니다. 0.5~1kg이 안전한 속도입니다. 하루 500kcal 줄이기 = 밥 반 공기 + 간식 하나 정도입니다.' : '근육으로 늘리려면 단백질을 몸무게 1kg당 1.2~1.6g 먹고 근력 운동을 곁들이세요.'}</div>`)}
 ${section('기초대사량과 하루 필요 칼로리', `키 ${h}cm · ${w}kg 기준 · Mifflin-St Jeor · 하루 칼로리는 '가벼운 활동(주 1~3회 운동)' 기준`, table(['나이', '남 기초대사량', '남 하루 필요', '여 기초대사량', '여 하루 필요'], bmrRows) + list([{ href: '/bmr/', title: '활동량·목표를 바꿔 직접 계산', sub: '감량·유지·증량 섭취 칼로리' }]))}
-${section('이 몸무게로 30분 운동하면', 'kcal · MET 기준', tiles([{ label: '걷기 (보통)', value: num(K.burn(EX.walking.met, w, 30)) }, { label: '달리기 (8km/h)', value: num(K.burn(EX['running-8'].met, w, 30)) }, { label: '자전거', value: num(K.burn(EX.cycling.met, w, 30)) }]) + list([{ href: '/exercise/', title: '운동별 소모 칼로리표', sub: '33가지 운동 × 몸무게 × 시간' }]))}
+${section('이 몸무게로 30분 운동하면', 'kcal · MET 기준', tiles([{ label: '걷기 (보통)', value: num(K.burn(EX.walking.met, w, 30)) }, { label: '달리기 (8km/h)', value: num(K.burn(EX['running-8'].met, w, 30)) }, { label: '자전거', value: num(K.burn(EX.cycling.met, w, 30)) }]) + list([{ href: '/exercise/', title: '운동별 소모 칼로리표', sub: `${EXERCISES.length}가지 운동 × 몸무게 × 시간` }]))}
 ${ad()}
 ${section('물과 단백질', `${w}kg 기준 하루 권장`, tiles([{ label: '물', value: `${num(wt.ml)}ml` }, { label: '컵 (200ml)', value: `${wt.cups}잔` }, { label: '단백질', value: `${pr.base}~${pr.active}g` }]))}
 ${section('몸무게가 바뀌면', `키 ${h}cm`, chips(neighbors(WEIGHTS, w, 3).map((x) => ({ label: `${x}kg`, value: B.bmi(h, x), href: bmiUrl(h, x), on: x === w }))))}
@@ -146,18 +148,18 @@ ${NOTE_BMI}`;
 function heightPage(h) {
   const url = bmiUrl(h), r = B.normalRange(h), swM = B.standardWeight(h, 'm'), swF = B.standardWeight(h, 'f');
   const rows = []; for (let w = WMIN; w <= WMAX; w += 2) { const b = B.bmiOf(h, w); rows.push({ cls: b.key === 'ok' ? 'on' : '', cells: [`<a href="${bmiUrl(h, w)}">${w}kg</a>`, String(b.bmi), b.label] }); }
-  const title = `키 ${h}cm 정상 체중 ${r.min}~${r.max}kg — 표준체중 남 ${swM}kg 여 ${swF}kg, 몸무게별 BMI표`;
+  const title = `키 ${h}cm 정상 체중 ${r.min}~${r.max}kg — 표준체중 남 ${swM}kg·여 ${swF}kg, 몸무게별 BMI표`;
   const desc = `키 ${h}cm의 정상 체중은 ${r.min}~${r.max}kg(BMI 18.5~22.9), 표준체중은 남 ${swM}kg·여 ${swF}kg입니다. 몸무게 ${WMIN}~${WMAX}kg별 BMI와 판정, 나이별 기초대사량을 표로 정리했습니다.`;
   const body = `
 ${crumb([['/bmi/', 'BMI'], [null, `${h}cm`]])}
 <h1 class="title">키 ${h}cm — 정상 체중과 몸무게별 BMI</h1>
 <p class="meta">정상 ${r.min}~${r.max}kg · 표준체중 남 ${swM}kg · 여 ${swF}kg · 브로카 ${B.broca(h)}kg</p>
-${lead(`키 ${h}cm이면 BMI 18.5~22.9에 해당하는 정상 체중은 ${r.min}kg에서 ${r.max}kg 사이입니다. 표준체중(BMI 22·21)은 남성 ${swM}kg, 여성 ${swF}kg이고, ${k1(r.max + 0.1)}kg부터 비만 전단계, ${k1(Math.pow(h / 100, 2) * 25)}kg부터 1단계 비만으로 봅니다.`)}
+${lead(`키 ${h}cm이면 BMI 18.5~22.9에 해당하는 정상 체중은 ${r.min}kg에서 ${r.max}kg 사이입니다. 표준체중(BMI 22·21)은 남성 ${swM}kg, 여성 ${swF}kg이고, ${k1(23 * Math.pow(h / 100, 2))}kg부터 비만 전단계, ${k1(25 * Math.pow(h / 100, 2))}kg부터 1단계 비만으로 봅니다.`)}
 ${hero({ label: '정상 체중 범위', value: `${r.min}~${r.max}`, unit: 'kg', sub: `BMI 18.5~22.9 · 표준체중 남 ${swM}kg · 여 ${swF}kg` })}
 <form class="quick" data-quick="hw"><label>몸무게를 넣으면 바로</label><div class="quick-row"><div class="quick-in"><input type="hidden" name="h" value="${h}"><input name="w" type="text" inputmode="numeric" placeholder="65"><span>kg</span></div><button class="btn" type="submit">BMI 보기</button></div></form>
 ${section('몸무게별 BMI', `키 ${h}cm · 2kg 간격 · 몸무게를 누르면 상세`, table(['몸무게', 'BMI', '판정'], rows))}
 ${ad()}
-${section('구간 경계', null, tiles([{ label: '저체중 미만', value: `${k1(18.5 * Math.pow(h / 100, 2))}kg` }, { label: '비만 전단계부터', value: `${k1(23 * Math.pow(h / 100, 2))}kg` }, { label: '1단계 비만부터', value: `${k1(25 * Math.pow(h / 100, 2))}kg` }]))}
+${section('구간 경계', null, tiles([{ label: '이 아래는 저체중', value: `${k1(18.5 * Math.pow(h / 100, 2))}kg` }, { label: '여기부터 비만 전단계', value: `${k1(23 * Math.pow(h / 100, 2))}kg` }, { label: '여기부터 1단계 비만', value: `${k1(25 * Math.pow(h / 100, 2))}kg` }]))}
 ${section('기초대사량 (표준체중 기준)', `남 ${swM}kg · 여 ${swF}kg`, table(['나이', '남 기초대사량', '여 기초대사량'], AGES.map((a) => ({ cells: [`${a}세`, num(B.bmr('m', h, swM, a)), num(B.bmr('f', h, swF, a))] }))))}
 ${section('키가 바뀌면', '정상 체중 범위', chips(neighbors(HEIGHTS, h, 3).map((x) => { const rr = B.normalRange(x); return { label: `${x}cm`, value: `${rr.min}~${rr.max}`, href: bmiUrl(x), on: x === h }; })))}
 ${NOTE_BMI}`;
@@ -202,7 +204,7 @@ ${crumb([['/', '홈'], [null, '기초대사량']])}
 </div>
 <div class="tiles"><div class="tile"><small>기초대사량</small><span class="num" data-out="bmr"></span></div><div class="tile"><small>하루 필요 (유지)</small><span class="num" data-out="tdee"></span></div><div class="tile"><small>감량 섭취 (−500)</small><span class="num" data-out="lose"></span></div></div>
 <div class="tiles"><div class="tile"><small>증량 섭취 (+300)</small><span class="num" data-out="gain"></span></div><div class="tile"><small>단백질 권장</small><span class="num" data-out="protein"></span></div><div class="tile"><small>BMI</small><span class="num" data-out="bmi"></span></div></div>
-<div class="live-foot"><span>Harris-Benedict 식으로는 기초대사량 <b class="num" data-out="hb"></b>kcal</span></div>
+<div class="live-foot"><span>Harris-Benedict 식으로는 기초대사량 <b class="num" data-out="hb"></b>kcal</span><span>감량 섭취는 기초대사량 아래로 내리지 않습니다</span></div>
 </form>
 ${lead('기초대사량(BMR)은 아무것도 하지 않고 누워만 있어도 몸이 쓰는 에너지입니다. 여기에 활동량 계수를 곱한 것이 하루 필요 칼로리(TDEE)이고, 이보다 적게 먹으면 빠지고 많이 먹으면 늘어납니다. 하루 500kcal을 줄이면 한 주에 약 0.5kg이 빠집니다.')}
 ${section('예시', '30세 · kcal', table(['조건', '기초대사량', '거의 안 움직임', '가벼운 활동', '보통 활동'], rows))}
@@ -228,7 +230,7 @@ ${crumb([['/', '홈'], [null, '체지방률']])}
 <div class="ye-grid">
 <label class="ye-f"><span>성별</span><select data-k="sex"><option value="m">남</option><option value="f">여</option></select></label>
 <label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="numeric" value="175"></label>
-<label class="ye-f"><span>허리둘레 (배꼽 높이)</span><input data-k="waist" type="text" inputmode="numeric" value="85"></label>
+<label class="ye-f"><span>허리둘레 (남 배꼽 높이 · 여 가장 잘록한 곳)</span><input data-k="waist" type="text" inputmode="numeric" value="85"></label>
 <label class="ye-f"><span>목둘레</span><input data-k="neck" type="text" inputmode="numeric" value="38"></label>
 <label class="ye-f" data-row="hip"><span>엉덩이둘레 (가장 넓은 곳)</span><input data-k="hip" type="text" inputmode="numeric" value="95"></label>
 <label class="ye-f"><span>몸무게 (kg, 선택)</span><input data-k="w" type="text" inputmode="numeric" value=""></label>
@@ -253,16 +255,17 @@ const BURN_EX = ['walking', 'brisk-walking', 'running-8', 'cycling', 'swimming',
 function foodPage(f) {
   const url = foodUrl(f.slug);
   const same = FOODS.filter((x) => x.cat === f.cat && x.slug !== f.slug).slice(0, 8);
-  const title = `${f.name} 칼로리 — ${num(f.kcal)}kcal (${f.serving}) · 밥 ${K.bowls(f.kcal)}공기 · 태우려면 걷기 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분`;
-  const desc = `${f.name}(${f.serving})은 약 ${num(f.kcal)}kcal로 밥 ${K.bowls(f.kcal)}공기와 같습니다.${f.per100 ? ` 100g당 ${num(f.per100)}kcal.` : ''} 60kg 기준 걷기 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분, 달리기 ${K.minutesFor(f.kcal, EX['running-8'].met, 60)}분이면 태웁니다. 같은 종류 음식과 비교.`;
+  const tiny = f.kcal < 30;
+  const title = tiny ? `${f.name} 칼로리 — ${num(f.kcal)}kcal (${f.serving}) · 칼로리가 거의 없는 음식` : `${f.name} 칼로리 — ${num(f.kcal)}kcal (${f.serving}) · 밥 ${K.bowls(f.kcal)}공기 · 태우려면 걷기 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분`;
+  const desc = tiny ? `${f.name}(${f.serving}): 약 ${num(f.kcal)}kcal로 칼로리가 거의 없습니다. 같은 종류 음식과 비교.` : `${f.name}(${f.serving}): 약 ${num(f.kcal)}kcal, 밥 ${K.bowls(f.kcal)}공기와 같습니다.${f.per100 ? ` 100g당 ${num(f.per100)}kcal.` : ''} 60kg 기준 걷기 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분, 달리기 ${K.minutesFor(f.kcal, EX['running-8'].met, 60)}분이면 태웁니다. 같은 종류 음식과 비교.`;
   const burnRows = BURN_EX.map((s) => ({ cells: [EX[s].name].concat([50, 60, 70, 80].map((kg) => `${K.minutesFor(f.kcal, EX[s].met, kg)}분`)) }));
   const body = `
 ${crumb([['/food/', '음식 칼로리'], [null, f.name]])}
 <h1 class="title">${f.name} 칼로리</h1>
 <p class="meta">${f.serving} 기준 · ${f.cat} · 식약처 식품영양성분 DB 대략값</p>
-${lead(`${f.name} ${f.serving}은 약 <b>${num(f.kcal)}kcal</b>입니다. 밥 한 공기(300kcal)의 ${K.bowls(f.kcal)}배이고, 성인 하루 필요 칼로리(약 2,000kcal)의 ${pct(f.kcal / 2000, 0)}입니다. 60kg인 사람이 걷기로 태우려면 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분, 달리기로는 ${K.minutesFor(f.kcal, EX['running-8'].met, 60)}분이 걸립니다.`)}
-${hero({ label: `${f.name} (${f.serving})`, value: num(f.kcal), unit: 'kcal', sub: `밥 ${K.bowls(f.kcal)}공기 · 하루 2,000kcal의 ${pct(f.kcal / 2000, 0)}${f.per100 ? ` · 100g당 ${num(f.per100)}kcal` : ''}`, bars: [Math.min(1, f.kcal / 2000)], legendL: '0', legendR: '하루 2,000kcal' })}
-${section('태우려면', '몸무게별 · 분', table(['운동', '50kg', '60kg', '70kg', '80kg'], burnRows))}
+${lead(tiny ? `${f.name} ${f.serving} 기준 약 <b>${num(f.kcal)}kcal</b>로 칼로리가 거의 없어 밥 공기·운동 환산이 의미 없습니다. 설탕·시럽·크림이 들어가면 얘기가 달라지니 같은 종류의 다른 음식과 비교해 보세요.` : `${f.name} ${f.serving} 기준 약 <b>${num(f.kcal)}kcal</b>입니다. 밥 한 공기(300kcal)의 ${K.bowls(f.kcal)}배이고, 성인 하루 필요 칼로리(약 2,000kcal)의 ${pct(f.kcal / 2000, 0)}입니다. 60kg인 사람이 걷기로 태우려면 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분, 달리기로는 ${K.minutesFor(f.kcal, EX['running-8'].met, 60)}분이 걸립니다.`)}
+${hero({ label: `${f.name} (${f.serving})`, value: num(f.kcal), unit: 'kcal', sub: tiny ? '칼로리가 거의 없는 음식' : `밥 ${K.bowls(f.kcal)}공기 · 하루 2,000kcal의 ${pct(f.kcal / 2000, 0)}${f.per100 ? ` · 100g당 ${num(f.per100)}kcal` : ''}`, bars: [Math.min(1, f.kcal / 2000)], legendL: '0', legendR: '하루 2,000kcal' })}
+${tiny ? '' : section('태우려면', '몸무게별 · 분', table(['운동', '50kg', '60kg', '70kg', '80kg'], burnRows))}
 ${ad()}
 ${same.length ? section(`다른 ${f.cat}`, 'kcal', chips(same.map((x) => ({ label: x.name.length > 9 ? x.name.slice(0, 9) + '…' : x.name, value: num(x.kcal), href: foodUrl(x.slug) })))) : ''}
 ${section('이어서 계산하기', null, list([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }]))}
@@ -290,15 +293,15 @@ function exercisePage(e) {
   const rows = EX_KG.map((kg) => ({ cells: [`${kg}kg`].concat([10, 30, 60, 90].map((m) => num(K.burn(e.met, kg, m)))) }));
   const foods = ['rice', 'ramen', 'fried-chicken', 'americano', 'latte', 'beer'].map((s) => FOODS.find((f) => f.slug === s));
   const title = `${e.name} 칼로리 소모 — 30분 ${num(K.burn(e.met, 60, 30))}kcal (60kg), 몸무게·시간별 표`;
-  const desc = `${e.name}은 MET ${e.met}로 60kg 기준 30분에 ${num(K.burn(e.met, 60, 30))}kcal, 1시간에 ${num(K.burn(e.met, 60, 60))}kcal을 씁니다. 몸무게 50~100kg × 10·30·60·90분 표와 치킨·라면·밥을 태우는 데 걸리는 시간.`;
+  const desc = `${e.name}: MET ${e.met}, 60kg 기준 30분에 ${num(K.burn(e.met, 60, 30))}kcal, 1시간에 ${num(K.burn(e.met, 60, 60))}kcal을 씁니다. 몸무게 50~100kg × 10·30·60·90분 표와 치킨·라면·밥을 태우는 데 걸리는 시간.`;
   const body = `
 ${crumb([['/exercise/', '운동 칼로리'], [null, e.short]])}
 <h1 class="title">${e.name} — 소모 칼로리</h1>
 <p class="meta">MET ${e.met} · ${e.cat} · 소모 kcal = MET × 3.5 × 몸무게 ÷ 200 × 분</p>
-${lead(`${e.name}은 운동 강도 지수 MET ${e.met}입니다. 60kg인 사람이 30분 하면 약 ${num(K.burn(e.met, 60, 30))}kcal, 1시간이면 ${num(K.burn(e.met, 60, 60))}kcal을 씁니다. 몸무게가 무거울수록 같은 시간에 더 많이 태웁니다.`)}
+${lead(`${e.name}의 운동 강도 지수(MET)는 ${e.met}입니다. 60kg인 사람이 30분 하면 약 ${num(K.burn(e.met, 60, 30))}kcal, 1시간이면 ${num(K.burn(e.met, 60, 60))}kcal을 씁니다. 몸무게가 무거울수록 같은 시간에 더 많이 태웁니다.`)}
 ${hero({ label: `30분 소모 (60kg)`, value: num(K.burn(e.met, 60, 30)), unit: 'kcal', sub: `1시간 ${num(K.burn(e.met, 60, 60))}kcal · 70kg이면 30분 ${num(K.burn(e.met, 70, 30))}kcal` })}
 ${section('몸무게 × 시간', 'kcal', table(['몸무게', '10분', '30분', '1시간', '90분'], rows))}
-${section('이걸로 태우려면', '60kg 기준 · 분', table(['음식', 'kcal', `${e.short} 시간`], foods.map((f) => ({ cells: [`<a href="${foodUrl(f.slug)}">${f.name}</a>`, num(f.kcal), `${K.minutesFor(f.kcal, e.met, 60)}분`] }))))}
+${section('이걸로 태우려면', '60kg 기준 · 분', table(['음식', 'kcal', '걸리는 시간'], foods.map((f) => ({ cells: [`<a href="${foodUrl(f.slug)}">${f.name}</a>`, num(f.kcal), `${K.minutesFor(f.kcal, e.met, 60)}분`] }))))}
 ${ad()}
 ${section('다른 운동', '60kg · 30분 kcal', chips(EXERCISES.filter((x) => x.slug !== e.slug).slice(0, 10).map((x) => ({ label: x.short, value: num(K.burn(x.met, 60, 30)), href: exUrl(x.slug) }))))}
 <p class="note">MET는 Compendium of Physical Activities의 대략값이고, 실제 소모량은 강도·체력·자세에 따라 ±30% 차이 납니다. 스마트워치 수치와 다를 수 있습니다. <a href="/method/">계산 기준 보기</a></p>`;
@@ -319,7 +322,7 @@ ${section('자주 묻는 것', null, `<div class="doc">
 <p><b>살을 빼려면 운동이 먼저인가요?</b> 치킨 한 마리(1,900kcal)를 태우려면 60kg인 사람이 3시간을 넘게 뛰어야 합니다. 감량은 식사 조절이 7, 운동이 3이고, 운동은 근육을 지켜 요요를 막는 역할이 큽니다.</p>
 <p><b>스마트워치 숫자와 다른데요?</b> 기기는 심박수로 추정하고 여기는 평균 MET로 계산해 ±30% 차이는 정상입니다. 어느 쪽이든 추세를 보는 용도로 쓰세요.</p>
 </div>`)}`;
-  write('/exercise/', shell({ url: '/exercise/', title: `운동별 소모 칼로리표 — 걷기·달리기·자전거·수영·헬스 30분·1시간 (${YEAR})`, desc: '걷기·달리기·자전거·수영·등산·줄넘기·헬스 등 33가지 운동의 소모 칼로리를 MET 기준으로 몸무게·시간별로 정리했습니다.', body, nav: 'exercise' }));
+  write('/exercise/', shell({ url: '/exercise/', title: `운동별 소모 칼로리표 — 걷기·달리기·자전거·수영·헬스 30분·1시간 (${YEAR})`, desc: `걷기·달리기·자전거·수영·등산·줄넘기·헬스 등 ${EXERCISES.length}가지 운동의 소모 칼로리를 MET 기준으로 몸무게·시간별로 정리했습니다.`, body, nav: 'exercise' }));
 }
 
 /* ---------- 물 · 단백질 ---------- */
@@ -328,13 +331,13 @@ function waterPage(kg) {
   const body = `
 ${crumb([['/water/', '물 섭취량'], [null, `${kg}kg`]])}
 <h1 class="title">${kg}kg — 하루 물 섭취량과 단백질</h1>
-<p class="meta">몸무게 × 30~35ml · 단백질 0.8~1.6g/kg</p>
-${lead(`몸무게 ${kg}kg이면 하루 물 권장량은 약 ${num(wt.ml)}ml, 200ml 컵으로 ${wt.cups}잔입니다. 단백질은 일반 성인 기준 하루 ${pr.base}g, 운동을 하면 ${pr.active}g 안팎이 좋습니다. 커피·차 같은 카페인 음료는 물로 세지 않습니다.`)}
+<p class="meta">몸무게 × 33ml (30~35ml) · 단백질 0.8~1.4g/kg</p>
+${lead(`몸무게 ${kg}kg이면 하루 물 권장량은 약 ${num(wt.ml)}ml, 200ml 컵으로 ${wt.cups}잔입니다. 단백질은 일반 성인 기준 하루 ${pr.base}g, 운동을 하면 ${pr.active}g 안팎이 좋습니다. 커피·차도 수분에 포함되지만, 카페인 음료보다는 물로 채우는 편이 좋습니다.`)}
 ${hero({ label: '하루 물', value: num(wt.ml), unit: 'ml', sub: `200ml 컵 ${wt.cups}잔 · 500ml 생수 ${k1(wt.ml / 500)}병` })}
 ${tiles([{ label: '단백질 (일반)', value: `${pr.base}g` }, { label: '단백질 (운동)', value: `${pr.active}g` }, { label: '닭가슴살로', value: `${Math.round(pr.active / 23 * 100)}g` }])}
 ${section('몸무게가 바뀌면', 'ml', chips(neighbors(WATER_KG, kg, 3).map((x) => ({ label: `${x}kg`, value: num(B.water(x).ml), href: `/water/${x}/`, on: x === kg }))))}
 ${ad()}
-<p class="note">물 30~35ml/kg은 유럽식품안전청(EFSA)·미국 의학한림원 권장량을 몸무게로 환산한 대략값입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 권장 0.8g/kg은 한국인 영양소 섭취기준(2020)입니다.</p>`;
+<p class="note">물 30~35ml/kg은 임상에서 널리 쓰는 어림 기준으로, 유럽식품안전청(EFSA)·미국 의학한림원의 하루 총 수분 권장량(여 2.0~2.7L·남 2.5~3.7L)과 비슷한 수준입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 권장 0.8g/kg은 한국인 영양소 섭취기준(2020)입니다.</p>`;
   write(url, shell({ url, title: `${kg}kg 하루 물 섭취량 ${num(wt.ml)}ml (${wt.cups}잔) · 단백질 ${pr.base}~${pr.active}g`, desc: `몸무게 ${kg}kg의 하루 물 권장량은 약 ${num(wt.ml)}ml, 단백질은 ${pr.base}~${pr.active}g입니다. 컵·생수병 환산과 닭가슴살 환산.`, body, nav: 'bmr' }));
 }
 function waterIndex() {
@@ -350,13 +353,15 @@ ${section('몸무게별', null, table(['몸무게', '물 (ml)', '컵', '단백�
 const MONTHS = []; for (let m = 1; m <= 12; m++) for (let d = 1; d <= D.daysInMonth(2024, m); d++) MONTHS.push([m, d]);
 const dueUrl = (m, d) => `/due-date/${pad(m)}-${pad(d)}/`;
 const ovUrl = (m, d) => `/ovulation/${pad(m)}-${pad(d)}/`;
-function lmpYears(m, d) {
-  /* 이 날짜의 가장 최근 발생(오늘 포함)과 그 다음 해 — 2월 29일은 윤년으로 */
+function lmpYears(m, d, mode = 'due') {
+  /* 이 날짜의 발생 후보(2월 29일은 윤년만). due: 아직 예정일이 지나지 않은 가장 최근 발생, 없으면 다가오는 발생 · cycle: 가장 최근 발생(오늘 포함) */
   const y0 = TODAY.getUTCFullYear();
   const cands = [];
   for (let y = y0 - 4; y <= y0 + 4; y++) { if (m === 2 && d === 29 && D.daysInMonth(y, 2) < 29) continue; cands.push(D.utc(y, m, d)); }
-  const recent = cands.filter((x) => x <= TODAY).pop() || cands[0];
-  const next = cands.find((x) => x > TODAY) || cands[cands.length - 1];
+  let recent;
+  if (mode === 'due') recent = cands.filter((x) => x <= TODAY && D.addDays(x, 280) >= TODAY).pop() || cands.find((x) => x > TODAY) || cands[cands.length - 1];
+  else recent = cands.filter((x) => x <= TODAY).pop() || cands[0];
+  const next = cands.find((x) => x > recent) || recent;
   return { recent, next };
 }
 function duePage(m, d) {
@@ -365,12 +370,12 @@ function duePage(m, d) {
   const w = D.weeksOn(recent, TODAY);
   const rows = D.MILESTONES.map((ms) => ({ cells: [`${ms.week}주`, `${D.fmtShort(D.addDays(recent, ms.week * 7))} (${D.wd(D.addDays(recent, ms.week * 7)).slice(0, 1)})`, ms.label] }));
   const title = `마지막 생리 ${m}월 ${d}일 출산예정일 — ${D.fmt(p.due)} (${D.wd(p.due)}) · 주수별 일정`;
-  const desc = `마지막 생리 시작일이 ${recent.getUTCFullYear()}년 ${m}월 ${d}일이면 출산예정일은 ${D.fmt(p.due)}입니다. 임신 확인, 기형아 검사, 정밀 초음파, 임당 검사, 만삭까지 주수별 날짜와 오늘 몇 주인지.`;
+  const desc = `마지막 생리 시작일이 ${recent.getUTCFullYear()}년 ${m}월 ${d}일이면 출산예정일은 ${D.fmt(p.due)}입니다. 임신 확인, 기형아 검사, 정밀 초음파, 임신성 당뇨 검사, 만삭까지 주수별 날짜와 오늘 몇 주인지.`;
   const body = `
 ${crumb([['/due-date/', '출산예정일'], [null, `${m}월 ${d}일`]])}
 <h1 class="title">마지막 생리 ${m}월 ${d}일 — 출산예정일</h1>
 <p class="meta">네겔레 법칙 · 마지막 생리 시작일 + 280일(40주) · 생리주기 28일 가정</p>
-${lead(`마지막 생리가 ${recent.getUTCFullYear()}년 ${m}월 ${d}일에 시작했다면 출산예정일은 <b>${D.fmt(p.due)} ${D.wd(p.due)}</b>입니다. 배란·수정은 ${D.fmtShort(p.conception)} 무렵이고, ${D.fmtShort(p.fullTerm)}부터 만삭입니다. ${w.days >= 0 && w.days <= 300 ? `오늘(${D.fmtShort(TODAY)})은 임신 ${w.weeks}주 ${w.rem}일, ${w.trimester}분기입니다.` : ''} ${next.getUTCFullYear()}년 ${m}월 ${d}일이 마지막 생리라면 ${D.fmt(pn.due)}입니다.`)}
+${lead(`마지막 생리가 ${recent.getUTCFullYear()}년 ${m}월 ${d}일에 시작했다면 출산예정일은 <b>${D.fmt(p.due)} ${D.wd(p.due)}</b>입니다. 배란·수정은 ${D.fmtShort(p.conception)} 무렵이고, ${D.fmtShort(p.fullTerm)}부터 만삭입니다. ${w.days >= 0 && w.days <= 300 ? `오늘(${D.fmtShort(TODAY)})은 임신 ${w.weeks}주 ${w.rem}일, ${w.trimester}분기입니다.` : ''} ${next > recent ? `${next.getUTCFullYear()}년 ${m}월 ${d}일이 마지막 생리라면 ${D.fmt(pn.due)}입니다.` : ''}`)}
 ${hero({ label: `출산예정일 (${recent.getUTCFullYear()}년 ${m}월 ${d}일 시작)`, value: `${p.due.getUTCMonth() + 1}월 ${p.due.getUTCDate()}일`, unit: '', sub: `${p.due.getUTCFullYear()}년 · ${D.wd(p.due)} · 만삭 ${D.fmtShort(p.fullTerm)}부터 · 수정 무렵 ${D.fmtShort(p.conception)}` })}
 <form class="quick live" data-live="due" style="margin-top:14px"><div class="live-head"><b>오늘 몇 주?</b><span>날짜를 바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>마지막 생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(recent)}"></label></div><div class="tiles"><div class="tile"><small>출산예정일</small><span class="num" data-out="due"></span></div><div class="tile"><small>오늘 주수</small><span class="num" data-out="week"></span></div><div class="tile"><small>남은 날</small><span class="num" data-out="left"></span></div></div></form>
 ${section('주수별 일정', `${recent.getUTCFullYear()}년 ${m}월 ${d}일 시작 기준`, table(['주수', '날짜', '이 무렵'], rows))}
@@ -396,13 +401,13 @@ ${crumb([['/', '홈'], [null, '출산예정일']])}
 ${lead('출산예정일은 마지막 생리 시작일에 280일(40주)을 더해 구합니다. 아래에서 날짜를 누르면 그 날짜 기준 주수별 검사 일정과 오늘 몇 주인지가 나옵니다.')}
 ${section('마지막 생리 시작일 고르기', null, `<div class="grid grid-2">${grid12.join('')}</div>`)}
 ${ad()}`;
-  write('/due-date/', shell({ url: '/due-date/', title: '출산예정일 계산기 — 마지막 생리일로 예정일·임신 주수·검사 일정', desc: '마지막 생리 시작일을 넣으면 출산예정일과 오늘 임신 주수, 기형아 검사·정밀 초음파·임당 검사 등 주수별 일정이 나옵니다.', body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
+  write('/due-date/', shell({ url: '/due-date/', title: '출산예정일 계산기 — 마지막 생리일로 예정일·임신 주수·검사 일정', desc: '마지막 생리 시작일을 넣으면 출산예정일과 오늘 임신 주수, 기형아 검사·정밀 초음파·임신성 당뇨 검사 등 주수별 일정이 나옵니다.', body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 
 /* ---------- 배란일 ---------- */
 const CYCLES = [24, 26, 28, 30, 32, 35];
 function ovPage(m, d) {
-  const url = ovUrl(m, d), { recent } = lmpYears(m, d);
+  const url = ovUrl(m, d), { recent } = lmpYears(m, d, 'cycle');
   const c28 = D.cycle(recent, 28);
   const rows = CYCLES.map((len) => { const c = D.cycle(recent, len); return { cls: len === 28 ? 'on' : '', cells: [`${len}일`, D.fmtShort(c.ovulation), `${D.fmtShort(c.fertileStart)} ~ ${D.fmtShort(c.fertileEnd)}`, D.fmtShort(c.next)] }; });
   const title = `생리 시작 ${m}월 ${d}일 배란일·가임기 — 배란 ${D.fmtShort(c28.ovulation)}, 가임기 ${D.fmtShort(c28.fertileStart)}~${D.fmtShort(c28.fertileEnd)} (주기 28일)`;
@@ -421,7 +426,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>가임기는 배란 5일 전부터.</b> 정자는 몸 안에서 최대 5일, 난자는 배란 뒤 하루 정도 살아 있어 배란 5일 전~1일 뒤가 임신 가능성이 가장 높습니다. 배란테스트기는 배란 1~2일 전에 양성이 나옵니다.</p>
 <p><b>피임 목적으로는 쓰지 마세요.</b> 배란은 스트레스·수면·체중 변화로 쉽게 밀립니다. 이 계산은 임신 준비용 참고이지 피임 방법이 아닙니다.</p>
 </div>`)}
-${section('날짜가 바뀌면', '배란일 (28일)', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const cc = D.cycle(lmpYears(mm, dd).recent, 28); return { label: `${mm}/${dd}`, value: `${cc.ovulation.getUTCMonth() + 1}/${cc.ovulation.getUTCDate()}`, href: ovUrl(mm, dd), on: k === 0 }; })))}
+${section('날짜가 바뀌면', '배란일 (28일)', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const cc = D.cycle(lmpYears(mm, dd, 'cycle').recent, 28); return { label: `${mm}/${dd}`, value: `${cc.ovulation.getUTCMonth() + 1}/${cc.ovulation.getUTCDate()}`, href: ovUrl(mm, dd), on: k === 0 }; })))}
 ${section('이어서', null, list([{ href: dueUrl(m, d), title: `${m}월 ${d}일 시작 출산예정일`, sub: '임신했다면' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '임신 준비 체중 관리' }]))}
 <p class="note">평균 주기와 황체기 14일을 가정한 추정입니다. 다낭성난소증후군 등으로 주기가 불규칙하면 맞지 않을 수 있습니다.</p>`;
   write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
@@ -447,8 +452,8 @@ function babyPage(birth) {
   const vac = D.vaccineDates(birth);
   const rows = []; for (const v of vac) for (const ds of v.doses) rows.push({ dt: ds.date, cells: [v.name, ds.label, `${D.fmt(ds.date)}`], past: ds.date <= TODAY });
   rows.sort((a, b) => a.dt - b.dt);
-  const marks = [['100일', D.addDays(birth, 99)], ['200일', D.addDays(birth, 199)], ['첫돌', D.utc(birth.getUTCFullYear() + 1, birth.getUTCMonth() + 1, birth.getUTCDate())], ['두돌', D.utc(birth.getUTCFullYear() + 2, birth.getUTCMonth() + 1, birth.getUTCDate())], ['세돌', D.utc(birth.getUTCFullYear() + 3, birth.getUTCMonth() + 1, birth.getUTCDate())]];
-  const title = `${D.fmt(birth)}생 아기 — 오늘 ${age.months}개월 ${age.days}일, 예방접종 일정과 100일·돌`;
+  const marks = [['100일', D.addDays(birth, 99)], ['200일', D.addDays(birth, 199)], ['첫돌', D.addMonths(birth, 12)], ['두돌', D.addMonths(birth, 24)], ['세돌', D.addMonths(birth, 36)]];
+  const title = `${D.fmt(birth)}생 아기 — ${D.fmtShort(TODAY)} 기준 ${age.months}개월 ${age.days}일, 예방접종 일정과 100일·돌`;
   const desc = `${D.fmt(birth)}에 태어난 아기는 ${D.fmtShort(TODAY)} 기준 ${age.months}개월 ${age.days}일(생후 ${num(age.totalDays)}일)입니다. 국가예방접종 표준 일정 날짜, 100일·200일·첫돌·두돌, 초등학교 입학 연도까지.`;
   const body = `
 ${crumb([['/baby/', '아기 개월수'], [null, D.fmt(birth)]])}
@@ -456,7 +461,7 @@ ${crumb([['/baby/', '아기 개월수'], [null, D.fmt(birth)]])}
 <p class="meta">${D.wd(birth)} 출생 · 초등학교 입학 ${D.schoolYear(birth)}년 3월 · 접종 일정은 질병관리청 표준 일정</p>
 <form class="quick live" data-live="baby" style="margin-top:14px"><div class="live-head"><b>오늘 기준</b><span>생일을 바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생년월일</span><input data-k="birth" type="date" value="${D.iso(birth)}"></label></div><div class="tiles"><div class="tile"><small>개월수</small><span class="num" data-out="age"></span></div><div class="tile"><small>생후</small><span class="num" data-out="days"></span></div><div class="tile"><small>만 나이</small><span class="num" data-out="year"></span></div></div><p class="sub" style="margin-top:8px" data-out="growth"></p></form>
 ${lead(`${D.fmt(birth)}에 태어난 아기는 이 페이지를 만든 ${D.fmtShort(TODAY)} 기준 <b>${age.months}개월 ${age.days}일</b>, 생후 ${num(age.totalDays)}일째입니다(위 상자는 열 때마다 오늘로 다시 계산). 100일은 ${D.fmt(marks[0][1])}, 첫돌은 ${D.fmt(marks[2][1])}이고 초등학교는 ${D.schoolYear(birth)}년 3월에 입학합니다.`)}
-${section('기념일', null, tiles(marks.slice(0, 3).map(([l, dt]) => ({ label: l, value: `${dt.getUTCMonth() + 1}/${dt.getUTCDate()} (${dt.getUTCFullYear()})` }))) + tiles(marks.slice(3).concat([['초등 입학', D.utc(D.schoolYear(birth), 3, 2)]]).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}` }))))}
+${section('기념일', null, tiles(marks.slice(0, 3).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))) + tiles(marks.slice(3).concat([['초등 입학', D.utc(D.schoolYear(birth), 3, 2)]]).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))))}
 ${section('예방접종 일정', '국가예방접종(무료) 표준 일정 · 날짜는 접종 시작 시기 · 지난 접종은 흐리게', `<div class="tbl"><table><thead><tr><th>백신</th><th>시기</th><th>날짜</th></tr></thead><tbody>${rows.map((r) => `<tr${r.past ? ' style="color:var(--ghost)"' : ''}>${r.cells.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
@@ -465,7 +470,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>초등학교 입학</b>은 만 6세가 되는 해의 다음 해 3월, 즉 태어난 해 + 7년입니다. 1~2월생도 같은 해에 입학합니다(2009년 이후).</p>
 </div>`)}
 ${section('이어서', null, list([{ href: '/bmi/', title: '엄마·아빠 BMI', sub: '키·몸무게별 정상 체중' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }, { href: 'http://saengil.sajucheop.com/', title: '생일 사전', sub: '띠·별자리·만 나이' }]))}
-<p class="note">질병관리청 「표준 예방접종 일정표(${YEAR})」를 바탕으로 한 안내이며, 아기의 건강 상태에 따라 소아과에서 일정을 조정합니다.</p>`;
+<p class="note">질병관리청 「표준 예방접종 일정표」를 바탕으로 한 안내이며, 아기의 건강 상태에 따라 소아과에서 일정을 조정합니다.</p>`;
   write(url, shell({ url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 function babyIndex(dates) {
@@ -494,9 +499,9 @@ function home() {
 <form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
-<a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 ${r.min}~${r.max}kg</span></a>
+<a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
 <a href="/bmr/"><b>기초대사량 · 하루 칼로리</b><span>남 30세 170/65 → <span class="num">${num(B.bmr('m', 170, 65, 30))}</span>kcal · 하루 ${num(B.tdee(B.bmr('m', 170, 65, 30), 'light'))}</span></a>
-<a href="/bodyfat/"><b>체지방률</b><span>줄자로 허리·목둘레 재면 인바디 없이 <span class="num">±3%p</span></span></a>
+<a href="/bodyfat/"><b>체지방률</b><span>줄자로 허리·목둘레 재면 인바디 없이 <span class="num">±3~4%p</span></span></a>
 <a href="/water/"><b>물 · 단백질</b><span>65kg → 하루 물 <span class="num">${num(B.water(65).ml)}</span>ml · 단백질 ${B.protein(65).base}~${B.protein(65).active}g</span></a>
 </div>`)}
 ${section('먹고 태우기', null, `<div class="dict">
@@ -521,7 +526,7 @@ function docs() {
 <h2>BMI와 정상 체중</h2><p>BMI = 몸무게(kg) ÷ 키(m)². 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준(18.5 미만 저체중, 18.5~22.9 정상, 23~24.9 비만 전단계, 25~29.9 1단계, 30~34.9 2단계, 35 이상 3단계 비만)을 씁니다. 정상 체중 범위는 BMI 18.5~22.9, 표준체중은 키(m)² × 22(남)·21(여), 브로카 변법은 (키 − 100) × 0.9입니다. 감량 기간은 체지방 1kg ≈ 7,700kcal로 계산합니다.</p>
 <h2>기초대사량과 하루 필요 칼로리</h2><p>Mifflin-St Jeor(1990): 남 10 × 몸무게 + 6.25 × 키 − 5 × 나이 + 5, 여 −161. 비교용 Harris-Benedict는 1984년 개정식. 하루 필요 칼로리는 기초대사량 × 활동 계수(1.2 · 1.375 · 1.55 · 1.725 · 1.9). 단백질 권장량은 한국인 영양소 섭취기준(2020) 0.8g/kg과 운동 시 1.4g/kg 안팎.</p>
 <h2>체지방률</h2><p>미 해군 공식(Hodgdon & Beckett 1984), cm 단위. 남 495 ÷ (1.0324 − 0.19077·log(허리 − 목) + 0.15456·log(키)) − 450, 여 495 ÷ (1.29579 − 0.35004·log(허리 + 엉덩이 − 목) + 0.22100·log(키)) − 450. 판정은 ACE 분류.</p>
-<h2>칼로리</h2><p>음식 칼로리는 식품의약품안전처 식품영양성분 DB와 외식 영양성분 자료를 1인분 기준으로 반올림한 대략값입니다. 운동 소모 칼로리 = MET × 3.5 × 몸무게(kg) ÷ 200 × 분, MET는 Compendium of Physical Activities(2011)의 보통 강도 값. 물 섭취량은 몸무게 × 33ml(EFSA·미국 의학한림원 권장량 환산).</p>
+<h2>칼로리</h2><p>음식 칼로리는 식품의약품안전처 식품영양성분 DB와 외식 영양성분 자료를 1인분 기준으로 반올림한 대략값입니다. 운동 소모 칼로리 = MET × 3.5 × 몸무게(kg) ÷ 200 × 분, MET는 Compendium of Physical Activities(2011)의 보통 강도 값. 물 섭취량은 몸무게 × 33ml(임상 어림 기준 30~35ml/kg).</p>
 <h2>출산예정일·배란일</h2><p>출산예정일 = 마지막 생리 시작일 + 280일(네겔레 법칙, 주기 28일 가정). 임신 주수는 마지막 생리 시작일을 0주 0일로 셉니다. 배란일 = 다음 생리 예정일 − 14일, 가임기 = 배란 5일 전 ~ 1일 뒤. 모두 평균값이며 초음파·검사 결과가 우선합니다.</p>
 <h2>아기 개월수·예방접종</h2><p>개월수는 달력 기준(같은 날짜가 될 때 1개월). 예방접종 일정은 질병관리청 「표준 예방접종 일정표」의 국가예방접종 항목을 생년월일에 더해 계산했으며, 실제 접종은 소아과의 판단에 따릅니다. 초등학교 입학 연도 = 출생연도 + 7.</p>
 <h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);

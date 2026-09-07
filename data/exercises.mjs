@@ -1,4 +1,5 @@
 /* 운동별 MET — Compendium of Physical Activities(2011) 대략값. 강도에 따라 편차가 크므로 '보통 강도' 기준 */
+export const EX_ALIAS = { 'running-8': ['달리기', '러닝', '뛰기', '조깅 8'], 'running-10': ['달리기 10', '10km'], jogging: ['조깅'], walking: ['걷기', '산책', '걸으면', '걸어서'], 'brisk-walking': ['빠른 걷기', '빠르게 걷기', '파워워킹', '속보'], stairs: ['계단'], cycling: ['자전거', '사이클'], spinning: ['스피닝', '실내 자전거'], swimming: ['수영'], hiking: ['등산', '산행'], 'jump-rope': ['줄넘기'], aerobics: ['에어로빅', '홈트'], hiit: ['크로스핏', '인터벌', '고강도'], weight: ['헬스', '웨이트', '근력'], 'weight-hard': ['웨이트 격렬'], squat: ['스쿼트', '맨몸'], pilates: ['필라테스'], yoga: ['요가'], stretching: ['스트레칭'], soccer: ['축구'], basketball: ['농구'], badminton: ['배드민턴'], tennis: ['테니스'], 'table-tennis': ['탁구'], golf: ['골프'], bowling: ['볼링'], dance: ['춤', '댄스'], kickboxing: ['킥복싱', '복싱'], skating: ['스케이트', '인라인'], skiing: ['스키', '보드'], cleaning: ['청소', '집안일'], sex: ['성관계', '섹스'], sleep: ['잠', '수면'] };
 export const EXERCISES = [
   { slug: 'walking', name: '걷기 (보통, 시속 4km)', short: '걷기', met: 3.0, cat: '일상' },
   { slug: 'brisk-walking', name: '빠르게 걷기 (시속 5.6km)', short: '빠른 걷기', met: 4.3, cat: '일상' },

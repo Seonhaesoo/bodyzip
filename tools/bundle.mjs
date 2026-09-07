@@ -13,7 +13,7 @@ export function makeBundle() {
     wrap('F', strip(read('fmt.mjs')), ['num', 'won', 'pct']),
     wrap('B', strip(read('body.mjs')), ['BMI_CATS', 'bmi', 'bmiCat', 'bmiOf', 'normalRange', 'standardWeight', 'broca', 'toNormal', 'weeksFor', 'bmr', 'bmrHB', 'ACTIVITY', 'tdee', 'bodyFatNavy', 'bodyFatCat', 'water', 'protein']),
     wrap('K', strip(read('kcal.mjs')), ['burn', 'minutesFor', 'bowls', 'RICE_BOWL']),
-    wrap('D', strip(read('dates.mjs')), ['utc', 'addDays', 'diffDays', 'iso', 'fmt', 'fmtShort', 'wd', 'pregnancy', 'weeksOn', 'MILESTONES', 'cycle', 'ageOn', 'vaccineDates', 'growthText', 'schoolYear']),
+    wrap('D', strip(read('dates.mjs')), ['utc', 'addDays', 'diffDays', 'iso', 'fmt', 'fmtShort', 'wd', 'pregnancy', 'weeksOn', 'MILESTONES', 'cycle', 'ageOn', 'addMonths', 'vaccineDates', 'growthText', 'schoolYear']),
     `window.Momja = Object.assign({}, F, B, K, D);`,
   ];
   return `/* 몸자 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;

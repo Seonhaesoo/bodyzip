@@ -53,6 +53,12 @@ export function ageOn(birth, date) {
   const total = diffDays(birth, date);
   return { months, days, totalDays: total, weeks: Math.floor(total / 7), years: Math.floor(months / 12), remMonths: months % 12 };
 }
+/* 달 더하기 — 29~31일생은 그 달 말일로 (1월 31일 + 1개월 = 2월 28일) */
+export function addMonths(dt, m) {
+  const y = dt.getUTCFullYear(), mo = dt.getUTCMonth() + m;
+  const yy = y + Math.floor(mo / 12), mm = ((mo % 12) + 12) % 12;
+  return new Date(Date.UTC(yy, mm, Math.min(dt.getUTCDate(), daysInMonth(yy, mm + 1))));
+}
 /* 국가예방접종 표준 일정(질병관리청) — 개월 기준 접종 시기 */
 export const VACCINES = [
   { name: 'BCG (결핵)', doses: [[0, '생후 4주 이내']] },
@@ -70,7 +76,7 @@ export const VACCINES = [
   { name: 'Tdap · HPV', doses: [[132, '만 11~12세']] },
 ];
 export function vaccineDates(birth) {
-  return VACCINES.map((v) => ({ name: v.name, doses: v.doses.map(([m, label]) => ({ label, date: new Date(Date.UTC(birth.getUTCFullYear(), birth.getUTCMonth() + m, birth.getUTCDate())) })) }));
+  return VACCINES.map((v) => ({ name: v.name, doses: v.doses.map(([m, label]) => ({ label, date: addMonths(birth, m) })) }));
 }
 export const GROWTH = [
   [0, '신생아 — 하루 16~18시간 잠, 2~3시간마다 수유. 배꼽 관리와 황달 관찰.'],

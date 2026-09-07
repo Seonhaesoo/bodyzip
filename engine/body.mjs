@@ -28,6 +28,8 @@ export const broca = (cm) => Math.round((cm - 100) * 0.9 * 10) / 10;
 /* 목표 BMI까지 필요한 체중 변화(kg, +면 감량) */
 export function toNormal(cm, kg) {
   const r = normalRange(cm);
+  const b = bmi(cm, kg);
+  if (b >= 18.5 && b < 23) return { dir: 'ok', kg: 0 };   /* 판정과 같은 기준(반올림 BMI)으로 먼저 본다 */
   if (kg > r.max) return { dir: 'lose', kg: Math.round((kg - r.max) * 10) / 10 };
   if (kg < r.min) return { dir: 'gain', kg: Math.round((r.min - kg) * 10) / 10 };
   return { dir: 'ok', kg: 0 };
@@ -45,7 +47,7 @@ export function bmrHB(sex, cm, kg, age) {
 }
 export const ACTIVITY = [
   { key: 'sedentary', label: '거의 안 움직임 (사무직, 운동 없음)', f: 1.2 },
-  { key: 'light', label: '가벼움 (주 1~3회 운동)', f: 1.375 },
+  { key: 'light', label: '가벼운 활동 (주 1~3회 운동)', f: 1.375 },
   { key: 'moderate', label: '보통 (주 3~5회 운동)', f: 1.55 },
   { key: 'active', label: '활발 (주 6~7회 운동)', f: 1.725 },
   { key: 'very', label: '매우 활발 (육체노동 · 하루 2회 운동)', f: 1.9 },

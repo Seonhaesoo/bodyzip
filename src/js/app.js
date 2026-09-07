@@ -5,6 +5,12 @@
   var G = window.MOMJA_GRID || {};
   function nearest(arr, v) { if (!arr || !arr.length) return v; return arr.reduce(function (a, b) { return Math.abs(b - v) < Math.abs(a - v) ? b : a; }); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
+  /* 이름·별칭 가운데 가장 긴 것이 검색어에 들어 있는 항목 — 같은 길이면 앞 항목 */
+  function best(items, t) {
+    var hit = null, len = 0;
+    (items || []).forEach(function (it) { (it.ks || []).forEach(function (k) { if (k && t.indexOf(k) >= 0 && k.length > len) { hit = it; len = k.length; } }); });
+    return hit;
+  }
 
   function parseSmart(s) {
     var t = (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
@@ -41,10 +47,10 @@
     if (h != null && w != null) { var hh = nearest(G.heights || [h], h), ww = Math.max(G.wmin || 30, Math.min(G.wmax || 150, Math.round(w))); return { href: '/bmi/' + hh + '/' + ww + '/', label: '키 ' + hh + 'cm 몸무게 ' + ww + 'kg BMI' }; }
     if (h != null) { var h2 = nearest(G.heights || [h], h); return { href: '/bmi/' + h2 + '/', label: '키 ' + h2 + 'cm 정상 체중' }; }
     // 운동
-    var ex = (G.exercises || []).filter(function (e) { return t.indexOf(e.k) >= 0; }).sort(function (a, b) { return b.k.length - a.k.length; })[0];
+    var ex = best(G.exercises, t);
     if (ex) return { href: '/exercise/' + ex.slug + '/', label: ex.name + ' 소모 칼로리' };
     // 음식
-    var fd = (G.foods || []).filter(function (f) { return t.indexOf(f.k) >= 0; }).sort(function (a, b) { return b.k.length - a.k.length; })[0];
+    var fd = best(G.foods, t);
     if (fd) return { href: '/food/' + fd.slug + '/', label: fd.name + ' 칼로리' };
     if (/칼로리|kcal/.test(t)) return { href: '/food/', label: '음식 칼로리 사전' };
     if (w != null) return { href: '/water/' + nearest(G.water || [w], w) + '/', label: w + 'kg 하루 물·단백질' };
