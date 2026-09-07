@@ -1,0 +1,20 @@
+/* 브라우저용 엔진 묶음 — engine/*.mjs 를 그대로 읽어 import/export만 걷어낸다. tools/test.mjs 가 서버 결과와 비교한다. */
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const read = (f) => fs.readFileSync(path.join(ROOT, 'engine', f), 'utf8');
+const strip = (src) => src.split('\n').filter((l) => !/^import /.test(l)).join('\n').replace(/^export (function|const|let)/gm, '$1').replace(/^export \{[^}]*\};?\s*$/gm, '');
+const wrap = (name, src, names) => `const ${name} = (() => {\n${src}\nreturn { ${names.join(', ')} };\n})();`;
+
+export function makeBundle() {
+  const parts = [
+    wrap('F', strip(read('fmt.mjs')), ['num', 'won', 'pct']),
+    wrap('B', strip(read('body.mjs')), ['BMI_CATS', 'bmi', 'bmiCat', 'bmiOf', 'normalRange', 'standardWeight', 'broca', 'toNormal', 'weeksFor', 'bmr', 'bmrHB', 'ACTIVITY', 'tdee', 'bodyFatNavy', 'bodyFatCat', 'water', 'protein']),
+    wrap('K', strip(read('kcal.mjs')), ['burn', 'minutesFor', 'bowls', 'RICE_BOWL']),
+    wrap('D', strip(read('dates.mjs')), ['utc', 'addDays', 'diffDays', 'iso', 'fmt', 'fmtShort', 'wd', 'pregnancy', 'weeksOn', 'MILESTONES', 'cycle', 'ageOn', 'vaccineDates', 'growthText', 'schoolYear']),
+    `window.Momja = Object.assign({}, F, B, K, D);`,
+  ];
+  return `/* 몸자 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;
+}
