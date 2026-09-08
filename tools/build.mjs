@@ -6,10 +6,13 @@ import { fileURLToPath } from 'node:url';
 import * as B from '../engine/body.mjs';
 import * as K from '../engine/kcal.mjs';
 import * as D from '../engine/dates.mjs';
+import * as X from '../engine/extra.mjs';
 import { num, pct } from '../engine/fmt.mjs';
 import { FOODS, FOOD_CATS, FOODS_ASOF, FOOD_ALIAS } from '../data/foods.mjs';
 import { EXERCISES, EX_ALIAS } from '../data/exercises.mjs';
 import { makeBundle } from './bundle.mjs';
+import { buildExtra, STEPS, WAKES, FATHERS, MOTHERS, DIET_KG, DRINK_PAGES, DRINK_COUNTS, BABY_MONTHS } from './pages-extra.mjs';
+import { GUIDES } from '../data/guides.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
@@ -67,12 +70,12 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 <div class="app">
 <header class="hdr">
   <a class="brand" href="/">${LOGO}<span class="brand-name">몸자</span></a>
-  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a></nav>
+  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/guide/"${on('guide')}>서재</a></nav>
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
 <footer class="foot">
-  <div class="frow"><span>© 몸자 · 갱신 ${BUILD_ISO}</span><nav><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
+  <div class="frow"><span>© 몸자 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
 </div>
@@ -109,7 +112,7 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })) })}</script>`;
+const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]] })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
@@ -496,7 +499,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -512,6 +515,17 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/due-date/"><b>출산예정일</b><span>마지막 생리일 + 280일 · 주수별 검사 일정 · 오늘 몇 주</span></a>
 <a href="/ovulation/"><b>배란일 · 가임기</b><span>생리 시작일과 주기로 · 다음 생리 예정일</span></a>
 <a href="/baby/"><b>아기 개월수 · 예방접종</b><span>생년월일로 오늘 몇 개월 · 100일·돌 · 접종 날짜</span></a>
+<a href="/pregnancy/week/"><b>임신 주차별 안내</b><span>1~42주 · 아기 크기 · 엄마 몸 · 검사 일정</span></a>
+<a href="/baby/month/"><b>아기 개월별 발달</b><span>0~36개월 · 평균 키·몸무게 · 수유·수면·접종</span></a>
+<a href="/child-height/"><b>아이 키 예측</b><span>아빠 175 엄마 162 → 아들 <span class="num">${X.childHeight(175, 162).boy}</span>cm · 딸 ${X.childHeight(175, 162).girl}cm</span></a>
+</div>`)}
+${section('생활', null, `<div class="dict">
+<a href="/steps/10000/"><b>만보 걸으면</b><span>60kg → <span class="num">${num(X.steps(10000, 60, 170).kcal)}</span>kcal · ${X.steps(10000, 60, 170).km}km · ${X.steps(10000, 60, 170).minutes}분</span></a>
+<a href="/sleep/"><b>몇 시에 자야 할까</b><span>7시 기상 → <span class="num">${X.bedtimes(7)[1].time}</span> 취침 (90분 주기 5번)</span></a>
+<a href="/diet/"><b>다이어트 기간</b><span>5kg → 하루 500kcal 줄이면 <span class="num">${X.dietPlan(5, 0).weeks}</span>주</span></a>
+<a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 마지막 잔 뒤 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}시간이면 0.03% 아래</span></a>
+<a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal</span></a>
+<a href="/guide/"><b>서재</b><span>${GUIDES.length}편 · BMI 한국 기준 · 대사량과 다이어트 · 수면 주기 · 음주</span></a>
 </div>`)}
 ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => { const rr = B.normalRange(h); return { href: bmiUrl(h), title: `키 ${h}cm 정상 체중`, sub: `표준체중 남 ${B.standardWeight(h, 'm')} · 여 ${B.standardWeight(h, 'f')}kg`, value: `${rr.min}~${rr.max}kg` }; })))}
 ${ad()}
@@ -529,6 +543,10 @@ function docs() {
 <h2>칼로리</h2><p>음식 칼로리는 식품의약품안전처 식품영양성분 DB와 외식 영양성분 자료를 1인분 기준으로 반올림한 대략값입니다. 운동 소모 칼로리 = MET × 3.5 × 몸무게(kg) ÷ 200 × 분, MET는 Compendium of Physical Activities(2011)의 보통 강도 값. 물 섭취량은 몸무게 × 33ml(임상 어림 기준 30~35ml/kg).</p>
 <h2>출산예정일·배란일</h2><p>출산예정일 = 마지막 생리 시작일 + 280일(네겔레 법칙, 주기 28일 가정). 임신 주수는 마지막 생리 시작일을 0주 0일로 셉니다. 배란일 = 다음 생리 예정일 − 14일, 가임기 = 배란 5일 전 ~ 1일 뒤. 모두 평균값이며 초음파·검사 결과가 우선합니다.</p>
 <h2>아기 개월수·예방접종</h2><p>개월수는 달력 기준(같은 날짜가 될 때 1개월). 예방접종 일정은 질병관리청 「표준 예방접종 일정표」의 국가예방접종 항목을 생년월일에 더해 계산했으며, 실제 접종은 소아과의 판단에 따릅니다. 초등학교 입학 연도 = 출생연도 + 7.</p>
+<h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal. 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량.</p>
+<h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
+<h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
+<h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
   doc('/about/', '소개 — 몸자', '몸자는 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
 <p>몸자(몸 + 자[尺])는 "키 170에 65면 정상인가?", "치킨 한 마리는 밥 몇 공기?", "출산예정일이 언제?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록 미리 계산해 둔 사전입니다. 회원 가입도, 입력값 저장도 없습니다.</p>
@@ -561,6 +579,7 @@ dueIndex(); MONTHS.forEach(([m, d]) => duePage(m, d));
 ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
+buildExtra({ write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, babyMin: D.addDays(TODAY, -3 * 365) });
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));

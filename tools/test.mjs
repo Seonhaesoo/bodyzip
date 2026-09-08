@@ -4,6 +4,10 @@ import * as K from '../engine/kcal.mjs';
 import * as D from '../engine/dates.mjs';
 import { FOODS } from '../data/foods.mjs';
 import { EXERCISES } from '../data/exercises.mjs';
+import * as X from '../engine/extra.mjs';
+import { WEEKS } from '../data/pregnancy-weeks.mjs';
+import { MONTHS as BM } from '../data/baby-months.mjs';
+import { GUIDES } from '../data/guides.mjs';
 
 let pass = 0, fail = 0;
 function ok(cond, name, detail = '') { if (cond) pass++; else { fail++; console.log('FAIL', name, detail); } }
@@ -51,6 +55,28 @@ ok(EXERCISES.length >= 30 && new Set(EXERCISES.map((e) => e.slug)).size === EXER
   ok(D.iso(v[1].doses[2].date) === '2026-07-15' && D.iso(v[7].doses[0].date) === '2027-01-15', 'B형간염 3차 6개월 · MMR 12개월', [D.iso(v[1].doses[2].date), D.iso(v[7].doses[0].date)]);
   ok(D.schoolYear(D.utc(2020, 5, 1)) === 2027, '2020년생 초등 입학 2027');
 }
+
+/* 추가 엔진 */
+{ const r = X.steps(10000, 60, 170); ok(r.stride === 0.71 && r.km === 7.1 && r.minutes === 107 && r.kcal === 337, '만보 60kg/170cm → 7.1km·107분·337kcal', JSON.stringify(r)); }
+ok(X.steps(10000, 80, 170).kcal > X.steps(10000, 60, 170).kcal, '무거울수록 칼로리 증가');
+{ const b = X.bedtimes(7, 0); ok(b[0].time === '21:45' && b[1].time === '23:15' && b[2].time === '00:45' && b[3].time === '02:15', '7시 기상 취침 후보', JSON.stringify(b)); }
+{ const w = X.waketimes(23, 0); ok(w[1].time === '06:45' && w[0].time === '08:15', '23시 취침 기상 후보', JSON.stringify(w)); }
+ok(X.bedtimes(0, 30)[1].time === '16:45', '자정 넘는 시각 처리', X.bedtimes(0, 30)[1].time);
+{ const c = X.childHeight(175, 162); ok(c.boy === 175 && c.girl === 162 && c.range === 8.5, '중간 부모 키 175/162', JSON.stringify(c)); }
+ok(X.childHeight(180, 165).boy === 179 && X.childHeight(180, 165).girl === 166, '중간 부모 키 180/165 → 179·166');
+{ const g = X.alcoholGrams(360, 0.165); ok(near(g, 46.9, 0.2), '소주 1병 알코올 ≈ 47g', g); const r = X.bac(g, 70, 'm'); ok(r.peak === 0.089 && r.driveHours === 5.4 && r.soberHours === 7.4, '70kg 남 소주 1병 0.089% · 5.4h · 7.4h (흡수 1.5h 포함)', JSON.stringify(r)); const f = X.bac(g, 55, 'f'); ok(f.peak > r.peak, '여성이 같은 양에 농도 높음', f.peak); ok(X.bac(g, 70, 'm', 8).now === 0 && X.bac(g, 70, 'm', 1).now === 0.089 && X.bac(g, 70, 'm', 2.5).now === 0.074, '분해는 흡수 1.5h 뒤부터');
+ok(X.bacLevel(0.45).startsWith('생명이 위험') && X.bac(X.alcoholGrams(50, 0.165), 90, 'm').driveHours === 0, '만취 표시 · 한 잔은 기준 미만'); }
+ok(X.bacLevel(0.02).startsWith('단속 기준 미만') && X.bacLevel(0.05).startsWith('면허 정지') && X.bacLevel(0.1).startsWith('면허 취소'), '농도 판정');
+{ const p = X.dietPlan(75, 66, 500); ok(p.diff === 9 && p.weeks === 19.8 && p.days === 139 && p.perWeek === 0.45, '9kg 감량 500kcal → 19.8주·139일', JSON.stringify(p)); }
+ok(X.dietPlan(5, 0, 1000).days === 39 && X.dietPlan(5, 0, 300).days === 129, '5kg 1000/300kcal 39·129일');
+ok(X.KCAL_NEED.length === 11 && X.KCAL_NEED[6][1] === 2600 && X.KCAL_NEED[6][2] === 2000, '권장 칼로리 19~29세 2,600/2,000');
+/* 데이터 */
+ok(WEEKS.length === 42 && WEEKS.every((w, i) => w.w === i + 1 && w.baby && w.mom), '임신 주차 42주 연속');
+ok(BM.length >= 20 && BM.every((m, i) => i === 0 || m.m > BM[i - 1].m) && BM[0].m === 0 && BM[BM.length - 1].m === 36, '아기 개월 0~36 오름차순');
+ok(BM.every((m, i) => i === 0 || (parseFloat(m.h) > parseFloat(BM[i - 1].h) && parseFloat(m.w) > parseFloat(BM[i - 1].w))), '개월별 평균 키·몸무게 단조 증가');
+ok(new Set(GUIDES.map((g) => g.slug)).size === GUIDES.length && GUIDES.every((g) => g.body.length > 600 && g.desc.length > 30), '서재 슬러그 고유·본문 길이');
+ok(new Set(FOODS.map((f) => f.slug)).size === FOODS.length && FOODS.length >= 250, '음식 슬러그 고유 · 250개 이상', FOODS.length);
+ok(GUIDES.every((g) => !/href="\/(?!bmi|bmr|bodyfat|food|exercise|water|due-date|ovulation|baby|pregnancy|guide|steps|sleep|child-height|alcohol|diet|kcal-need|method)/.test(g.body)), '서재 내부 링크 경로');
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

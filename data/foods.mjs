@@ -41,4 +41,6 @@ export const FOODS = [
   F('tofu', '두부 반 모', '150g', 130, '채소·반찬', 85), F('kimchi', '배추김치', '1접시 50g', 15, '채소·반찬', 30), F('salad', '샐러드 (드레싱 포함)', '1접시', 180, '채소·반찬'), F('gyeran-mari', '계란말이', '1접시 100g', 170, '채소·반찬'),
   F('spinach', '시금치나물', '1접시 60g', 40, '채소·반찬'), F('bean-sprouts', '콩나물무침', '1접시 60g', 35, '채소·반찬'), F('gim', '조미김 1봉', '5g', 25, '채소·반찬'), F('dubu-jorim', '두부조림', '1접시', 150, '채소·반찬'),
 ];
+import { FOODS_MORE } from './foods-more.mjs';
+FOODS.push(...FOODS_MORE);
 export const foodBySlug = Object.fromEntries(FOODS.map((f) => [f.slug, f]));

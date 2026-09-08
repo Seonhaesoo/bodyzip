@@ -79,4 +79,69 @@
       var link = box.querySelector('[data-out="link"]'); if (link) link.href = '/bmi/' + Math.round(cm) + '/' + Math.round(kg) + '/';
     });
   });
+
+  /* 걸음 수 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="steps"]'), function (box) {
+    bind(box, function () {
+      var n = Math.max(0, Math.round(val(box, 'n'))) || 10000, kg = val(box, 'w') || 60, cm = val(box, 'h') || 170;
+      var r = M.steps(n, kg, cm);
+      out(box, 'km', r.km + 'km'); out(box, 'min', r.minutes + '분'); out(box, 'kcal', num(r.kcal) + 'kcal');
+      var link = box.querySelector('[data-out="link"]'); if (link) { var s = Math.max(1000, Math.min(30000, Math.round(n / 1000) * 1000)); link.href = '/steps/' + s + '/'; link.textContent = num(s) + '보 표 →'; }
+    });
+  });
+
+  /* 수면 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="sleep"]'), function (box) {
+    bind(box, function () {
+      var w = sel(box, 'wake') || '07:00', b = sel(box, 'bed');
+      var wp = w.split(':').map(Number), bt = M.bedtimes(wp[0], wp[1]);
+      out(box, 'b6', bt[0].time); out(box, 'b5', bt[1].time); out(box, 'b4', bt[2].time);
+      var bp; if (b) bp = b.split(':').map(Number); else { var now = new Date(); bp = [now.getHours(), now.getMinutes()]; }
+      var wt = M.waketimes(bp[0], bp[1]);
+      out(box, 'n6', wt[0].time); out(box, 'n5', wt[1].time); out(box, 'n4', wt[2].time);
+    });
+  });
+
+  /* 아이 키 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="child"]'), function (box) {
+    bind(box, function () {
+      var f = val(box, 'f') || 175, m = val(box, 'm') || 162, c = M.childHeight(f, m);
+      out(box, 'boy', c.boy + 'cm'); out(box, 'girl', c.girl + 'cm'); out(box, 'range', '아들 ' + Math.round((c.boy - 8.5) * 10) / 10 + '~' + Math.round((c.boy + 8.5) * 10) / 10);
+      var link = box.querySelector('[data-out="link"]'); if (link) { var ff = Math.max(160, Math.min(190, Math.round(f))), mm = Math.max(150, Math.min(175, Math.round(m))); link.href = '/child-height/' + ff + '-' + mm + '/'; }
+    });
+  });
+
+  /* 혈중알코올 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="alcohol"]'), function (box) {
+    bind(box, function () {
+      var key = sel(box, 'drink') || 'soju', n = val(box, 'n') || 1, kg = val(box, 'w') || 70, sex = sel(box, 'sex') || 'm', hrs = val(box, 'hrs') || 0;
+      var d = null; for (var i = 0; i < M.DRINKS.length; i++) if (M.DRINKS[i].key === key) d = M.DRINKS[i];
+      if (!d) return;
+      var g = M.alcoholGrams(d.ml * n, d.abv), r = M.bac(g, kg, sex, hrs);
+      out(box, 'peak', r.peak + '%'); out(box, 'now', r.now + '%'); out(box, 'level', M.bacLevel(r.now).split(' (')[0]);
+      out(box, 'drive', r.driveHours <= 0 ? '기준 미만' : '마지막 잔 뒤 ' + r.driveHours + '시간'); out(box, 'sober', '마지막 잔 뒤 ' + r.soberHours + '시간'); out(box, 'grams', Math.round(g) + 'g');
+    });
+  });
+
+  /* 다이어트 기간 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="diet"]'), function (box) {
+    bind(box, function () {
+      var from = val(box, 'from') || 75, to = val(box, 'to') || 68, def = val(box, 'def') || 500;
+      if (to >= from) { out(box, 'diff', '목표가 지금보다 작아야'); out(box, 'weeks', '—'); out(box, 'date', '—'); out(box, 'perweek', '—'); return; }
+      var p = M.dietPlan(from, to, def), end = M.addDays(today(), p.days);
+      out(box, 'diff', p.diff + 'kg'); out(box, 'weeks', p.weeks + '주 (' + p.days + '일)'); out(box, 'date', M.fmt(end)); out(box, 'perweek', p.perWeek);
+      var link = box.querySelector('[data-out="link"]'); if (link) { var k = Math.max(1, Math.min(30, Math.round(p.diff))); link.href = '/diet/' + k + '/'; link.textContent = k + 'kg 감량 표 →'; }
+    });
+  });
+
+  /* 임신 주차 → 예정일 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="week"]'), function (box) {
+    bind(box, function () {
+      var w = Math.max(0, Math.min(45, Math.round(val(box, 'w')))), d = Math.max(0, Math.min(6, Math.round(val(box, 'd'))));
+      var t = today(), lmp = M.addDays(t, -(w * 7 + d)), due = M.addDays(lmp, 280), left = M.diffDays(t, due);
+      out(box, 'due', M.fmt(due) + ' (' + M.wd(due) + ')'); out(box, 'left', left >= 0 ? left + '일 남음' : (-left) + '일 지남'); out(box, 'lmp', M.fmt(lmp));
+      var link = box.querySelector('[data-out="link"]'); if (link) { var mm = lmp.getUTCMonth() + 1, dd = lmp.getUTCDate(); link.href = '/due-date/' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd + '/'; }
+      var wl = box.querySelector('[data-out="wlink"]'); if (wl) { var ww = Math.max(1, Math.min(42, w || 1)); wl.href = '/pregnancy/week/' + ww + '/'; wl.textContent = '임신 ' + ww + '주 안내 →'; }
+    });
+  });
 })();

@@ -19,6 +19,46 @@
     // 날짜: 3월 5일 / 3/5 / 2025-01-31
     var ymd = t.match(/(20\d\d)[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/);
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
+    // 임신 N주
+    var pw = t.match(/임신\s*(\d{1,2})\s*주/) || t.match(/(\d{1,2})\s*주\s*(?:차|째)?\s*(?:임신|아기|태아)/);
+    if (pw) { var wn = Math.max(1, Math.min(42, +pw[1])); return { href: '/pregnancy/week/' + wn + '/', label: '임신 ' + wn + '주 아기 크기·엄마 몸·검사' }; }
+    // 아기 N개월 (생년월일 없이)
+    var pm = t.match(/(\d{1,2})\s*개월/);
+    if (pm && !ymd && /아기|아이|발달|신생아|개월/.test(t)) { var mo = nearest(G.months || [+pm[1]], +pm[1]); return { href: '/baby/month/' + mo + '/', label: mo + '개월 아기 발달·수유·수면·접종' }; }
+    if (/신생아/.test(t)) return { href: '/baby/month/0/', label: '신생아 발달·수유·수면' };
+    // 걸음 수
+    if (/걸음|만\s*보|천\s*보|\d\s*보(?:\s|$)|만보/.test(t)) {
+      var st = null, mw = t.match(/(\d+(?:\.\d+)?)\s*만\s*보/), tw = t.match(/(\d+)\s*천\s*보/), nw = t.match(/(\d[\d,]*)\s*(?:걸음|보)/);
+      if (mw) st = Math.round(+mw[1] * 10000); else if (tw) st = +tw[1] * 1000; else if (/만\s*보/.test(t)) st = 10000; else if (nw) st = +nw[1].replace(/,/g, '');
+      if (st) { var rg = G.steps || [1000, 30000]; st = Math.max(rg[0], Math.min(rg[1], Math.round(st / 1000) * 1000)); return { href: '/steps/' + st + '/', label: st.toLocaleString() + '보 거리·칼로리' }; }
+      return { href: '/steps/', label: '걸음 수 칼로리 계산' };
+    }
+    // 수면
+    if (/수면|취침|기상|몇\s*시에?\s*자|자야|일어나/.test(t)) {
+      var tm = t.match(/(\d{1,2})\s*시\s*(반|(\d{1,2})\s*분)?/) || t.match(/(\d{1,2}):(\d{2})/);
+      if (tm && G.wakes) { var hh = +tm[1], mm = tm[2] === '반' ? 30 : (tm[3] != null ? +tm[3] : (tm[2] && /^\d+$/.test(tm[2]) ? +tm[2] : 0)); if (hh <= 12 && /오후|저녁|밤/.test(t)) hh += 12; var mins = nearest(G.wakes, hh * 60 + mm); var lab = pad(Math.floor(mins / 60)) + ':' + pad(mins % 60); return { href: '/sleep/' + lab.replace(':', '-') + '/', label: lab + ' 기상 → 취침 시각' }; }
+      return { href: '/sleep/', label: '몇 시에 자야 할까 (수면 주기)' };
+    }
+    // 아이 키 예측
+    if (/아이\s*키|자녀\s*키|아들|딸|아빠|아버지|엄마|어머니|부모\s*키|키\s*예측/.test(t) && !/개월|아기\s*키/.test(t)) {
+      var hs = nums.filter(function (x) { return x >= 140 && x <= 200; });
+      if (hs.length >= 2 && G.fathers) { var fa = hs[0], ma = hs[1]; if (/엄마|어머니/.test(t) && /아빠|아버지/.test(t) && t.indexOf('엄마') >= 0 && t.indexOf('엄마') < t.indexOf('아빠')) { fa = hs[1]; ma = hs[0]; } fa = Math.max(G.fathers[0], Math.min(G.fathers[1], Math.round(fa))); ma = Math.max(G.mothers[0], Math.min(G.mothers[1], Math.round(ma))); return { href: '/child-height/' + fa + '-' + ma + '/', label: '아빠 ' + fa + ' 엄마 ' + ma + ' 아이 예상 키' }; }
+      return { href: '/child-height/', label: '아이 키 예측 계산' };
+    }
+    // 혈중알코올농도
+    if (/혈중|음주|알코올|알콜|알코홀|숙취|소주|맥주|막걸리|와인|운전/.test(t) && !/칼로리|kcal/.test(t)) {
+      var dk = /맥주/.test(t) ? 'beer' : /막걸리/.test(t) ? 'makgeolli' : /와인/.test(t) ? 'wine' : 'soju';
+      var cm = t.match(/(\d+(?:\.\d+)?)\s*(?:병|잔|캔)/), cnt = cm ? Math.round(+cm[1]) : 1; if (/반\s*병/.test(t)) cnt = 1;
+      cnt = Math.max(1, Math.min(5, cnt));
+      return { href: '/alcohol/' + dk + '/' + cnt + '/', label: ({ soju: '소주', beer: '맥주', makgeolli: '막걸리', wine: '와인' })[dk] + ' ' + cnt + (dk === 'wine' ? '잔' : '병') + ' 혈중알코올농도' };
+    }
+    // 다이어트 기간
+    if (/다이어트|감량|빼|살\s*빼|몇\s*주/.test(t)) {
+      var dm = t.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로|키로)/);
+      if (dm) { var dk2 = Math.max(1, Math.min(30, Math.round(+dm[1]))); return { href: '/diet/' + dk2 + '/', label: dk2 + 'kg 빼는 데 걸리는 기간' }; }
+      return { href: '/diet/', label: '다이어트 기간 계산' };
+    }
+    if (/권장\s*칼로리|나이별|연령별|섭취\s*기준/.test(t)) return { href: '/kcal-need/', label: '나이별 하루 권장 칼로리' };
     if (/출산|예정일|임신|생리\s*시작|마지막\s*생리/.test(t) && !/배란|가임/.test(t)) {
       if (md) return { href: '/due-date/' + pad(+md[1]) + '-' + pad(+md[2]) + '/', label: '마지막 생리 ' + (+md[1]) + '월 ' + (+md[2]) + '일 출산예정일' };
       if (ymd) return { href: '/due-date/' + pad(+ymd[2]) + '-' + pad(+ymd[3]) + '/', label: '출산예정일' };
