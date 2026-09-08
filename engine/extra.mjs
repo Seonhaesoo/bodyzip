@@ -72,3 +72,44 @@ export const KCAL_NEED = [
   ['1~2세', 900, 900], ['3~5세', 1400, 1400], ['6~8세', 1700, 1500], ['9~11세', 2000, 1800], ['12~14세', 2500, 2000], ['15~18세', 2700, 2000],
   ['19~29세', 2600, 2000], ['30~49세', 2500, 1900], ['50~64세', 2200, 1700], ['65~74세', 2000, 1600], ['75세 이상', 1900, 1500],
 ];
+
+/* ---------- 카페인 (식약처 식품영양성분 DB·주요 매장 공개값 대표치) ---------- */
+export const CAFFEINE = [
+  { key: 'americano', label: '아메리카노 (톨 355ml)', mg: 150 },
+  { key: 'mix', label: '믹스커피 1봉', mg: 50 },
+  { key: 'canned', label: '캔커피 (200ml)', mg: 80 },
+  { key: 'energy', label: '에너지드링크 (250ml)', mg: 80 },
+  { key: 'cola', label: '콜라 (355ml)', mg: 35 },
+  { key: 'green-tea', label: '녹차 1잔', mg: 30 },
+  { key: 'latte', label: '카페라떼 (톨)', mg: 75 },
+  { key: 'black-tea', label: '홍차 1잔', mg: 47 },
+  { key: 'espresso', label: '에스프레소 1샷', mg: 75 },
+  { key: 'energy-large', label: '에너지드링크 큰 캔 (355ml)', mg: 150 },
+  { key: 'chocolate', label: '초콜릿 (50g)', mg: 20 },
+  { key: 'decaf', label: '디카페인 커피', mg: 5 },
+];
+export const CAFFEINE_HALF_LIFE = 5;
+export const caffeineLeft = (mg, hours) => Math.round(mg * Math.pow(0.5, hours / CAFFEINE_HALF_LIFE));
+export const caffeineLimit = (mode, kg = 50) => mode === 'teen' ? Math.round(kg * 2.5) : mode === '300' || mode === 300 ? 300 : 400;
+
+/* ---------- 금연 ---------- */
+export const QUIT_STAGES = [
+  { days: 0, label: '20분', text: '혈압과 맥박이 정상으로 돌아옵니다.' },
+  { days: 8 / 24, label: '8시간', text: '혈중 일산화탄소가 정상이 되고 산소 농도가 회복됩니다.' },
+  { days: 1, label: '24시간', text: '심장마비 위험이 줄기 시작합니다.' },
+  { days: 2, label: '48시간', text: '니코틴이 몸에서 빠져나가고 후각·미각이 돌아옵니다.' },
+  { days: 3, label: '72시간', text: '기관지가 이완돼 숨쉬기가 편해집니다. 금단 증상은 이때가 정점입니다.' },
+  { days: 14, label: '2주~12주', text: '혈액순환이 좋아지고 폐 기능이 올라갑니다.' },
+  { days: 30, label: '1~9개월', text: '기침·숨참이 줄고 폐 섬모가 회복돼 감염이 줄어듭니다.' },
+  { days: 365, label: '1년', text: '관상동맥질환 위험이 흡연자의 절반으로.' },
+  { days: 1825, label: '5년', text: '뇌졸중 위험이 비흡연자 수준에 가까워집니다(5~15년).' },
+  { days: 3650, label: '10년', text: '폐암 사망 위험이 흡연자의 절반으로, 구강·식도암 위험도 감소.' },
+  { days: 5475, label: '15년', text: '관상동맥질환 위험이 비흡연자와 같아집니다.' },
+];
+export function quitStage(days) { let st = QUIT_STAGES[0]; for (const s of QUIT_STAGES) if (days >= s.days) st = s; return st; }
+export const MIN_PER_CIG = 20;                                            /* UCL 2024: 개비당 약 20분 */
+export function quitStats(days, perDay = 20, price = 4500, perPack = 20) {
+  const cigs = Math.round(days * perDay), money = Math.round(cigs / perPack * price), minutes = cigs * MIN_PER_CIG;
+  const dd = Math.floor(minutes / 1440), hh = Math.floor((minutes % 1440) / 60);
+  return { days, cigs, money, minutes, lifeText: dd >= 1 ? `${dd}일 ${hh}시간` : `${hh}시간 ${minutes % 60}분` };
+}

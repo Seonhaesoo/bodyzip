@@ -8,11 +8,14 @@ import * as K from '../engine/kcal.mjs';
 import * as D from '../engine/dates.mjs';
 import * as X from '../engine/extra.mjs';
 import * as I from '../engine/ics.mjs';
+import * as P from '../engine/pet.mjs';
 import { num, pct } from '../engine/fmt.mjs';
 import { FOODS, FOOD_CATS, FOODS_ASOF, FOOD_ALIAS } from '../data/foods.mjs';
 import { EXERCISES, EX_ALIAS } from '../data/exercises.mjs';
 import { makeBundle } from './bundle.mjs';
 import { buildExtra, STEPS, WAKES, FATHERS, MOTHERS, DIET_KG, DRINK_PAGES, DRINK_COUNTS, BABY_MONTHS } from './pages-extra.mjs';
+import { buildPet, DOG_YEARS, CAT_YEARS, DOG_KG, CAT_KG } from './pages-pet.mjs';
+import { buildMore, PCT_MONTHS, CAFFEINE_PAGES, CAFFEINE_COUNTS, QUIT_DAYS } from './pages-more.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -71,7 +74,7 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 <div class="app">
 <header class="hdr">
   <a class="brand" href="/">${LOGO}<span class="brand-name">몸자</span></a>
-  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/guide/"${on('guide')}>서재</a></nav>
+  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/pet/"${on('pet')}>반려</a><a href="/guide/"${on('guide')}>서재</a></nav>
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
@@ -113,7 +116,7 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]] })}</script>`;
+const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
@@ -373,6 +376,7 @@ function duePage(m, d) {
   const p = D.pregnancy(recent), pn = D.pregnancy(next);
   const w = D.weeksOn(recent, TODAY);
   const rows = D.MILESTONES.map((ms) => ({ cells: [`${ms.week}주`, `${D.fmtShort(D.addDays(recent, ms.week * 7))} (${D.wd(D.addDays(recent, ms.week * 7)).slice(0, 1)})`, ms.label] }));
+  fs.mkdirSync(path.join(OUT, url), { recursive: true }); fs.writeFileSync(path.join(OUT, url, 'pregnancy.ics'), I.pregnancyIcs(recent, { now: TODAY }));
   const title = `마지막 생리 ${m}월 ${d}일 출산예정일 — ${D.fmt(p.due)} (${D.wd(p.due)}) · 주수별 일정`;
   const desc = `마지막 생리 시작일이 ${recent.getUTCFullYear()}년 ${m}월 ${d}일이면 출산예정일은 ${D.fmt(p.due)}입니다. 임신 확인, 기형아 검사, 정밀 초음파, 임신성 당뇨 검사, 만삭까지 주수별 날짜와 오늘 몇 주인지.`;
   const body = `
@@ -381,8 +385,13 @@ ${crumb([['/due-date/', '출산예정일'], [null, `${m}월 ${d}일`]])}
 <p class="meta">네겔레 법칙 · 마지막 생리 시작일 + 280일(40주) · 생리주기 28일 가정</p>
 ${lead(`마지막 생리가 ${recent.getUTCFullYear()}년 ${m}월 ${d}일에 시작했다면 출산예정일은 <b>${D.fmt(p.due)} ${D.wd(p.due)}</b>입니다. 배란·수정은 ${D.fmtShort(p.conception)} 무렵이고, ${D.fmtShort(p.fullTerm)}부터 만삭입니다. ${w.days >= 0 && w.days <= 300 ? `오늘(${D.fmtShort(TODAY)})은 임신 ${w.weeks}주 ${w.rem}일, ${w.trimester}분기입니다.` : ''} ${next > recent ? `${next.getUTCFullYear()}년 ${m}월 ${d}일이 마지막 생리라면 ${D.fmt(pn.due)}입니다.` : ''}`)}
 ${hero({ label: `출산예정일 (${recent.getUTCFullYear()}년 ${m}월 ${d}일 시작)`, value: `${p.due.getUTCMonth() + 1}월 ${p.due.getUTCDate()}일`, unit: '', sub: `${p.due.getUTCFullYear()}년 · ${D.wd(p.due)} · 만삭 ${D.fmtShort(p.fullTerm)}부터 · 수정 무렵 ${D.fmtShort(p.conception)}` })}
-<form class="quick live" data-live="due" style="margin-top:14px"><div class="live-head"><b>오늘 몇 주?</b><span>날짜를 바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>마지막 생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(recent)}"></label></div><div class="tiles"><div class="tile"><small>출산예정일</small><span class="num" data-out="due"></span></div><div class="tile"><small>오늘 주수</small><span class="num" data-out="week"></span></div><div class="tile"><small>남은 날</small><span class="num" data-out="left"></span></div></div></form>
-${section('주수별 일정', `${recent.getUTCFullYear()}년 ${m}월 ${d}일 시작 기준`, table(['주수', '날짜', '이 무렵'], rows))}
+<form class="quick live" data-live="due" data-lmp="${D.iso(recent)}" data-ics="${url}pregnancy.ics" style="margin-top:14px"><div class="live-head"><b>오늘 몇 주?</b><span>날짜를 바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>마지막 생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(recent)}"></label></div><div class="tiles"><div class="tile"><small>출산예정일</small><span class="num" data-out="due"></span></div><div class="tile"><small>오늘 주수</small><span class="num" data-out="week"></span></div><div class="tile"><small>남은 날</small><span class="num" data-out="left"></span></div></div><div class="live-foot"><a data-out="ics" href="${url}pregnancy.ics">검사 일정 캘린더 파일(.ics) →</a><a href="/pregnancy/card/?lmp=${D.iso(recent)}">디데이 카드 →</a></div></form>
+${section('주수별 일정', `${recent.getUTCFullYear()}년 ${m}월 ${d}일 시작 기준 · ＋는 구글 캘린더에 하나씩`, table(['주수', '날짜', '이 무렵', '캘린더'], rows.map((r, i) => ({ cells: r.cells.concat([`<a href="${I.gcalUrl(`🤰 ${D.MILESTONES[i].week}주 ${D.MILESTONES[i].label.split(' — ')[0].split(' · ')[0]}`, D.addDays(recent, D.MILESTONES[i].week * 7), D.MILESTONES[i].label, `${SITE}${url}`)}" target="_blank" rel="noopener" title="구글 캘린더에 추가">＋</a>`]) }))))}
+<div class="cal-box">
+  <div class="cal-head"><b>검사 일정을 캘린더에</b><span>${D.MILESTONES.length}개 일정 · 하루 전 알림</span></div>
+  <div class="btn-row"><a class="btn" href="${url}pregnancy.ics">캘린더 파일 받기 (.ics)</a></div>
+  <p class="cal-how"><b>아이폰</b> 파일을 열면 캘린더에 "모두 추가" · <b>안드로이드</b> 내려받은 파일을 구글 캘린더 앱으로 열기 · <b>PC</b> calendar.google.com ▸ 설정 ▸ 가져오기. 생리 시작일이 다르면 위 계산기에서 바꾼 뒤 받으세요.</p>
+</div>
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>예정일은 예정일입니다.</b> 실제로 예정일 당일에 태어나는 아기는 5% 정도이고, 대부분 예정일 앞뒤 2주(38~42주) 안에 태어납니다. 초기 초음파(8~12주)에서 아기 크기로 예정일을 다시 잡는 경우도 흔합니다.</p>
@@ -414,6 +423,7 @@ function ovPage(m, d) {
   const url = ovUrl(m, d), { recent } = lmpYears(m, d, 'cycle');
   const c28 = D.cycle(recent, 28);
   const rows = CYCLES.map((len) => { const c = D.cycle(recent, len); return { cls: len === 28 ? 'on' : '', cells: [`${len}일`, D.fmtShort(c.ovulation), `${D.fmtShort(c.fertileStart)} ~ ${D.fmtShort(c.fertileEnd)}`, D.fmtShort(c.next)] }; });
+  fs.mkdirSync(path.join(OUT, url), { recursive: true }); fs.writeFileSync(path.join(OUT, url, 'cycle.ics'), I.cycleIcs(recent, 28, { now: TODAY }));
   const title = `생리 시작 ${m}월 ${d}일 배란일·가임기 — 배란 ${D.fmtShort(c28.ovulation)}, 가임기 ${D.fmtShort(c28.fertileStart)}~${D.fmtShort(c28.fertileEnd)} (주기 28일)`;
   const desc = `${recent.getUTCFullYear()}년 ${m}월 ${d}일에 생리가 시작했다면 주기 28일 기준 배란일은 ${D.fmtShort(c28.ovulation)}, 가임기는 ${D.fmtShort(c28.fertileStart)}~${D.fmtShort(c28.fertileEnd)}, 다음 생리는 ${D.fmtShort(c28.next)}입니다. 주기 24~35일별 표.`;
   const body = `
@@ -422,8 +432,13 @@ ${crumb([['/ovulation/', '배란일'], [null, `${m}월 ${d}일`]])}
 <p class="meta">다음 생리 예정일 − 14일 = 배란일 · 가임기 = 배란 5일 전 ~ 1일 뒤</p>
 ${lead(`${recent.getUTCFullYear()}년 ${m}월 ${d}일에 생리가 시작했고 주기가 28일이면 배란일은 <b>${D.fmt(c28.ovulation)}</b>, 임신 가능성이 높은 가임기는 ${D.fmtShort(c28.fertileStart)}부터 ${D.fmtShort(c28.fertileEnd)}까지, 다음 생리는 ${D.fmtShort(c28.next)} 무렵입니다. 주기가 다르면 아래 표에서 내 주기를 찾으세요.`)}
 ${hero({ label: '배란일 (주기 28일)', value: `${c28.ovulation.getUTCMonth() + 1}월 ${c28.ovulation.getUTCDate()}일`, unit: '', sub: `가임기 ${D.fmtShort(c28.fertileStart)} ~ ${D.fmtShort(c28.fertileEnd)} · 다음 생리 ${D.fmtShort(c28.next)}` })}
-<form class="quick live" data-live="cycle" style="margin-top:14px"><div class="live-head"><b>내 주기로</b><span>바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(recent)}"></label><label class="ye-f"><span>생리주기 (일)</span><input data-k="len" type="text" inputmode="numeric" value="28"></label></div><div class="tiles"><div class="tile"><small>배란일</small><span class="num" data-out="ov"></span></div><div class="tile"><small>가임기</small><span class="num" data-out="fertile"></span></div><div class="tile"><small>다음 생리</small><span class="num" data-out="next"></span></div></div></form>
+<form class="quick live" data-live="cycle" data-lmp="${D.iso(recent)}" data-ics="${url}cycle.ics" style="margin-top:14px"><div class="live-head"><b>내 주기로</b><span>바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(recent)}"></label><label class="ye-f"><span>생리주기 (일)</span><input data-k="len" type="text" inputmode="numeric" value="28"></label></div><div class="tiles"><div class="tile"><small>배란일</small><span class="num" data-out="ov"></span></div><div class="tile"><small>가임기</small><span class="num" data-out="fertile"></span></div><div class="tile"><small>다음 생리</small><span class="num" data-out="next"></span></div></div><div class="live-foot"><a data-out="ics" href="${url}cycle.ics">생리·배란·가임기 캘린더 파일(.ics) →</a></div></form>
 ${section('주기별', `${m}월 ${d}일 시작`, table(['주기', '배란일', '가임기', '다음 생리'], rows))}
+<div class="cal-box">
+  <div class="cal-head"><b>앞으로 6번의 주기를 캘린더에</b><span>생리 예정일 · 배란 예정일 · 가임기 (주기 28일)</span></div>
+  <div class="btn-row"><a class="btn" href="${url}cycle.ics">캘린더 파일 받기 (.ics)</a></div>
+  <p class="cal-how"><b>아이폰</b> 파일을 열면 캘린더에 "모두 추가" · <b>안드로이드</b> 내려받은 파일을 구글 캘린더 앱으로 열기. 주기가 28일이 아니면 위 계산기에서 바꾼 뒤 "캘린더 파일" 링크를 누르세요.</p>
+</div>
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>배란은 다음 생리의 14일 전.</b> 주기가 길든 짧든 배란 뒤 생리까지는 대체로 14일이라, 주기가 불규칙하면 배란일도 함께 움직입니다. 최근 3~6개월 주기를 평균해 넣으세요.</p>
@@ -442,7 +457,7 @@ function ovIndex() {
 ${crumb([['/', '홈'], [null, '배란일']])}
 <h1 class="title">배란일·가임기 계산</h1>
 <p class="meta">생리 시작일과 주기로 · 다음 생리 − 14일</p>
-<form class="quick live" data-live="cycle" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>최근 생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(D.addDays(TODAY, -10))}"></label><label class="ye-f"><span>생리주기 (일)</span><input data-k="len" type="text" inputmode="numeric" value="28"></label></div><div class="tiles"><div class="tile"><small>배란일</small><span class="num" data-out="ov"></span></div><div class="tile"><small>가임기</small><span class="num" data-out="fertile"></span></div><div class="tile"><small>다음 생리</small><span class="num" data-out="next"></span></div></div></form>
+<form class="quick live" data-live="cycle" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>최근 생리 시작일</span><input data-k="lmp" type="date" value="${D.iso(D.addDays(TODAY, -10))}"></label><label class="ye-f"><span>생리주기 (일)</span><input data-k="len" type="text" inputmode="numeric" value="28"></label></div><div class="tiles"><div class="tile"><small>배란일</small><span class="num" data-out="ov"></span></div><div class="tile"><small>가임기</small><span class="num" data-out="fertile"></span></div><div class="tile"><small>다음 생리</small><span class="num" data-out="next"></span></div></div><div class="live-foot"><a data-out="ics" href="/ovulation/">생리·배란·가임기 캘린더 파일(.ics) →</a></div></form>
 ${lead('배란일은 다음 생리 예정일의 14일 전이고, 가임기는 배란 5일 전부터 하루 뒤까지입니다. 날짜를 누르면 주기 24~35일별 표가 나옵니다.')}
 ${section('생리 시작일 고르기', null, `<div class="grid grid-2">${grid12.join('')}</div>`)}
 ${ad()}`;
@@ -472,19 +487,20 @@ ${lead(`${D.fmt(birth)}에 태어난 아기는 이 페이지를 만든 ${D.fmtSh
 ${section('기념일', null, tiles(marks.slice(0, 3).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))) + tiles(marks.slice(3).concat([['초등 입학', D.utc(D.schoolYear(birth), 3, 2)]]).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))))}
 ${section('예방접종 일정', '국가예방접종(무료) 표준 일정 · 날짜는 접종 시작 시기 · 지난 접종은 흐리게 · ＋는 구글 캘린더에 하나씩 추가', `<div class="tbl"><table><thead><tr><th>백신</th><th>시기</th><th>날짜</th><th>캘린더</th></tr></thead><tbody>${rows.map((r) => `<tr${r.past ? ' style="color:var(--ghost)"' : ''}>${r.cells.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
 <div class="cal-box">
-  <div class="cal-head"><b>캘린더에 한 번에 넣기</b><span>접종 ${events.filter((e) => e.kind === 'vaccine').length}일 · 건강검진 ${checks.length}회 · 100일·돌</span></div>
+  <div class="cal-head"><b>캘린더에 한 번에 넣기</b><span>접종 ${events.filter((e) => e.kind === 'vaccine').length}일 · 건강검진 ${checks.length}회 · 이유식 4단계 · 100일·돌</span></div>
   ${nextDose ? `<p class="cal-next">다음 접종 <b>${nextDose.name.split(' (')[0]} ${nextDose.label}</b> · ${D.fmt(nextDose.dt)} (${D.diffDays(TODAY, nextDose.dt) === 0 ? '오늘' : `D-${D.diffDays(TODAY, nextDose.dt)}`})</p>` : '<p class="cal-next">표준 일정의 영유아 접종은 모두 지났습니다. 만 4~6세·11~12세 접종은 표에서 확인하세요.</p>'}
   <div class="btn-row"><a class="btn" href="${url}vaccines.ics">캘린더 파일 받기 (.ics)</a>${nextDose ? `<a class="btn btn-share" href="${I.gcalUrl(`💉 ${nextDose.name} ${nextDose.label}`, nextDose.dt, '국가예방접종 표준 일정 시작 시기 · 실제 접종은 소아과와 상의', `${SITE}${url}`)}" target="_blank" rel="noopener">다음 접종만 구글 캘린더에</a>` : ''}</div>
   <p class="cal-how"><b>아이폰</b> 파일을 열면 캘린더에 "모두 추가" · <b>안드로이드</b> 내려받은 파일을 구글 캘린더 앱으로 열기 · <b>PC</b> calendar.google.com ▸ 설정 ▸ 가져오기. 하루 전 오전 9시에 알림이 울립니다.</p>
 </div>
-${section('영유아 건강검진', '검진 기간 시작일 · 기간 안에 지정 병원에서', table(['검진', '기간 시작', '구강검진'], checks.map((c) => ({ cells: [c.label, D.fmt(c.date), c.dental || '—'], cls: c.date < TODAY ? '' : '' }))))}
+${section('영유아 건강검진', '검진 기간 시작일 · 기간 안에 지정 병원에서', table(['검진', '기간 시작', '구강검진'], checks.map((c) => ({ cells: [c.label, D.fmt(c.date), c.dental || '—'] }))))}
+${section('이유식 단계', '시작 시기는 아기의 준비 신호가 우선 (4~6개월)', table(['단계', '시작 무렵', '이렇게'], I.FOOD_STAGES.map((f) => ({ cells: [f.label, D.fmt(D.addMonths(birth, f.m)), f.desc.split('.')[0]], cls: D.addMonths(birth, f.m) <= TODAY && D.addMonths(birth, f.m + (f.m === 6 ? 1 : f.m === 7 ? 2 : f.m === 9 ? 3 : 4)) > TODAY ? 'on' : '' }))) + `<p class="sub" style="margin-top:8px"><a href="/guide/baby-food/">이유식 시작 시기·재료 순서 자세히 →</a></p>`)}
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>개월수는 달력으로 셉니다.</b> 태어난 날짜와 같은 날짜가 될 때마다 1개월이고, 그 사이 남은 날을 "일"로 붙입니다. 육아수첩·병원의 기준과 같습니다.</p>
 <p><b>접종은 시작 시기부터 몇 주 여유가 있습니다.</b> 표의 날짜는 "이때부터 맞을 수 있다"는 뜻이고, 감기 등으로 미뤄도 다음 접종 간격만 지키면 됩니다. 예방접종도우미(질병관리청) 앱에서 실제 기록을 관리하세요.</p>
 <p><b>초등학교 입학</b>은 만 6세가 되는 해의 다음 해 3월, 즉 태어난 해 + 7년입니다. 1~2월생도 같은 해에 입학합니다(2009년 이후).</p>
 </div>`)}
-${section('이어서', null, list([{ href: '/bmi/', title: '엄마·아빠 BMI', sub: '키·몸무게별 정상 체중' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }, { href: 'http://saengil.sajucheop.com/', title: '생일 사전', sub: '띠·별자리·만 나이' }]))}
+${section('이어서', null, list([{ href: `/baby/card/?birth=${D.iso(birth)}`, title: '100일·돌 카드 만들기', sub: `오늘 D+${age.totalDays + 1} · 카톡·인스타용 이미지` }, { href: `/baby/percentile/boy/${Math.min(36, age.months)}/`, title: `${age.months}개월 성장 백분위`, sub: '몸무게·키·머리둘레가 또래 어디쯤' }, { href: `/baby/month/${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 21, 24, 30, 36].reduce((a, x) => age.months >= x ? x : a, 0)}/`, title: '이 시기 발달·돌봄', sub: '할 수 있는 것 · 수유 · 수면' }, { href: '/bmi/', title: '엄마·아빠 BMI', sub: '키·몸무게별 정상 체중' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }]))}
 <p class="note">질병관리청 「표준 예방접종 일정표」를 바탕으로 한 안내이며, 아기의 건강 상태에 따라 소아과에서 일정을 조정합니다.</p>`;
   write(url, shell({ url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
@@ -511,7 +527,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -531,6 +547,13 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/pregnancy/week/"><b>임신 주차별 안내</b><span>1~42주 · 아기 크기 · 엄마 몸 · 검사 일정</span></a>
 <a href="/baby/month/"><b>아기 개월별 발달</b><span>0~36개월 · 평균 키·몸무게 · 수유·수면·접종</span></a>
 <a href="/child-height/"><b>아이 키 예측</b><span>아빠 175 엄마 162 → 아들 <span class="num">${X.childHeight(175, 162).boy}</span>cm · 딸 ${X.childHeight(175, 162).girl}cm</span></a>
+<a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
+<a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 — 카톡·인스타용 이미지</span></a>
+</div>`)}
+${section('반려동물', null, `<div class="dict">
+<a href="/pet/dog-age/"><b>강아지 나이</b><span>5살 → 사람 <span class="num">${P.dogAge(5, 'small')}</span>세 (소형견) · 대형견 ${P.dogAge(5, 'large')}세</span></a>
+<a href="/pet/dog-food/"><b>사료량</b><span>5kg 중성화 → 하루 <span class="num">${P.petFood('dog', 5, 'neutered').grams}</span>g · 고양이 4kg ${P.petFood('cat', 4, 'neutered').grams}g</span></a>
+<a href="/pet/dog-vaccine/"><b>예방접종 캘린더</b><span>강아지·고양이 생일로 접종 날짜 · <span class="num">.ics</span> 파일</span></a>
 </div>`)}
 ${section('생활', null, `<div class="dict">
 <a href="/steps/10000/"><b>만보 걸으면</b><span>60kg → <span class="num">${num(X.steps(10000, 60, 170).kcal)}</span>kcal · ${X.steps(10000, 60, 170).km}km · ${X.steps(10000, 60, 170).minutes}분</span></a>
@@ -538,6 +561,8 @@ ${section('생활', null, `<div class="dict">
 <a href="/diet/"><b>다이어트 기간</b><span>5kg → 하루 500kcal 줄이면 <span class="num">${X.dietPlan(5, 0).weeks}</span>주</span></a>
 <a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 마지막 잔 뒤 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}시간이면 0.03% 아래</span></a>
 <a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal</span></a>
+<a href="/caffeine/"><b>카페인</b><span>아메리카노 2잔 <span class="num">300</span>mg · 성인 400 · 임신 300mg</span></a>
+<a href="/quit-smoking/"><b>금연 계산기</b><span>30일이면 <span class="num">${num(X.quitStats(30).money)}</span>원 · 600개비 · 몸의 변화</span></a>
 <a href="/guide/"><b>서재</b><span>${GUIDES.length}편 · BMI 한국 기준 · 대사량과 다이어트 · 수면 주기 · 음주</span></a>
 </div>`)}
 ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => { const rr = B.normalRange(h); return { href: bmiUrl(h), title: `키 ${h}cm 정상 체중`, sub: `표준체중 남 ${B.standardWeight(h, 'm')} · 여 ${B.standardWeight(h, 'f')}kg`, value: `${rr.min}~${rr.max}kg` }; })))}
@@ -560,6 +585,9 @@ function docs() {
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
 <h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
 <h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 몸자 서버에 저장되지 않습니다.</p>
+<h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. 이웃한 달 사이는 선형 보간.</p>
+<h2>반려동물</h2><p>나이 환산은 AVMA·AKC 표(1살 15세, 2살 24세, 이후 소형 4·중형 5·대형 6세, 고양이 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
+<h2>카페인·금연</h2><p>카페인 함량은 식약처 DB·매장 공개값의 대표치, 권고량은 식약처(성인 400mg·임산부 300mg·청소년 2.5mg/kg), 반감기 5시간. 금연 계산의 되찾은 시간은 개비당 20분(UCL 2024), 회복 단계는 미국 CDC·보건복지부 금연길라잡이.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
   doc('/about/', '소개 — 몸자', '몸자는 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
@@ -593,7 +621,8 @@ dueIndex(); MONTHS.forEach(([m, d]) => duePage(m, d));
 ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
-buildExtra({ write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, babyMin: D.addDays(TODAY, -3 * 365) });
+const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
+buildExtra(CTX); buildPet(CTX); buildMore(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));

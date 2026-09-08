@@ -19,7 +19,18 @@
     // 날짜: 3월 5일 / 3/5 / 2025-01-31
     var ymd = t.match(/(20\d\d)[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/);
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
+    if (/아기\s*카드|돌\s*카드|백일\s*카드|100일\s*카드|기념일\s*카드/.test(t)) return { href: '/baby/card/', label: '아기 100일·돌 카드' };
     if (/디데이|d-?day|카드/.test(t) && !/아기\s*카드/.test(t)) return { href: '/pregnancy/card/', label: '임신 디데이 카드 만들기' };
+    if (/백분위|또래|성장\s*곡선|성장\s*도표/.test(t)) { var ps = /여아|여자|딸/.test(t) ? 'girl' : 'boy', pmm = t.match(/(\d{1,2})\s*개월/); if (pmm) { var pm2 = Math.max(0, Math.min(36, +pmm[1])); return { href: '/baby/percentile/' + ps + '/' + pm2 + '/', label: (ps === 'girl' ? '여아 ' : '남아 ') + pm2 + '개월 백분위표' }; } return { href: '/baby/percentile/', label: '아기 성장 백분위 계산' }; }
+    if (/강아지|반려견|고양이|냥이|반려묘|사료|반려\s*동물|개\s*나이|멍멍/.test(t)) {
+      var pk = /고양이|냥이|반려묘/.test(t) ? 'cat' : 'dog', pn = pk === 'cat' ? '고양이 ' : '강아지 ';
+      if (/사료|급여|밥\s*양/.test(t)) { var km = t.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로|키로)/), rg = pk === 'cat' ? (G.catKg || [1, 12]) : (G.dogKg || [1, 50]); if (km) { var kk = Math.max(rg[0], Math.min(rg[1], Math.round(+km[1]))); return { href: '/pet/' + pk + '-food/' + kk + '/', label: pn + kk + 'kg 하루 사료량' }; } return { href: '/pet/' + pk + '-food/', label: pn + '사료량 계산' }; }
+      if (/접종|백신|심장사상충|예방/.test(t)) { if (ymd) return { href: '/pet/' + pk + '-vaccine/' + ymd[1] + '-' + pad(+ymd[2]) + '-' + pad(+ymd[3]) + '/', label: pn + '예방접종 일정' }; return { href: '/pet/' + pk + '-vaccine/', label: pn + '예방접종 일정' }; }
+      var ym = t.match(/(\d{1,2})\s*(?:살|세|년)/); if (ym) { var yr = pk === 'cat' ? (G.catYears || [1, 25]) : (G.dogYears || [1, 20]), yy = Math.max(yr[0], Math.min(yr[1], +ym[1])); return { href: '/pet/' + pk + '-age/' + yy + '/', label: pn + yy + '살은 사람 나이로' }; }
+      return { href: '/pet/', label: '반려동물 계산' };
+    }
+    if (/카페인/.test(t)) { var ck = /믹스/.test(t) ? 'mix' : /캔커피/.test(t) ? 'canned' : /에너지|몬스터|레드불|핫식스/.test(t) ? 'energy' : /콜라/.test(t) ? 'cola' : /녹차/.test(t) ? 'green-tea' : /아메리카노|커피/.test(t) ? 'americano' : null, cn = t.match(/(\d+)\s*(?:잔|캔|병|봉)/); if (ck) { var cc = Math.max(1, Math.min(5, cn ? +cn[1] : 1)); return { href: '/caffeine/' + ck + '/' + cc + '/', label: cc + '잔 카페인' }; } return { href: '/caffeine/', label: '오늘 카페인 계산' }; }
+    if (/금연|담배\s*끊|끊은\s*지/.test(t)) { var qd = t.match(/(\d+)\s*일/), qm = t.match(/(\d+)\s*개월/), qy = t.match(/(\d+)\s*년/), dd2 = qd ? +qd[1] : qm ? +qm[1] * 30 : qy ? +qy[1] * 365 : null; if (dd2 && G.quitDays) { var qq = nearest(G.quitDays, dd2); return { href: '/quit-smoking/' + qq + '/', label: '금연 ' + qq + '일' }; } return { href: '/quit-smoking/', label: '금연 계산기' }; }
     // 임신 N주
     var pw = t.match(/임신\s*(\d{1,2})\s*주/) || t.match(/(\d{1,2})\s*주\s*(?:차|째)?\s*(?:임신|아기|태아)/);
     if (pw) { var wn = Math.max(1, Math.min(42, +pw[1])); return { href: '/pregnancy/week/' + wn + '/', label: '임신 ' + wn + '주 아기 크기·엄마 몸·검사' }; }

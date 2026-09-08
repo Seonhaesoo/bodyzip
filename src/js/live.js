@@ -10,6 +10,7 @@
   function dateOf(box, k) { var v = sel(box, k); if (!v) return null; var p = v.split('-').map(Number); return M.utc(p[0], p[1], p[2]); }
   function today() { var t = new Date(Date.now() + 9 * 3600e3); return M.utc(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()); }
 
+  function blobLink(a, text, name) { try { if (a._url) URL.revokeObjectURL(a._url); a._url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' })); a.href = a._url; a.download = name; a.hidden = false; } catch (e) { a.hidden = true; } }
   function bind(box, fn) {
     Array.prototype.forEach.call(box.querySelectorAll('input, select'), function (el) { el.addEventListener('input', fn); el.addEventListener('change', fn); });
     box.addEventListener('submit', function (e) { e.preventDefault(); fn(); });
@@ -65,6 +66,7 @@
       out(box, 'week', w.days < 0 ? '아직 시작 전' : w.weeks + '주 ' + w.rem + '일 (' + w.trimester + '분기)');
       out(box, 'left', left < 0 ? '예정일 ' + (-left) + '일 지남' : left + '일 남음');
       var link = box.querySelector('[data-out="link"]'); if (link) { var mm = l.getUTCMonth() + 1, dd = l.getUTCDate(); link.href = '/due-date/' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd + '/'; }
+      var ics = box.querySelector('[data-out="ics"]'); if (ics && M.pregnancyIcs) { if (box.getAttribute('data-lmp') === M.iso(l) && box.getAttribute('data-ics')) { ics.href = box.getAttribute('data-ics'); ics.removeAttribute('download'); } else blobLink(ics, M.pregnancyIcs(l), '임신 일정 ' + M.iso(l) + '.ics'); }
     });
   });
 
@@ -73,6 +75,7 @@
       var l = dateOf(box, 'lmp'); if (!l) return;
       var len = Math.min(45, Math.max(20, val(box, 'len') || 28)), c = M.cycle(l, len);
       out(box, 'ov', M.fmt(c.ovulation)); out(box, 'fertile', M.fmtShort(c.fertileStart) + ' ~ ' + M.fmtShort(c.fertileEnd)); out(box, 'next', M.fmt(c.next));
+      var ics = box.querySelector('[data-out="ics"]'); if (ics && M.cycleIcs) { if (len === 28 && box.getAttribute('data-lmp') === M.iso(l) && box.getAttribute('data-ics')) { ics.href = box.getAttribute('data-ics'); ics.removeAttribute('download'); } else blobLink(ics, M.cycleIcs(l, len), '생리주기 ' + len + '일 ' + M.iso(l) + '.ics'); }
     });
   });
 
@@ -148,6 +151,82 @@
       out(box, 'due', M.fmt(due) + ' (' + M.wd(due) + ')'); out(box, 'left', left >= 0 ? left + '일 남음' : (-left) + '일 지남'); out(box, 'lmp', M.fmt(lmp));
       var link = box.querySelector('[data-out="link"]'); if (link) { var mm = lmp.getUTCMonth() + 1, dd = lmp.getUTCDate(); link.href = '/due-date/' + (mm < 10 ? '0' : '') + mm + '-' + (dd < 10 ? '0' : '') + dd + '/'; }
       var wl = box.querySelector('[data-out="wlink"]'); if (wl) { var ww = Math.max(1, Math.min(42, w || 1)); wl.href = '/pregnancy/week/' + ww + '/'; wl.textContent = '임신 ' + ww + '주 안내 →'; }
+    });
+  });
+
+  /* 성장 백분위 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="percentile"]'), function (box) {
+    bind(box, function () {
+      var sex = sel(box, 'sex') || 'm', b = dateOf(box, 'birth'), mo = val(box, 'month');
+      if (b) { var dd = M.diffDays(b, today()); if (dd >= 0) { mo = Math.round(M.monthsFromDays(dd) * 10) / 10; var mi = q(box, 'month'); if (mi && document.activeElement !== mi) mi.value = mo; } }
+      mo = Math.max(0, Math.min(M.MAX_MONTH, mo || 0));
+      var notes = [];
+      [['w', 'weight', 'wp'], ['h', 'length', 'hp'], ['hc', 'head', 'hcp']].forEach(function (o) {
+        var v = val(box, o[0]); if (!v) { out(box, o[2], '—'); return; }
+        var r = M.growthCheck(o[1], sex, mo, v); out(box, o[2], r.pct + '백분위');
+        notes.push(M.MEASURES[o[1]].label + ': ' + r.band.label + ' (중간값 ' + r.median + M.MEASURES[o[1]].unit + ')');
+      });
+      out(box, 'note', notes.length ? notes.join(' · ') : '몸무게·키·머리둘레 가운데 아는 것만 넣어도 됩니다.');
+      var link = box.querySelector('[data-out="link"]'); if (link) { var mm = Math.max(0, Math.min(36, Math.round(mo))); link.href = '/baby/percentile/' + (sex === 'f' ? 'girl' : 'boy') + '/' + mm + '/'; link.textContent = (sex === 'f' ? '여아 ' : '남아 ') + mm + '개월 백분위표 →'; }
+    });
+  });
+
+  /* 반려동물 나이 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="petage"]'), function (box) {
+    var kind = box.getAttribute('data-kind') || 'dog';
+    bind(box, function () {
+      var y = val(box, 'y') || 1, size = sel(box, 'size') || 'small';
+      out(box, 'human', (kind === 'cat' ? M.catAge(y) : M.dogAge(y, size)) + '세'); out(box, 'stage', M.petStage(kind, y, size).split(' —')[0]);
+      if (kind === 'dog') out(box, 'log', M.dogAgeLog(y) + '세');
+    });
+  });
+
+  /* 반려동물 사료량 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="petfood"]'), function (box) {
+    var kind = box.getAttribute('data-kind') || 'dog';
+    bind(box, function () {
+      var kg = val(box, 'kg') || 5, f = sel(box, 'factor') || 'neutered', kcal = val(box, 'kcal') || M.KCAL_PER_100G;
+      var r = M.petFood(kind, kg, f, kcal);
+      out(box, 'grams', r.grams + 'g'); out(box, 'der', num(r.der) + 'kcal'); out(box, 'meal', r.perMeal2 + 'g / ' + r.perMeal3 + 'g');
+    });
+  });
+
+  /* 반려동물 예방접종 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="petvac"]'), function (box) {
+    var kind = box.getAttribute('data-kind') || 'dog', name = kind === 'cat' ? '고양이' : '강아지';
+    bind(box, function () {
+      var b = dateOf(box, 'birth'); if (!b) return;
+      var t = today(), days = M.diffDays(b, t), ics = box.querySelector('[data-out="ics"]'), link = box.querySelector('[data-out="link"]');
+      if (days < 0) { out(box, 'age', '아직 태어나기 전'); out(box, 'next', '—'); out(box, 'hw', '—'); if (ics) ics.hidden = true; return; }
+      out(box, 'age', Math.floor(days / 7) + '주 (' + num(days) + '일)');
+      var rows = []; M.petVaccineDates(kind, b).forEach(function (v) { v.doses.forEach(function (d) { rows.push({ n: v.name, d: d.date }); }); }); rows.sort(function (a, c) { return a.d - c.d; });
+      var nx = null; for (var i = 0; i < rows.length; i++) if (rows[i].d >= t) { nx = rows[i]; break; }
+      out(box, 'next', nx ? nx.n.split(' (')[0] + ' · ' + M.fmtShort(nx.d) : '연간 추가 접종만'); out(box, 'hw', M.fmt(M.heartwormStart(b)));
+      if (link) { if (days <= 365) { link.href = '/pet/' + kind + '-vaccine/' + M.iso(b) + '/'; link.textContent = M.fmt(b) + '생 일정 표 →'; } else { link.href = '/pet/' + kind + '-vaccine/'; link.textContent = '일정 표는 최근 1년생만 →'; } }
+      if (ics && M.petIcs) { if (days <= 365) { ics.hidden = false; ics.href = '/pet/' + kind + '-vaccine/' + M.iso(b) + '/vaccines.ics'; ics.removeAttribute('download'); } else blobLink(ics, M.petIcs(kind, b), name + ' 예방접종 ' + M.iso(b) + '.ics'); }
+    });
+  });
+
+  /* 카페인 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="caffeine"]'), function (box) {
+    bind(box, function () {
+      var total = 0; M.CAFFEINE.forEach(function (c) { var n = val(box, 'c-' + c.key); if (n) total += n * c.mg; });
+      var mode = sel(box, 'limit') || '400', kg = val(box, 'kg') || 50, lim = M.caffeineLimit(mode, kg);
+      var last = sel(box, 'last') || '14:00', bed = sel(box, 'bed') || '23:00', lp = last.split(':').map(Number), bp = bed.split(':').map(Number);
+      var hrs = (bp[0] * 60 + bp[1] - (lp[0] * 60 + lp[1])) / 60; if (hrs < 0) hrs += 24;
+      var left = M.caffeineLeft(total, hrs);
+      out(box, 'total', total + 'mg'); out(box, 'ratio', Math.round(total / lim * 100) + '% (기준 ' + lim + 'mg)'); out(box, 'left', left + 'mg');
+      out(box, 'note', !total ? '마신 잔 수를 넣어 주세요.' : total > lim ? '하루 기준을 넘었습니다. 오늘은 여기까지.' : left > 100 ? '잘 때 ' + left + 'mg이 남아 잠들기 어려울 수 있습니다. 마지막 잔을 앞당겨 보세요.' : '기준 안이고 잘 때 남는 양도 적습니다.');
+    });
+  });
+
+  /* 금연 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="quit"]'), function (box) {
+    bind(box, function () {
+      var d0 = dateOf(box, 'date'); if (!d0) return;
+      var days = M.diffDays(d0, today()); if (days < 0) { out(box, 'days', '아직 시작 전'); return; }
+      var per = val(box, 'per') || 20, price = val(box, 'price') || 4500, r = M.quitStats(days, per, price), st = M.quitStage(days), y = M.quitStats(365, per, price);
+      out(box, 'days', days + '일'); out(box, 'cigs', num(r.cigs) + '개비'); out(box, 'money', num(r.money) + '원'); out(box, 'life', r.lifeText); out(box, 'stage', st.label + ' — ' + st.text); out(box, 'year', num(y.money) + '원');
     });
   });
 })();
