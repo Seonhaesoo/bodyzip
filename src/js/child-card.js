@@ -1,6 +1,6 @@
-/* 몸자 — 아이 예상 키 결과 카드 (아이 키 예측 페이지의 계산기 값으로 그려 저장·공유) */
+/* 바디집 — 아이 예상 키 결과 카드 (아이 키 예측 페이지의 계산기 값으로 그려 저장·공유) */
 (function () {
-  var M = window.Momja, box = document.querySelector('[data-live="child"]'), wrap = document.querySelector('[data-card="child"]');
+  var M = window.Bodyzip, box = document.querySelector('[data-live="child"]'), wrap = document.querySelector('[data-card="child"]');
   if (!M || !box || !wrap) return;
   var canvas = wrap.querySelector('canvas'), img = wrap.querySelector('img');
   function val(k) { var el = box.querySelector('[data-k="' + k + '"]'); return el ? parseFloat(el.value) || 0 : 0; }
@@ -23,7 +23,7 @@
       c.font = '400 34px "Noto Sans KR", sans-serif'; c.fillStyle = '#6B6259'; c.fillText(Math.round((p[1] - 8.5) * 10) / 10 + ' ~ ' + Math.round((p[1] + 8.5) * 10) / 10 + 'cm 안에 95%', W / 2, y + 125);
     });
     c.font = '400 32px "Noto Sans KR", sans-serif'; c.fillStyle = '#8A948E'; c.fillText('중간 부모 키 공식 · 유전 70~80% · 잠·영양·운동이 나머지', W / 2, H - 170);
-    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillText('momja.com/child-height/', W / 2, H - 96);
+    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillText('bodyzip.com/child-height/', W / 2, H - 96);
     img.src = canvas.toDataURL('image/png'); img.alt = text(s);
   }
   var timer = null;
@@ -36,6 +36,6 @@
   if (save) save.addEventListener('click', function () { blob(function (b, s) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = '아이 예상 키 ' + s.f + '-' + s.m + '.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }); });
   if (share) {
     if (!(navigator.share && navigator.canShare)) share.hidden = true;
-    else share.addEventListener('click', function () { blob(function (b, s) { var f = new File([b], 'child-height.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '우리 아이 예상 키', text: text(s) + ' — momja.com' }).catch(function () {}); }); });
+    else share.addEventListener('click', function () { blob(function (b, s) { var f = new File([b], 'child-height.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '우리 아이 예상 키', text: text(s) + ' — bodyzip.com' }).catch(function () {}); }); });
   }
 })();

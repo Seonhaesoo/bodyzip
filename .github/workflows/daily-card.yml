@@ -57,7 +57,7 @@ jobs:
       - name: 커밋 (배포 워크플로가 이어서 실행됨)
         if: steps.gate.outputs.go == '1'
         run: |
-          git config user.name 'momja-bot'
+          git config user.name 'bodyzip-bot'
           git config user.email 'bot@users.noreply.github.com'
           git add src/cards/
           git commit -m "오늘의 숫자 카드 $(TZ=Asia/Seoul date +%F)" || echo '변경 없음'
@@ -68,7 +68,7 @@ jobs:
         if: steps.gate.outputs.go == '1'
         id: url
         run: |
-          if [ -f src/CNAME ] || grep -q "DOMAIN_READY = true" tools/build.mjs; then base="https://momja.com"; else base="https://seonhaesoo.github.io/momja"; fi
+          if [ -f src/CNAME ] || grep -q "DOMAIN_READY = true" tools/build.mjs; then base="https://bodyzip.com"; else base="https://seonhaesoo.github.io/bodyzip"; fi
           echo "base=$base" >> "$GITHUB_OUTPUT"
           echo "공개 주소: $base/cards/latest.png"
 

@@ -7,7 +7,7 @@ import { pick, facts } from './daily-facts.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'src', 'cards');
-const SITE = 'https://momja.com';
+const SITE = 'https://bodyzip.com';
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const offset = +arg('--offset', 0) || 0;
 const kst = new Date(Date.now() + 9 * 3600 * 1000 + offset * 86400000);
@@ -38,12 +38,12 @@ html,body{margin:0;background:#ddd}
 .foot{position:absolute;bottom:90px;left:0;right:0;text-align:center;font-size:28px;color:#8A948E}
 </style></head><body><div id="card">
 <div class="frame"></div>
-<div class="top"><b>몸자</b> · 오늘의 숫자 · ${esc(dateKor)}</div>
+<div class="top"><b>바디집</b> · 오늘의 숫자 · ${esc(dateKor)}</div>
 <div class="label">${esc(f.label)}</div>
 <div class="big">${esc(f.big)}</div>
 <div class="sub">${esc(f.sub)}</div>
 <div class="bar"></div>
-<div class="url"><span>momja.com${esc(f.url)}</span></div>
+<div class="url"><span>bodyzip.com${esc(f.url)}</span></div>
 <div class="foot">몸 계산 사전 — 숫자만 넣으면 바로 · 참고용</div>
 </div></body></html>`;
 }
@@ -52,9 +52,9 @@ const caption = [
   `${f_label(fact)} ${fact.big}`,
   fact.sub,
   '',
-  `표로 보기 → momja.com${fact.url}`,
+  `표로 보기 → bodyzip.com${fact.url}`,
   '',
-  ['몸자', '몸계산사전', ...fact.tags].map((t) => `#${t.replace(/\s+/g, '')}`).join(' '),
+  ['바디집', '몸계산사전', ...fact.tags].map((t) => `#${t.replace(/\s+/g, '')}`).join(' '),
 ].join('\n');
 function f_label(f) { return f.label.endsWith('면') || f.label.endsWith('로') ? f.label : f.label; }
 

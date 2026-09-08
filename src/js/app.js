@@ -1,8 +1,8 @@
-/* 몸자 — 페이지 스크립트 (정적 사이트)
+/* 바디집 — 페이지 스크립트 (정적 사이트)
  * 1) 스마트 검색: "키 170 몸무게 65", "치킨 칼로리", "출산예정일 3월 5일", "아기 2025-01-31" → 알맞은 페이지
  * 2) 빠른 찾기 폼, 변형 토글, 복사 버튼 */
 (function () {
-  var G = window.MOMJA_GRID || {};
+  var G = window.BODYZIP_GRID || {};
   function nearest(arr, v) { if (!arr || !arr.length) return v; return arr.reduce(function (a, b) { return Math.abs(b - v) < Math.abs(a - v) ? b : a; }); }
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   /* 이름·별칭 가운데 가장 긴 것이 검색어에 들어 있는 항목 — 같은 길이면 앞 항목 */

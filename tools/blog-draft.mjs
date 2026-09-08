@@ -16,7 +16,7 @@ import { GUIDES } from '../data/guides.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'drafts');
-const SITE = 'https://momja.com';
+const SITE = 'https://bodyzip.com';
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
 const F = Object.fromEntries(FOODS.map((f) => [f.slug, f]));
 const kst = new Date(Date.now() + 9 * 3600 * 1000);
@@ -49,7 +49,7 @@ const forced = process.argv.indexOf('--week') > 0 ? +process.argv[process.argv.i
 const t = TOPICS[((forced != null ? forced : week) % TOPICS.length + TOPICS.length) % TOPICS.length];
 fs.mkdirSync(OUT, { recursive: true });
 const file = path.join(OUT, `${iso}-${t.slug}.md`);
-const text = `# ${t.title}\n\n_${iso} 초안 · 몸자(momja.com) 계산 결과를 그대로 옮긴 글입니다. 네이버 블로그에 붙여 넣기 전에 제목과 첫 문단만 손보세요._\n\n${t.body()}\n\n---\n모든 수치는 공개된 공식과 기준(대한비만학회·질병관리청·식약처·WHO)으로 계산한 참고용이며 진단이나 치료를 대신하지 않습니다.\n\n${t.tags.map((x) => `#${x}`).join(' ')} #몸자 #몸계산사전\n`;
+const text = `# ${t.title}\n\n_${iso} 초안 · 바디집(bodyzip.com) 계산 결과를 그대로 옮긴 글입니다. 네이버 블로그에 붙여 넣기 전에 제목과 첫 문단만 손보세요._\n\n${t.body()}\n\n---\n모든 수치는 공개된 공식과 기준(대한비만학회·질병관리청·식약처·WHO)으로 계산한 참고용이며 진단이나 치료를 대신하지 않습니다.\n\n${t.tags.map((x) => `#${x}`).join(' ')} #바디집 #몸계산사전\n`;
 fs.writeFileSync(file, text);
 const list = fs.readdirSync(OUT).filter((f) => f.endsWith('.md') && f !== 'README.md').sort().reverse();
 fs.writeFileSync(path.join(OUT, 'README.md'), `# 블로그 초안\n\n매주 월요일 아침 자동으로 한 편씩 생깁니다. 파일을 열어 네이버 블로그에 붙여 넣고 제목·첫 문단만 다듬으세요.\n\n${list.map((f) => `- [${f.replace('.md', '')}](${f})`).join('\n')}\n`);

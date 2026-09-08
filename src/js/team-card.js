@@ -1,6 +1,6 @@
-/* 몸자 — 회식 음주 표 카드: 사람별 술·양·몸무게 → 최고 농도, 0.03% 아래 시각, 완전 분해 시각. /alcohol/team/ 전용 */
+/* 바디집 — 회식 음주 표 카드: 사람별 술·양·몸무게 → 최고 농도, 0.03% 아래 시각, 완전 분해 시각. /alcohol/team/ 전용 */
 (function () {
-  var M = window.Momja, box = document.querySelector('[data-live="team"]');
+  var M = window.Bodyzip, box = document.querySelector('[data-live="team"]');
   if (!M || !box) return;
   var canvas = document.getElementById('card-canvas'), img = document.getElementById('card-img'), tbody = box.querySelector('[data-out="rows"]'), hint = box.querySelector('[data-out="hint"]');
   var DR = {}; M.DRINKS.forEach(function (d) { DR[d.key] = d; });
@@ -41,7 +41,7 @@
     });
     c.textAlign = 'center'; c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = '#8A948E';
     c.fillText('위드마크 공식 · 흡수 1.5시간 + 시간당 0.015%p 분해 · 참고용, 운전 가능을 보증하지 않음', W / 2, H - 150);
-    c.fillText('momja.com/alcohol/team/', W / 2, H - 96);
+    c.fillText('bodyzip.com/alcohol/team/', W / 2, H - 96);
     img.src = canvas.toDataURL('image/png');
   }
   var timer = null;
@@ -60,6 +60,6 @@
   if (save) save.addEventListener('click', function () { blob(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = '회식 음주 표.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }); });
   if (share) {
     if (!(navigator.share && navigator.canShare)) share.hidden = true;
-    else share.addEventListener('click', function () { blob(function (b) { var f = new File([b], 'team.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '회식 뒤 운전은 언제부터', text: '우리 팀 혈중알코올농도 표 — momja.com/alcohol/team/' }).catch(function () {}); }); });
+    else share.addEventListener('click', function () { blob(function (b) { var f = new File([b], 'team.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '회식 뒤 운전은 언제부터', text: '우리 팀 혈중알코올농도 표 — bodyzip.com/alcohol/team/' }).catch(function () {}); }); });
   }
 })();

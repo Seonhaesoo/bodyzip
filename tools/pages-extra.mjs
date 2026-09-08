@@ -43,7 +43,7 @@ ${crumb([['/guide/', '서재'], [null, g.title.split(' — ')[0]]])}
 ${ad()}
 ${section('다른 글', null, list(others.map((o) => ({ href: `/guide/${o.slug}/`, title: o.title.split(' — ')[0], sub: o.desc.length > 60 ? o.desc.slice(0, 60) + '…' : o.desc }))))}
 <p class="note">이 글은 공개된 의학 기준과 공식을 풀어 쓴 참고 정보이며 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`;
-    write(url, shell({ url, title: `${g.title} — 몸자 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '몸자' }, publisher: { '@type': 'Organization', name: '몸자' }, mainEntityOfPage: `https://momja.com${url}` } }));
+    write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
   }
   write('/guide/', shell({ url: '/guide/', title: '서재 — 몸 계산의 기준을 풀어 쓴 글 (BMI·대사량·체지방·임신·예방접종·수면·음주)', desc: 'BMI 한국 기준이 다른 이유, 기초대사량과 다이어트, 줄자로 재는 체지방률, 임신 주수 세는 법, 아기 예방접종 일정, 물 섭취량, 수면 주기, 아이 키 예측, 혈중알코올농도 계산법.', nav: 'guide', body: `
 ${crumb([['/', '홈'], [null, '서재']])}
@@ -95,7 +95,7 @@ ${section('많이 보는 주차', null, list([8, 12, 16, 20, 24, 28, 32, 36].map
 ${crumb([['/due-date/', '임신'], [null, '디데이 카드']])}
 <h1 class="title">임신 디데이 카드</h1>
 <p class="meta">출산예정일 · 오늘 주수 · 아기 크기 · 태명 · 카드는 이 기기 안에서만 만들어집니다</p>
-<script>window.MOMJA_WEEKS=${JSON.stringify(WEEKS.map((x) => [x.size, x.len, x.wt]))}</script>
+<script>window.BODYZIP_WEEKS=${JSON.stringify(WEEKS.map((x) => [x.size, x.len, x.wt]))}</script>
 <form class="quick live" data-live="card" style="margin-top:14px">
 <div class="live-head"><b>카드 만들기</b><span>바꾸면 바로 다시 그립니다</span></div>
 <div class="ye-grid">
@@ -117,7 +117,7 @@ ${section('이렇게 써 보세요', null, `<div class="doc">
 </div>`)}
 ${ad()}
 ${section('이어서', null, list([{ href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일부터' }, { href: '/pregnancy/week/', title: '임신 주차별 안내', sub: '아기 크기 · 엄마 몸 · 검사' }, { href: '/baby/', title: '아기 개월수 · 예방접종 캘린더', sub: '태어난 뒤에는 이쪽' }]))}
-<p class="note">카드 이미지는 브라우저 안에서 그려지며 몸자 서버로 전송되지 않습니다. 주수는 마지막 생리 시작일(출산예정일 − 280일) 기준이고, 아기 크기는 주차별 평균 참고값입니다.</p>` }));
+<p class="note">카드 이미지는 브라우저 안에서 그려지며 바디집 서버로 전송되지 않습니다. 주수는 마지막 생리 시작일(출산예정일 − 280일) 기준이고, 아기 크기는 주차별 평균 참고값입니다.</p>` }));
 
   /* ---------- 아기 개월별 발달 ---------- */
   const monthUrl = (m) => `/baby/month/${m}/`;

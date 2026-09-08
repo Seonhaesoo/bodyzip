@@ -1,9 +1,9 @@
-/* 몸자 — 임신 디데이 카드 (캔버스로 그려서 저장·공유). /pregnancy/card/ 전용 */
+/* 바디집 — 임신 디데이 카드 (캔버스로 그려서 저장·공유). /pregnancy/card/ 전용 */
 (function () {
-  var M = window.Momja, box = document.querySelector('[data-live="card"]');
+  var M = window.Bodyzip, box = document.querySelector('[data-live="card"]');
   if (!M || !box) return;
   var canvas = document.getElementById('card-canvas'), img = document.getElementById('card-img'), hint = box.querySelector('[data-out="hint"]');
-  var WEEKS = window.MOMJA_WEEKS || [];
+  var WEEKS = window.BODYZIP_WEEKS || [];
   var THEMES = {
     hanji: { bg: '#F6F1E8', ink: '#211C15', accent: '#1F6F6B', soft: '#DED2BC', muted: '#6B6259' },
     teal: { bg: '#1F6F6B', ink: '#F6F1E8', accent: '#F0D9A8', soft: 'rgba(246,241,232,.28)', muted: 'rgba(246,241,232,.75)' },
@@ -57,7 +57,7 @@
     c.textAlign = 'left'; c.fillText('0주', px, py + 52); c.textAlign = 'right'; c.fillText('40주', px + pw, py + 52); c.textAlign = 'center';
     var wk = WEEKS[s.weeks - 1];
     if (s.days >= 0 && wk && wk[0] && wk[0] !== '—') { c.font = '400 36px "Noto Sans KR", sans-serif'; c.fillStyle = T.ink; c.fillText('아기는 지금 ' + wk[0] + ' 크기' + (wk[1] ? ' · ' + wk[1] : '') + (wk[2] ? ' · ' + wk[2] : ''), W / 2, py + 130); }
-    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = T.muted; c.fillText('momja.com', W / 2, H - 96);
+    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = T.muted; c.fillText('bodyzip.com', W / 2, H - 96);
     img.src = canvas.toDataURL('image/png');
     img.alt = shareText(s);
   }
@@ -87,7 +87,7 @@
     else share.addEventListener('click', function () {
       blob(function (b, s) {
         var f = new File([b], 'dday.png', { type: 'image/png' });
-        if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '임신 디데이 카드', text: shareText(s) + ' — momja.com' }).catch(function () {});
+        if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '임신 디데이 카드', text: shareText(s) + ' — bodyzip.com' }).catch(function () {});
         else if (hint) hint.textContent = '이 브라우저는 바로 공유를 지원하지 않아요. 이미지를 저장한 뒤 올려 주세요.';
       });
     });

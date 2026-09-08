@@ -1,4 +1,4 @@
-/* 몸자 정적 사이트 생성기 — node tools/build.mjs → dist/
+/* 바디집 정적 사이트 생성기 — node tools/build.mjs → dist/
  * BMI(키×몸무게)·정상 체중·기초대사량·체지방·음식 칼로리·운동 소모 칼로리·출산예정일·배란일·아기 개월수/예방접종·물 섭취량 */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +21,7 @@ import { GUIDES } from '../data/guides.mjs';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'dist');
-const SITE = 'https://momja.com';
+const SITE = 'https://bodyzip.com';
 const DOMAIN_READY = false;                          /* 도메인 연결 뒤 true → CNAME 생성 */
 const GA_ID = '';                                    /* GA4 측정 ID — 속성 만들면 채움 */
 const ADSENSE = 'ca-pub-9924140539322407';
@@ -50,7 +50,7 @@ function write(url, html) {
 function shell(o) {
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');</script>\n` : '';
   const ADS = ADSENSE ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
-  const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '몸자', url: SITE } };
+  const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
   const on = (k) => o.nav === k ? ' class="on"' : '';
   return `<!doctype html>
 <html lang="ko">
@@ -78,13 +78,13 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 <body>
 <div class="app">
 <header class="hdr">
-  <a class="brand" href="/">${LOGO}<span class="brand-name">몸자</span></a>
+  <a class="brand" href="/">${LOGO}<span class="brand-name">바디집</span></a>
   <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/pet/"${on('pet')}>반려</a><a href="/guide/"${on('guide')}>서재</a></nav>
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
 <footer class="foot">
-  <div class="frow"><span>© 몸자 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
+  <div class="frow"><span>© 바디집 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
 </div>
@@ -121,7 +121,7 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.MOMJA_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS })}</script>`;
+const grid = () => `<script>window.BODYZIP_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
@@ -573,13 +573,13 @@ ${section('생활', null, `<div class="dict">
 ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => { const rr = B.normalRange(h); return { href: bmiUrl(h), title: `키 ${h}cm 정상 체중`, sub: `표준체중 남 ${B.standardWeight(h, 'm')} · 여 ${B.standardWeight(h, 'f')}kg`, value: `${rr.min}~${rr.max}kg` }; })))}
 ${ad()}
 ${section('기준', null, `<div class="callout"><b>대한비만학회 비만 진료지침 2022</b>(BMI 구간), Mifflin-St Jeor 식(기초대사량), 미 해군 공식(체지방률), Compendium of Physical Activities(운동 MET), 식약처 식품영양성분 DB(칼로리), 질병관리청 표준 예방접종 일정. 모두 참고용이며 진단·치료를 대신하지 않습니다.</div>`)}`;
-  write('/', shell({ url: '/', title: `몸자 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
+  write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
 }
 
 /* ---------- 문서 ---------- */
 function docs() {
   const doc = (url, title, desc, inner) => write(url, shell({ url, title, desc, body: `${crumb([['/', '홈'], [null, title.split(' — ')[0]]])}<h1 class="title">${title.split(' — ')[0]}</h1><div class="doc">${inner}</div>`, noindex: url === '/terms/' || url === '/privacy/' }));
-  doc('/method/', '계산 기준과 출처 — 몸자', '몸자의 BMI·기초대사량·체지방률·칼로리·출산예정일·예방접종 계산 방식과 출처.', `
+  doc('/method/', '계산 기준과 출처 — 바디집', '바디집의 BMI·기초대사량·체지방률·칼로리·출산예정일·예방접종 계산 방식과 출처.', `
 <h2>BMI와 정상 체중</h2><p>BMI = 몸무게(kg) ÷ 키(m)². 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준(18.5 미만 저체중, 18.5~22.9 정상, 23~24.9 비만 전단계, 25~29.9 1단계, 30~34.9 2단계, 35 이상 3단계 비만)을 씁니다. 정상 체중 범위는 BMI 18.5~22.9, 표준체중은 키(m)² × 22(남)·21(여), 브로카 변법은 (키 − 100) × 0.9입니다. 감량 기간은 체지방 1kg ≈ 7,700kcal로 계산합니다.</p>
 <h2>기초대사량과 하루 필요 칼로리</h2><p>Mifflin-St Jeor(1990): 남 10 × 몸무게 + 6.25 × 키 − 5 × 나이 + 5, 여 −161. 비교용 Harris-Benedict는 1984년 개정식. 하루 필요 칼로리는 기초대사량 × 활동 계수(1.2 · 1.375 · 1.55 · 1.725 · 1.9). 단백질 권장량은 한국인 영양소 섭취기준(2020) 0.8g/kg과 운동 시 1.4g/kg 안팎.</p>
 <h2>체지방률</h2><p>미 해군 공식(Hodgdon & Beckett 1984), cm 단위. 남 495 ÷ (1.0324 − 0.19077·log(허리 − 목) + 0.15456·log(키)) − 450, 여 495 ÷ (1.29579 − 0.35004·log(허리 + 엉덩이 − 목) + 0.22100·log(키)) − 450. 판정은 ACE 분류.</p>
@@ -589,27 +589,27 @@ function docs() {
 <h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal. 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량.</p>
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
 <h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
-<h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 몸자 서버에 저장되지 않습니다.</p>
+<h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 바디집 서버에 저장되지 않습니다.</p>
 <h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. WHO 일 단위 표에서 개월 × 30.4375일 행을 뽑아 월 값으로 쓰며(공식 월 표와 최대 0.06cm·0.02kg 차이), 이웃한 달 사이는 선형 보간.</p>
 <h2>반려동물</h2><p>나이 환산은 AVMA 지침(중형견 기준 1살 15세, 2살 24세, 이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식(고양이는 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
 <h2>카페인·금연</h2><p>카페인 함량은 식약처 DB·매장 공개값의 대표치, 권고량은 식약처(성인 400mg·임산부 300mg·청소년 2.5mg/kg), 반감기 5시간. 금연 계산의 되찾은 시간은 개비당 20분(UCL 2024), 회복 단계는 미국 CDC·보건복지부 금연길라잡이.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
-<h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
-  doc('/about/', '소개 — 몸자', '몸자는 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
-<p>몸자(몸 + 자[尺])는 "키 170에 65면 정상인가?", "치킨 한 마리는 밥 몇 공기?", "출산예정일이 언제?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록 미리 계산해 둔 사전입니다. 회원 가입도, 입력값 저장도 없습니다.</p>
+<h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
+  doc('/about/', '소개 — 바디집', '바디집은 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
+<p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65면 정상인가?", "치킨 한 마리는 밥 몇 공기?", "출산예정일이 언제?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록 미리 계산해 둔 사전입니다. 회원 가입도, 입력값 저장도 없습니다.</p>
 <p>모든 계산은 공개된 의학 기준과 공식(대한비만학회, Mifflin-St Jeor, 미 해군 체지방 공식, Compendium of Physical Activities, 식약처 영양성분 DB, 질병관리청 예방접종 일정)으로만 하며 <a href="/method/">계산 기준</a>에 출처를 적어 두었습니다. 기준이 바뀌면 갱신합니다.</p>
-<p>몸자는 <a href="${SISTERS.donpyo}/">돈표</a>(돈 계산 사전)와 <a href="${SISTERS.saju}/">사주첩</a>을 만든 팀이 운영합니다.</p>
+<p>바디집은 <a href="${SISTERS.donpyo}/">돈표</a>(돈 계산 사전)와 <a href="${SISTERS.saju}/">사주첩</a>을 만든 팀이 운영합니다.</p>
 <h2>문의</h2><p>오류 제보와 기준 갱신 요청은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요.</p>`);
-  doc('/terms/', '이용약관 — 몸자', '몸자 이용약관.', `
-<p>몸자(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
+  doc('/terms/', '이용약관 — 바디집', '바디집 이용약관.', `
+<p>바디집(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
 <p>사이트의 모든 계산 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단, 치료, 처방을 대신하지 않습니다. 건강·임신·육아에 관한 결정은 반드시 의료인과 상의하세요. 이용자는 계산 결과를 근거로 한 결정에 대해 스스로 책임지며, 사이트는 결과의 정확성·완전성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
-<p>사이트의 글과 표는 저작권법의 보호를 받습니다. 출처(몸자, momja.com)를 밝힌 인용과 링크는 자유롭게 할 수 있으나 전체 복제·재배포는 금합니다.</p>`);
-  doc('/privacy/', '개인정보처리방침 — 몸자', '몸자 개인정보처리방침.', `
-<h2>1. 수집하는 정보</h2><p>몸자는 회원 가입이나 개인정보 입력을 요구하지 않습니다. 계산기에 넣는 키·몸무게·날짜는 이용자의 브라우저 안에서만 처리되며 서버로 전송·저장되지 않습니다.</p>
+<p>사이트의 글과 표는 저작권법의 보호를 받습니다. 출처(바디집, bodyzip.com)를 밝힌 인용과 링크는 자유롭게 할 수 있으나 전체 복제·재배포는 금합니다.</p>`);
+  doc('/privacy/', '개인정보처리방침 — 바디집', '바디집 개인정보처리방침.', `
+<h2>1. 수집하는 정보</h2><p>바디집은 회원 가입이나 개인정보 입력을 요구하지 않습니다. 계산기에 넣는 키·몸무게·날짜는 이용자의 브라우저 안에서만 처리되며 서버로 전송·저장되지 않습니다.</p>
 <h2>2. 쿠키와 분석</h2><p>Google Analytics로 방문 통계(페이지 조회, 기기 종류, 유입 경로)를 수집하고 Google AdSense 광고가 게재될 수 있습니다. 이들 서비스는 쿠키를 사용할 수 있으며, 브라우저 설정에서 쿠키를 거부할 수 있습니다. 광고 개인 최적화는 <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google 광고 설정</a>에서 관리할 수 있습니다.</p>
 <h2>3. 제3자 제공</h2><p>수집한 정보를 제3자에게 판매·제공하지 않습니다.</p>
 <h2>4. 문의</h2><p>개인정보 관련 문의는 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요. 시행일 ${BUILD_ISO}.</p>`);
-  fs.writeFileSync(path.join(OUT, '404.html'), shell({ url: '/404.html', title: '페이지를 찾을 수 없어요 — 몸자', desc: '없는 페이지', noindex: true, body: `<h1 class="title" style="margin-top:40px">페이지를 찾을 수 없어요</h1><p class="lead">주소가 바뀌었거나 없는 페이지입니다. <a href="/">홈에서 키·몸무게를 넣어 보세요</a>.</p>` }));
+  fs.writeFileSync(path.join(OUT, '404.html'), shell({ url: '/404.html', title: '페이지를 찾을 수 없어요 — 바디집', desc: '없는 페이지', noindex: true, body: `<h1 class="title" style="margin-top:40px">페이지를 찾을 수 없어요</h1><p class="lead">주소가 바뀌었거나 없는 페이지입니다. <a href="/">홈에서 키·몸무게를 넣어 보세요</a>.</p>` }));
 }
 
 /* ---------- 빌드 ---------- */
@@ -644,5 +644,5 @@ for (const [key, re] of SM_GROUPS) {
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${BUILD_ISO}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
 console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
-if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'momja.com\n');
-console.log(`몸자 빌드 완료: 페이지 ${urls.length}장, ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'bodyzip.com\n');
+console.log(`바디집 빌드 완료: 페이지 ${urls.length}장, ${((Date.now() - t0) / 1000).toFixed(1)}s`);

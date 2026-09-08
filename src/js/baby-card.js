@@ -1,6 +1,6 @@
-/* 몸자 — 아기 100일·돌 카드 (캔버스로 그려서 저장·공유). /baby/card/ 전용 */
+/* 바디집 — 아기 100일·돌 카드 (캔버스로 그려서 저장·공유). /baby/card/ 전용 */
 (function () {
-  var M = window.Momja, box = document.querySelector('[data-live="babycard"]');
+  var M = window.Bodyzip, box = document.querySelector('[data-live="babycard"]');
   if (!M || !box) return;
   var canvas = document.getElementById('card-canvas'), img = document.getElementById('card-img'), hint = box.querySelector('[data-out="hint"]');
   var THEMES = {
@@ -53,7 +53,7 @@
     if (ratio > 0) { c.fillStyle = T.accent; rr(c, px, py, Math.max(16, pw * ratio), 16, 8); c.fill(); }
     c.font = '400 30px "Noto Sans KR", sans-serif'; c.fillStyle = T.muted;
     c.textAlign = 'left'; c.fillText('태어난 날', px, py + 52); c.textAlign = 'right'; c.fillText('첫돌', px + pw, py + 52); c.textAlign = 'center';
-    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = T.muted; c.fillText('momja.com', W / 2, H - 96);
+    c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = T.muted; c.fillText('bodyzip.com', W / 2, H - 96);
     img.src = canvas.toDataURL('image/png'); img.alt = shareText(s);
   }
   var timer = null;
@@ -73,6 +73,6 @@
   if (save) save.addEventListener('click', function () { blob(function (b, s) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = '아기 ' + (s.hit || 'D+' + s.days) + ' 카드.png'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }); });
   if (share) {
     if (!(navigator.share && navigator.canShare)) share.hidden = true;
-    else share.addEventListener('click', function () { blob(function (b, s) { var f = new File([b], 'baby.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '아기 카드', text: shareText(s) + ' — momja.com' }).catch(function () {}); else if (hint) hint.textContent = '이 브라우저는 바로 공유를 지원하지 않아요. 이미지를 저장한 뒤 올려 주세요.'; }); });
+    else share.addEventListener('click', function () { blob(function (b, s) { var f = new File([b], 'baby.png', { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: '아기 카드', text: shareText(s) + ' — bodyzip.com' }).catch(function () {}); else if (hint) hint.textContent = '이 브라우저는 바로 공유를 지원하지 않아요. 이미지를 저장한 뒤 올려 주세요.'; }); });
   }
 })();

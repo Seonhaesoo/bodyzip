@@ -1,4 +1,4 @@
-# 몸자 (momja.com)
+# 바디집 (bodyzip.com)
 
 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 사전. 돈표(donpyo.com)와 같은 구조 — 엔진(engine/*.mjs) → 생성기(tools/build.mjs) → dist/ 정적 사이트 → GitHub Pages.
 

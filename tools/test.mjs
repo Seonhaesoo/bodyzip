@@ -89,7 +89,7 @@ ok(GUIDES.every((g) => !/href="\/(?!bmi|bmr|bodyfat|food|exercise|water|due-date
   ok(ics.includes('DTSTART;VALUE=DATE:20250815') && ics.includes('DTSTART;VALUE=DATE:20260615') && ics.includes('TRIGGER:-PT15H'), '2개월 접종 8/15 · 첫돌 · 알림');
   ok(ev.every((e, i) => i === 0 || e.date >= ev[i - 1].date), 'ics 날짜순');
   ok(D.CHECKUPS.length === 8 && D.iso(D.checkupDates(b)[0].date) === '2025-06-29' && D.iso(D.checkupDates(b)[1].date) === '2025-10-15', '영유아 건강검진 1차 14일 · 2차 4개월');
-  const g = I.gcalUrl('💉 DTaP 2개월', D.utc(2025, 8, 15), '설명', 'https://momja.com/baby/2025-06-15/');
+  const g = I.gcalUrl('💉 DTaP 2개월', D.utc(2025, 8, 15), '설명', 'https://bodyzip.com/baby/2025-06-15/');
   ok(g.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE&text=') && g.includes('dates=20250815/20250816') && g.includes('ctz=Asia%2FSeoul') === false && g.includes('ctz=Asia/Seoul'), '구글 캘린더 링크', g);
 }
 

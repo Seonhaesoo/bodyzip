@@ -1,7 +1,7 @@
-/* 몸자 — 그 자리에서 계산하는 화면들 (window.Momja 엔진)
+/* 바디집 — 그 자리에서 계산하는 화면들 (window.Bodyzip 엔진)
  * [data-live="bmr"] 기초대사량 · [data-live="bodyfat"] 체지방 · [data-live="baby"] 아기 개월수 · [data-live="due"] 출산예정일 · [data-live="cycle"] 배란일 · [data-live="bmi"] BMI */
 (function () {
-  var M = window.Momja; if (!M) return;
+  var M = window.Bodyzip; if (!M) return;
   var num = M.num;
   function q(box, k) { return box.querySelector('[data-k="' + k + '"]'); }
   function out(box, k, v) { var el = box.querySelector('[data-out="' + k + '"]'); if (el) el.textContent = v; }

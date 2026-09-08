@@ -2,7 +2,7 @@
 import { VACCINES, CHECKUPS, MILESTONES, addDays, addMonths, iso, cycle } from './dates.mjs';
 import { DOG_VACCINES, CAT_VACCINES } from './pet.mjs';
 
-const SITE = 'https://momja.com';
+const SITE = 'https://bodyzip.com';
 const ymd = (dt) => iso(dt).replace(/-/g, '');
 const byteLen = (s) => unescape(encodeURIComponent(s)).length;
 const escText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
@@ -43,9 +43,9 @@ export const FOOD_STAGES = [
 export function babyIcs(birth, opt = {}) {
   const stamp = `${ymd(opt.now || new Date())}T000000Z`;
   const url = `${SITE}/baby/${iso(birth)}/`;
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//momja.com//baby calendar//KO', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', `X-WR-CALNAME:${escText(`아기 예방접종 (${iso(birth)}생)`)}`, 'X-WR-TIMEZONE:Asia/Seoul'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//bodyzip.com//baby calendar//KO', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', `X-WR-CALNAME:${escText(`아기 예방접종 (${iso(birth)}생)`)}`, 'X-WR-TIMEZONE:Asia/Seoul'];
   for (const e of babyEvents(birth, opt)) {
-    lines.push('BEGIN:VEVENT', `UID:momja-${iso(birth)}-${e.uid}@momja.com`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(e.date)}`, `DTEND;VALUE=DATE:${ymd(addDays(e.date, 1))}`, `SUMMARY:${escText(e.summary)}`);
+    lines.push('BEGIN:VEVENT', `UID:bodyzip-${iso(birth)}-${e.uid}@bodyzip.com`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(e.date)}`, `DTEND;VALUE=DATE:${ymd(addDays(e.date, 1))}`, `SUMMARY:${escText(e.summary)}`);
     if (e.desc) lines.push(`DESCRIPTION:${escText(`${e.desc}\n${url}`)}`);
     lines.push(`URL:${url}`, 'TRANSP:TRANSPARENT', 'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${escText(`내일: ${e.summary}`)}`, 'TRIGGER:-PT15H', 'END:VALARM', 'END:VEVENT');
   }
@@ -62,9 +62,9 @@ export function gcalUrl(summary, date, desc = '', url = '') {
 /* ---------- 공용 쓰기 ---------- */
 function icsDoc(name, events, url, opt = {}) {
   const stamp = `${ymd(opt.now || new Date())}T000000Z`;
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//momja.com//calendar//KO', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', `X-WR-CALNAME:${escText(name)}`, 'X-WR-TIMEZONE:Asia/Seoul'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//bodyzip.com//calendar//KO', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', `X-WR-CALNAME:${escText(name)}`, 'X-WR-TIMEZONE:Asia/Seoul'];
   for (const e of events) {
-    lines.push('BEGIN:VEVENT', `UID:momja-${e.uid}@momja.com`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(e.date)}`, `DTEND;VALUE=DATE:${ymd(e.end ? addDays(e.end, 1) : addDays(e.date, 1))}`, `SUMMARY:${escText(e.summary)}`);
+    lines.push('BEGIN:VEVENT', `UID:bodyzip-${e.uid}@bodyzip.com`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${ymd(e.date)}`, `DTEND;VALUE=DATE:${ymd(e.end ? addDays(e.end, 1) : addDays(e.date, 1))}`, `SUMMARY:${escText(e.summary)}`);
     if (e.rrule) lines.push(`RRULE:${e.rrule}`);
     if (e.desc) lines.push(`DESCRIPTION:${escText(`${e.desc}\n${url}`)}`);
     lines.push(`URL:${url}`, 'TRANSP:TRANSPARENT');

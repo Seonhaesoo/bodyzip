@@ -102,7 +102,7 @@ ${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindNa
   for (const kind of ['dog', 'cat']) {
     for (const birth of dates) {
       const url = vacUrl(kind, birth), vac = P.petVaccineDates(kind, birth);
-      const rows = []; for (const v of vac) for (const ds of v.doses) rows.push({ dt: ds.date, cells: [v.name, ds.label, D.fmt(ds.date), `<a href="${I.gcalUrl(`🐾 ${v.name} ${ds.label}`, ds.date, '동물병원 일반 일정 · 실제 접종은 수의사와 상의', `https://momja.com${url}`)}" target="_blank" rel="noopener" title="구글 캘린더에 추가">＋</a>`], past: ds.date < TODAY, name: v.name, label: ds.label });
+      const rows = []; for (const v of vac) for (const ds of v.doses) rows.push({ dt: ds.date, cells: [v.name, ds.label, D.fmt(ds.date), `<a href="${I.gcalUrl(`🐾 ${v.name} ${ds.label}`, ds.date, '동물병원 일반 일정 · 실제 접종은 수의사와 상의', `https://bodyzip.com${url}`)}" target="_blank" rel="noopener" title="구글 캘린더에 추가">＋</a>`], past: ds.date < TODAY, name: v.name, label: ds.label });
       rows.sort((a, b) => a.dt - b.dt);
       const nextDose = rows.find((r) => r.dt >= TODAY);
       const ageDays = D.diffDays(birth, TODAY), weeks = Math.floor(ageDays / 7);

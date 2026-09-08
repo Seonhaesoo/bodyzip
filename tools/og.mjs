@@ -46,7 +46,7 @@ html,body{margin:0}
 .seal svg{width:56px;height:56px}
 </style></head><body><div id="og"><div class="side"></div>
 <div class="kick">${esc(o.kicker)}</div><div class="title">${esc(o.title)}</div><div class="sub">${esc(o.sub)}</div>
-<div class="brand">momja.com<small>몸 계산 사전 · 숫자만 넣으면 바로</small></div>
+<div class="brand">bodyzip.com<small>몸 계산 사전 · 숫자만 넣으면 바로</small></div>
 <div class="seal"><svg viewBox="0 0 24 24" fill="none"><rect x="2.5" y="6.5" width="19" height="11" rx="2.5" stroke="#1F6F6B" stroke-width="1.6"></rect><path d="M6.5 6.5v4M10 6.5v6M13.5 6.5v4M17 6.5v6" stroke="#1F6F6B" stroke-width="1.6" stroke-linecap="round"></path></svg></div>
 </div></body></html>`;
 
