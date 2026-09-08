@@ -25,6 +25,10 @@ const SITE = 'https://bodyzip.com';
 const DOMAIN_READY = true;                          /* 도메인 연결 뒤 true → CNAME 생성 */
 const GA_ID = '';                                    /* GA4 측정 ID — 속성 만들면 채움 */
 const ADSENSE = 'ca-pub-9924140539322407';
+/* 검색엔진 소유권 확인 태그 — 사용자가 서치콘솔·서치어드바이저에서 받은 값 */
+const VERIFY = [
+  '<meta name="google-site-verification" content="BmKABvMzaldm5ivGRxxdylslRPgulwiDNnL5Iculrqw">',
+];
 const SISTERS = { donpyo: 'https://donpyo.com', saju: 'https://sajucheop.com' };
 const OG_KEYS = new Set(fs.existsSync(path.join(SRC, 'og')) ? fs.readdirSync(path.join(SRC, 'og')).filter((f) => f.endsWith('.png')).map((f) => f.replace('.png', '')) : []);
 const kst = new Date(Date.now() + 9 * 3600 * 1000);
@@ -59,6 +63,7 @@ function shell(o) {
 ${GA}${ADS}<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(o.title)}</title>
 <meta name="description" content="${esc(o.desc)}">
+${VERIFY.join('\n')}
 <link rel="canonical" href="${SITE}${o.url}">
 ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
