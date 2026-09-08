@@ -6,7 +6,7 @@ export const DOG_SIZES = [
   { key: 'medium', label: '중형견 (10~25kg)', add: 5 },
   { key: 'large', label: '대형견 (25kg 이상)', add: 6 },
 ];
-/* 1년 = 사람 15세, 2년 = 24세, 이후 소형 +4·중형 +5·대형 +6 (AVMA·AKC 환산표) */
+/* 1년 = 사람 15세, 2년 = 24세, 이후 소형 +4·중형 +5·대형 +6 — AVMA 지침(중형견 기준 이후 +5)을 크기별로 나눈 통용 공식 */
 export function dogAge(years, size = 'small') {
   const add = (DOG_SIZES.find((s) => s.key === size) || DOG_SIZES[0]).add;
   if (years <= 0) return 0;
@@ -15,7 +15,7 @@ export function dogAge(years, size = 'small') {
   return Math.round(24 + add * (years - 2));
 }
 /* 참고: 후성유전 시계 공식 (UCSD 2019, 래브라도) 16 × ln(나이) + 31 */
-export const dogAgeLog = (years) => years >= 1 ? Math.round(16 * Math.log(years) + 31) : Math.round(31 * years);
+export const dogAgeLog = (years) => years >= 1 ? Math.round(16 * Math.log(years) + 31) : null;   /* 1살 미만은 공식 범위 밖 */
 export function catAge(years) {
   if (years <= 0) return 0;
   if (years <= 1) return Math.round(15 * years);
@@ -83,4 +83,5 @@ export function petVaccineDates(kind, birth) {
   return out;
 }
 export const heartwormStart = (birth) => addDays(birth, 8 * 7);
-export const neuterAdvice = (kind, birth) => addMonths(birth, kind === 'cat' ? 6 : 6);
+export const NEUTER_MONTH = { dog: 6, cat: 5 };                          /* 고양이는 5개월(Fix by Five), 강아지는 6개월 무렵 상담 */
+export const neuterAdvice = (kind, birth) => addMonths(birth, NEUTER_MONTH[kind] || 6);

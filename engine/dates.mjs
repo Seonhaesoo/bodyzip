@@ -33,7 +33,7 @@ export const MILESTONES = [
   { week: 28, label: '3분기 시작 · 2주 간격 진료' },
   { week: 32, label: '태아 위치 확인 · 출산 준비물 정리' },
   { week: 35, label: 'GBS(B군 연쇄상구균) 검사(35~37주)' },
-  { week: 37, label: '만삭 — 언제 태어나도 정상' },
+  { week: 37, label: '만삭 — 37~41주는 정상 만삭 범위' },
   { week: 40, label: '출산예정일' },
 ];
 

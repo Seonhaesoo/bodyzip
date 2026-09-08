@@ -111,7 +111,7 @@ ok(P.petFood('cat', 4, 'neutered').grams === 64, '4kg 중성화 고양이 64g', 
 ok(I.babyEvents(D.utc(2025, 6, 15)).filter((e) => e.kind === 'food').length === 4, '이유식 4단계 일정');
 /* 카페인 · 금연 */
 ok(X.caffeineLeft(300, 5) === 150 && X.caffeineLeft(300, 10) === 75 && X.caffeineLimit('teen', 50) === 125 && X.caffeineLimit('300') === 300, '카페인 반감기·기준');
-{ const qs = X.quitStats(30, 20, 4500); ok(qs.cigs === 600 && qs.money === 135000 && qs.lifeText === '8일 8시간' && X.quitStage(30).label === '1~9개월' && X.quitStage(2.5).label === '48시간', '금연 30일 600개비·135,000원·8일 8시간', JSON.stringify(qs)); }
+{ const qs = X.quitStats(30, 20, 4500); ok(qs.cigs === 600 && qs.money === 135000 && qs.lifeText === '8일 8시간' && X.quitStage(30).label === '1~9개월' && X.quitStage(2.5).label === '48시간' && X.quitStage(7).label === '1주', '금연 30일 600개비·135,000원·8일 8시간', JSON.stringify(qs)); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

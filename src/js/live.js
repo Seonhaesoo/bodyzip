@@ -177,7 +177,7 @@
     bind(box, function () {
       var y = val(box, 'y') || 1, size = sel(box, 'size') || 'small';
       out(box, 'human', (kind === 'cat' ? M.catAge(y) : M.dogAge(y, size)) + '세'); out(box, 'stage', M.petStage(kind, y, size).split(' —')[0]);
-      if (kind === 'dog') out(box, 'log', M.dogAgeLog(y) + '세');
+      if (kind === 'dog') { var lg = M.dogAgeLog(y); out(box, 'log', lg == null ? '— (1살부터)' : lg + '세'); }
     });
   });
 

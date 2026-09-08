@@ -487,7 +487,7 @@ ${lead(`${D.fmt(birth)}에 태어난 아기는 이 페이지를 만든 ${D.fmtSh
 ${section('기념일', null, tiles(marks.slice(0, 3).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))) + tiles(marks.slice(3).concat([['초등 입학', D.utc(D.schoolYear(birth), 3, 2)]]).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))))}
 ${section('예방접종 일정', '국가예방접종(무료) 표준 일정 · 날짜는 접종 시작 시기 · 지난 접종은 흐리게 · ＋는 구글 캘린더에 하나씩 추가', `<div class="tbl"><table><thead><tr><th>백신</th><th>시기</th><th>날짜</th><th>캘린더</th></tr></thead><tbody>${rows.map((r) => `<tr${r.past ? ' style="color:var(--ghost)"' : ''}>${r.cells.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
 <div class="cal-box">
-  <div class="cal-head"><b>캘린더에 한 번에 넣기</b><span>접종 ${events.filter((e) => e.kind === 'vaccine').length}일 · 건강검진 ${checks.length}회 · 이유식 4단계 · 100일·돌</span></div>
+  <div class="cal-head"><b>캘린더에 한 번에 넣기</b><span>접종일 ${events.filter((e) => e.kind === 'vaccine').length}회 · 건강검진 ${checks.length}회 · 이유식 4단계 · 100일·돌</span></div>
   ${nextDose ? `<p class="cal-next">다음 접종 <b>${nextDose.name.split(' (')[0]} ${nextDose.label}</b> · ${D.fmt(nextDose.dt)} (${D.diffDays(TODAY, nextDose.dt) === 0 ? '오늘' : `D-${D.diffDays(TODAY, nextDose.dt)}`})</p>` : '<p class="cal-next">표준 일정의 영유아 접종은 모두 지났습니다. 만 4~6세·11~12세 접종은 표에서 확인하세요.</p>'}
   <div class="btn-row"><a class="btn" href="${url}vaccines.ics">캘린더 파일 받기 (.ics)</a>${nextDose ? `<a class="btn btn-share" href="${I.gcalUrl(`💉 ${nextDose.name} ${nextDose.label}`, nextDose.dt, '국가예방접종 표준 일정 시작 시기 · 실제 접종은 소아과와 상의', `${SITE}${url}`)}" target="_blank" rel="noopener">다음 접종만 구글 캘린더에</a>` : ''}</div>
   <p class="cal-how"><b>아이폰</b> 파일을 열면 캘린더에 "모두 추가" · <b>안드로이드</b> 내려받은 파일을 구글 캘린더 앱으로 열기 · <b>PC</b> calendar.google.com ▸ 설정 ▸ 가져오기. 하루 전 오전 9시에 알림이 울립니다.</p>
@@ -585,8 +585,8 @@ function docs() {
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
 <h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
 <h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 몸자 서버에 저장되지 않습니다.</p>
-<h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. 이웃한 달 사이는 선형 보간.</p>
-<h2>반려동물</h2><p>나이 환산은 AVMA·AKC 표(1살 15세, 2살 24세, 이후 소형 4·중형 5·대형 6세, 고양이 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
+<h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. WHO 일 단위 표에서 개월 × 30.4375일 행을 뽑아 월 값으로 쓰며(공식 월 표와 최대 0.06cm·0.02kg 차이), 이웃한 달 사이는 선형 보간.</p>
+<h2>반려동물</h2><p>나이 환산은 AVMA 지침(중형견 기준 1살 15세, 2살 24세, 이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식(고양이는 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
 <h2>카페인·금연</h2><p>카페인 함량은 식약처 DB·매장 공개값의 대표치, 권고량은 식약처(성인 400mg·임산부 300mg·청소년 2.5mg/kg), 반감기 5시간. 금연 계산의 되찾은 시간은 개비당 20분(UCL 2024), 회복 단계는 미국 CDC·보건복지부 금연길라잡이.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);

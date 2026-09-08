@@ -35,7 +35,7 @@ export function babyEvents(birth, opt = {}) {
 }
 
 export const FOOD_STAGES = [
-  { m: 6, label: '초기 (미음)', desc: '쌀미음부터 하루 1회. 고개를 가누고 음식에 관심을 보이면 4~6개월 사이 시작(모유 수유아는 6개월 권장). 소고기·달걀노른자 등 새 재료는 3일 간격으로 하나씩.' },
+  { m: 6, label: '초기 (미음)', desc: '쌀미음부터 하루 1회, 익숙해지면 2회. 고개를 가누고 음식에 관심을 보이면 4~6개월 사이 시작(모유 수유아는 6개월 권장). 소고기·달걀노른자 등 새 재료는 3일 간격으로 하나씩.' },
   { m: 7, label: '중기 (으깬 죽)', desc: '하루 2회, 으깬 형태. 철분이 풍부한 고기·달걀노른자, 채소를 늘리고 알레르기 재료(달걀흰자·생선·밀)를 하나씩 시험.' },
   { m: 9, label: '후기 (무른 밥)', desc: '하루 3회, 손으로 집어 먹는 핑거푸드 시작. 컵으로 물 마시기 연습.' },
   { m: 12, label: '완료기 (진밥·유아식)', desc: '하루 3회 + 간식 2회. 생우유 400~500ml, 젖병 떼기 시작. 소금·설탕은 최소로.' },
@@ -110,7 +110,8 @@ export function petEvents(kind, birth) {
   const yearly = list.filter((v) => v.yearly).map((v) => v.name.split(' (')[0]).join('·');
   for (const y of [1, 2, 3]) ev.push({ uid: `${kind}-${iso(birth)}-y${y}`, date: addDays(addMonths(birth, 12 * y), last * 7), summary: `🐾 ${name} 연간 추가 접종 (${y}년차)`, desc: `${yearly} 추가 접종 시기.` });
   ev.push({ uid: `${kind}-${iso(birth)}-hw`, date: addDays(birth, 56), summary: `💊 심장사상충·외부기생충 예방약 (매달)`, desc: '생후 8주부터 평생 매달 같은 날. 겨울에도 거르지 않기.', rrule: 'FREQ=MONTHLY;COUNT=36' });
-  ev.push({ uid: `${kind}-${iso(birth)}-neuter`, date: addMonths(birth, 6), summary: `🩺 중성화 상담 (6개월)`, desc: '중성화 시기와 방법을 수의사와 상의하는 시점.' });
+  const nm = kind === 'cat' ? 5 : 6;
+  ev.push({ uid: `${kind}-${iso(birth)}-neuter`, date: addMonths(birth, nm), summary: `🩺 중성화 상담 (${nm}개월)`, desc: '중성화 시기와 방법을 수의사와 상의하는 시점.' });
   ev.push({ uid: `${kind}-${iso(birth)}-bd`, date: addMonths(birth, 12), summary: `🎂 ${name} 첫 생일`, desc: '' });
   return ev.sort((a, b) => a.date - b.date);
 }
