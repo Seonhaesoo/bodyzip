@@ -76,7 +76,7 @@ ${ad()}
 ${section('오늘 기준으로 보면', `${D.fmtShort(TODAY)}에 ${w}주 0일이라면`, tiles([{ label: '출산예정일', value: `${due.getUTCFullYear()}.${due.getUTCMonth() + 1}.${due.getUTCDate()}` }, { label: left >= 0 ? '남은 날' : '지난 날', value: `${Math.abs(left)}일` }, { label: '마지막 생리 시작', value: `${lmp.getUTCFullYear()}.${lmp.getUTCMonth() + 1}.${lmp.getUTCDate()}` }]))}
 ${pager(prev, next)}
 ${section('주차별 안내', null, wrapChips(WEEKS.map((y) => ({ label: `${y.w}주`, href: weekUrl(y.w), on: y.w === w }))))}
-${section('이어서', null, list([{ href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일·검사 일정' }, { href: '/guide/pregnancy-weeks/', title: '임신 주수 세는 법', sub: '왜 4주인데 아기는 2주인가' }, { href: '/baby/month/0/', title: '신생아 0개월 발달', sub: '태어난 뒤 첫 달' }]))}
+${section('이어서', null, list([{ href: `/pregnancy/card/?w=${w}`, title: '임신 디데이 카드 만들기', sub: `${w}주 · D-${Math.max(0, 280 - 7 * w)} · 카톡·인스타용 이미지` }, { href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일·검사 일정' }, { href: '/guide/pregnancy-weeks/', title: '임신 주수 세는 법', sub: '왜 4주인데 아기는 2주인가' }, { href: '/baby/month/0/', title: '신생아 0개월 발달', sub: '태어난 뒤 첫 달' }]))}
 ${NOTE('아기 크기·몸무게는 주차별 평균 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적인 일정으로, 병원마다 다를 수 있습니다.')}`;
     write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
@@ -89,6 +89,35 @@ ${lead('임신 주수는 마지막 생리 시작일을 0주 0일로 셉니다. �
 ${[[1, 13, '1분기 — 기관이 만들어지는 시기'], [14, 27, '2분기 — 가장 편한 시기, 정밀 초음파·임당 검사'], [28, 42, '3분기 — 출산 준비']].map(([a, b, t]) => section(t, null, wrapChips(WEEKS.filter((y) => y.w >= a && y.w <= b).map((y) => ({ label: `${y.w}주`, href: weekUrl(y.w) }))))).join('\n')}
 ${ad()}
 ${section('많이 보는 주차', null, list([8, 12, 16, 20, 24, 28, 32, 36].map((w) => { const y = WEEKS[w - 1]; return { href: weekUrl(w), title: `임신 ${w}주`, sub: y.check || y.baby.slice(0, 40), value: y.size }; })))}` }));
+
+  /* ---------- 임신 디데이 카드 ---------- */
+  write('/pregnancy/card/', shell({ url: '/pregnancy/card/', title: '임신 디데이 카드 만들기 — 출산예정일 D-day·주수·태명 이미지 (카톡·인스타 공유)', desc: '출산예정일을 넣으면 오늘 기준 D-day, 임신 주수, 아기 크기, 태명이 들어간 카드 이미지를 만들어 저장하거나 카카오톡·인스타그램으로 바로 공유할 수 있습니다. 회원 가입 없음, 이미지는 기기 안에서만 만들어집니다.', nav: 'preg', scripts: ['/js/engine.js', '/js/card.js'], body: `
+${crumb([['/due-date/', '임신'], [null, '디데이 카드']])}
+<h1 class="title">임신 디데이 카드</h1>
+<p class="meta">출산예정일 · 오늘 주수 · 아기 크기 · 태명 · 카드는 이 기기 안에서만 만들어집니다</p>
+<script>window.MOMJA_WEEKS=${JSON.stringify(WEEKS.map((x) => [x.size, x.len, x.wt]))}</script>
+<form class="quick live" data-live="card" style="margin-top:14px">
+<div class="live-head"><b>카드 만들기</b><span>바꾸면 바로 다시 그립니다</span></div>
+<div class="ye-grid">
+<label class="ye-f"><span>출산예정일</span><input data-k="due" type="date" value=""></label>
+<label class="ye-f"><span>태명 (선택)</span><input data-k="name" type="text" maxlength="12" placeholder="예: 튼튼이" autocomplete="off"></label>
+<label class="ye-f"><span>색</span><select data-k="theme"><option value="hanji">한지 (밝은 크림)</option><option value="teal">청록</option><option value="coral">산호</option><option value="ink">먹 (어두운)</option></select></label>
+<label class="ye-f"><span>비율</span><select data-k="size"><option value="tall">세로 4:5 (인스타·카톡)</option><option value="square">정사각 1:1</option></select></label>
+</div>
+<p class="sub" style="margin-top:10px" data-out="hint"></p>
+<div class="card-prev"><img id="card-img" alt="임신 디데이 카드 미리보기"><canvas id="card-canvas" hidden></canvas></div>
+<div class="btn-row"><button type="button" class="btn" data-act="save">이미지 저장</button><button type="button" class="btn btn-share" data-act="share">바로 공유</button></div>
+<p class="cal-how">저장이 안 되면 카드를 길게 눌러 "이미지 저장"을 고르세요. 바로 공유는 휴대폰에서 카카오톡·인스타그램 등 앱 목록이 열립니다.</p>
+</form>
+${lead('출산예정일만 넣으면 오늘 기준 디데이와 임신 주수, 이번 주 아기 크기가 들어간 카드가 만들어집니다. 태명을 적으면 카드 위에 올라가고, 색과 비율은 네 가지·두 가지 중에 고를 수 있습니다. 예정일을 모르면 마지막 생리일로 먼저 계산하세요.')}
+${section('이렇게 써 보세요', null, `<div class="doc">
+<p><b>매주 한 장.</b> 주수는 오늘 날짜로 자동 계산되니 같은 설정으로 매주 들어와 저장하면 20주, 21주, 22주 카드가 이어집니다. 인스타 하이라이트나 카톡 프로필에 쌓아 두면 임신 기록이 됩니다.</p>
+<p><b>가족 단톡방에.</b> "D-140" 한 장이 말보다 빠릅니다. 예정일과 주수가 같이 적혀 있어 할머니·할아버지가 다시 묻지 않습니다.</p>
+<p><b>디데이가 지나면 D+로 바뀝니다.</b> 예정일이 지나도 41주까지는 정상 범위이니 카드는 계속 만들 수 있습니다.</p>
+</div>`)}
+${ad()}
+${section('이어서', null, list([{ href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일부터' }, { href: '/pregnancy/week/', title: '임신 주차별 안내', sub: '아기 크기 · 엄마 몸 · 검사' }, { href: '/baby/', title: '아기 개월수 · 예방접종 캘린더', sub: '태어난 뒤에는 이쪽' }]))}
+<p class="note">카드 이미지는 브라우저 안에서 그려지며 몸자 서버로 전송되지 않습니다. 주수는 마지막 생리 시작일(출산예정일 − 280일) 기준이고, 아기 크기는 주차별 평균 참고값입니다.</p>` }));
 
   /* ---------- 아기 개월별 발달 ---------- */
   const monthUrl = (m) => `/baby/month/${m}/`;

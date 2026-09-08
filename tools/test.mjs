@@ -5,6 +5,7 @@ import * as D from '../engine/dates.mjs';
 import { FOODS } from '../data/foods.mjs';
 import { EXERCISES } from '../data/exercises.mjs';
 import * as X from '../engine/extra.mjs';
+import * as I from '../engine/ics.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES } from '../data/guides.mjs';
@@ -77,6 +78,18 @@ ok(BM.every((m, i) => i === 0 || (parseFloat(m.h) > parseFloat(BM[i - 1].h) && p
 ok(new Set(GUIDES.map((g) => g.slug)).size === GUIDES.length && GUIDES.every((g) => g.body.length > 600 && g.desc.length > 30), '서재 슬러그 고유·본문 길이');
 ok(new Set(FOODS.map((f) => f.slug)).size === FOODS.length && FOODS.length >= 250, '음식 슬러그 고유 · 250개 이상', FOODS.length);
 ok(GUIDES.every((g) => !/href="\/(?!bmi|bmr|bodyfat|food|exercise|water|due-date|ovulation|baby|pregnancy|guide|steps|sleep|child-height|alcohol|diet|kcal-need|method)/.test(g.body)), '서재 내부 링크 경로');
+
+/* 캘린더 내보내기 */
+{ const b = D.utc(2025, 6, 15), ics = I.babyIcs(b, { now: D.utc(2026, 9, 8) }), ev = I.babyEvents(b);
+  ok(ics.startsWith('BEGIN:VCALENDAR\r\n') && ics.endsWith('END:VCALENDAR\r\n'), 'ics 시작·끝');
+  ok((ics.match(/BEGIN:VEVENT/g) || []).length === ev.length && ev.length === 13 + D.CHECKUPS.length + 3, `ics 항목 수 = 접종일 13 + 검진 ${D.CHECKUPS.length} + 기념일 3`, ev.length);
+  ok(ics.split('\r\n').every((l) => unescape(encodeURIComponent(l)).length <= 75), 'ics 줄 길이 75옥텟 이하');
+  ok(ics.includes('DTSTART;VALUE=DATE:20250815') && ics.includes('DTSTART;VALUE=DATE:20260615') && ics.includes('TRIGGER:-PT15H'), '2개월 접종 8/15 · 첫돌 · 알림');
+  ok(ev.every((e, i) => i === 0 || e.date >= ev[i - 1].date), 'ics 날짜순');
+  ok(D.CHECKUPS.length === 8 && D.iso(D.checkupDates(b)[0].date) === '2025-06-29' && D.iso(D.checkupDates(b)[1].date) === '2025-10-15', '영유아 건강검진 1차 14일 · 2차 4개월');
+  const g = I.gcalUrl('💉 DTaP 2개월', D.utc(2025, 8, 15), '설명', 'https://momja.com/baby/2025-06-15/');
+  ok(g.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE&text=') && g.includes('dates=20250815/20250816') && g.includes('ctz=Asia%2FSeoul') === false && g.includes('ctz=Asia/Seoul'), '구글 캘린더 링크', g);
+}
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

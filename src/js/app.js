@@ -19,6 +19,7 @@
     // 날짜: 3월 5일 / 3/5 / 2025-01-31
     var ymd = t.match(/(20\d\d)[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/);
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
+    if (/디데이|d-?day|카드/.test(t) && !/아기\s*카드/.test(t)) return { href: '/pregnancy/card/', label: '임신 디데이 카드 만들기' };
     // 임신 N주
     var pw = t.match(/임신\s*(\d{1,2})\s*주/) || t.match(/(\d{1,2})\s*주\s*(?:차|째)?\s*(?:임신|아기|태아)/);
     if (pw) { var wn = Math.max(1, Math.min(42, +pw[1])); return { href: '/pregnancy/week/' + wn + '/', label: '임신 ' + wn + '주 아기 크기·엄마 몸·검사' }; }

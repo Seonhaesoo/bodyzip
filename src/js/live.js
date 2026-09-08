@@ -44,10 +44,16 @@
       var b = dateOf(box, 'birth'); if (!b) return;
       var t = today(), a = M.ageOn(b, t);
       var link = box.querySelector('[data-out="link"]');
-      if (a.totalDays < 0) { out(box, 'age', '아직 태어나기 전'); out(box, 'days', (-a.totalDays) + '일 남음'); out(box, 'year', '—'); out(box, 'growth', '출산예정일 계산은 임신 메뉴에서.'); if (link) link.hidden = true; return; }
+      if (a.totalDays < 0) { out(box, 'age', '아직 태어나기 전'); out(box, 'days', (-a.totalDays) + '일 남음'); out(box, 'year', '—'); out(box, 'growth', '출산예정일 계산은 임신 메뉴에서.'); if (link) link.hidden = true; var ics0 = box.querySelector('[data-out="ics"]'); if (ics0) ics0.hidden = true; return; }
       out(box, 'age', a.months + '개월 ' + a.days + '일'); out(box, 'days', num(a.totalDays) + '일째'); out(box, 'weeks', a.weeks + '주');
       out(box, 'year', a.years + '세 ' + a.remMonths + '개월'); out(box, 'growth', M.growthText(a.months));
       if (link) { link.hidden = false; if (a.totalDays > 3 * 365) { link.href = '/baby/'; link.textContent = '접종 일정 표는 만 3세까지 제공 →'; } else { link.href = '/baby/' + M.iso(b) + '/'; link.textContent = M.fmt(b) + '생 접종 일정·개월수 표 →'; } }
+      var ics = box.querySelector('[data-out="ics"]');
+      if (ics && M.babyIcs) {
+        ics.hidden = false;
+        if (a.totalDays <= 3 * 365) { ics.href = '/baby/' + M.iso(b) + '/vaccines.ics'; ics.removeAttribute('download'); }
+        else { try { if (ics._url) URL.revokeObjectURL(ics._url); ics._url = URL.createObjectURL(new Blob([M.babyIcs(b)], { type: 'text/calendar;charset=utf-8' })); ics.href = ics._url; ics.download = '아기 예방접종 ' + M.iso(b) + '.ics'; } catch (e) { ics.hidden = true; } }
+      }
     });
   });
 

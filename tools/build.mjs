@@ -7,6 +7,7 @@ import * as B from '../engine/body.mjs';
 import * as K from '../engine/kcal.mjs';
 import * as D from '../engine/dates.mjs';
 import * as X from '../engine/extra.mjs';
+import * as I from '../engine/ics.mjs';
 import { num, pct } from '../engine/fmt.mjs';
 import { FOODS, FOOD_CATS, FOODS_ASOF, FOOD_ALIAS } from '../data/foods.mjs';
 import { EXERCISES, EX_ALIAS } from '../data/exercises.mjs';
@@ -389,7 +390,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>임신 주수 세는 법.</b> 수정일이 아니라 마지막 생리 시작일을 0주 0일로 셉니다. 그래서 "임신 4주"에 실제 아기는 2주 된 셈입니다.</p>
 </div>`)}
 ${section('날짜가 바뀌면', '출산예정일', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const pp = D.pregnancy(lmpYears(mm, dd).recent); return { label: `${mm}/${dd}`, value: `${pp.due.getUTCMonth() + 1}/${pp.due.getUTCDate()}`, href: dueUrl(mm, dd), on: k === 0 }; })))}
-${section('이어서', null, list([{ href: ovUrl(m, d), title: `${m}월 ${d}일 시작 배란일·가임기`, sub: '임신 준비 중이라면' }, { href: '/baby/', title: '아기 개월수·예방접종 일정', sub: '태어난 뒤' }, { href: `${SISTERS.saju}/`, title: '출산 택일 (사주첩)', sub: '자매 사이트' }]))}
+${section('이어서', null, list([{ href: `/pregnancy/card/?lmp=${D.iso(recent)}`, title: '임신 디데이 카드 만들기', sub: `D-${Math.max(0, D.diffDays(TODAY, p.due))} · 카톡·인스타에 올릴 이미지` }, { href: `/pregnancy/week/${Math.min(42, Math.max(1, w.weeks || 1))}/`, title: `임신 ${Math.min(42, Math.max(1, w.weeks || 1))}주 안내`, sub: '아기 크기 · 엄마 몸 · 검사' }, { href: ovUrl(m, d), title: `${m}월 ${d}일 시작 배란일·가임기`, sub: '임신 준비 중이라면' }, { href: '/baby/', title: '아기 개월수·예방접종 일정', sub: '태어난 뒤' }, { href: `${SISTERS.saju}/`, title: '출산 택일 (사주첩)', sub: '자매 사이트' }]))}
 <p class="note">네겔레 법칙(마지막 생리 시작일 + 280일)에 따른 계산이며 생리주기 28일·배란 14일째를 가정합니다. 진단이 아니므로 병원 초음파 예정일을 기준으로 하세요.</p>`;
   write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
@@ -453,8 +454,12 @@ const babyUrl = (dt) => `/baby/${D.iso(dt)}/`;
 function babyPage(birth) {
   const url = babyUrl(birth), age = D.ageOn(birth, TODAY);
   const vac = D.vaccineDates(birth);
-  const rows = []; for (const v of vac) for (const ds of v.doses) rows.push({ dt: ds.date, cells: [v.name, ds.label, `${D.fmt(ds.date)}`], past: ds.date <= TODAY });
+  const rows = []; for (const v of vac) for (const ds of v.doses) rows.push({ dt: ds.date, cells: [v.name, ds.label, `${D.fmt(ds.date)}`, `<a href="${I.gcalUrl(`💉 ${v.name} ${ds.label}`, ds.date, '국가예방접종 표준 일정 시작 시기 · 실제 접종은 소아과와 상의', `${SITE}${url}`)}" target="_blank" rel="noopener" title="구글 캘린더에 추가">＋</a>`], past: ds.date <= TODAY, name: v.name, label: ds.label });
   rows.sort((a, b) => a.dt - b.dt);
+  const nextDose = rows.find((r) => r.dt >= TODAY);
+  const checks = D.checkupDates(birth);
+  const events = I.babyEvents(birth);
+  fs.mkdirSync(path.join(OUT, url), { recursive: true }); fs.writeFileSync(path.join(OUT, url, 'vaccines.ics'), I.babyIcs(birth, { now: TODAY }));
   const marks = [['100일', D.addDays(birth, 99)], ['200일', D.addDays(birth, 199)], ['첫돌', D.addMonths(birth, 12)], ['두돌', D.addMonths(birth, 24)], ['세돌', D.addMonths(birth, 36)]];
   const title = `${D.fmt(birth)}생 아기 — ${D.fmtShort(TODAY)} 기준 ${age.months}개월 ${age.days}일, 예방접종 일정과 100일·돌`;
   const desc = `${D.fmt(birth)}에 태어난 아기는 ${D.fmtShort(TODAY)} 기준 ${age.months}개월 ${age.days}일(생후 ${num(age.totalDays)}일)입니다. 국가예방접종 표준 일정 날짜, 100일·200일·첫돌·두돌, 초등학교 입학 연도까지.`;
@@ -465,7 +470,14 @@ ${crumb([['/baby/', '아기 개월수'], [null, D.fmt(birth)]])}
 <form class="quick live" data-live="baby" style="margin-top:14px"><div class="live-head"><b>오늘 기준</b><span>생일을 바꾸면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생년월일</span><input data-k="birth" type="date" value="${D.iso(birth)}"></label></div><div class="tiles"><div class="tile"><small>개월수</small><span class="num" data-out="age"></span></div><div class="tile"><small>생후</small><span class="num" data-out="days"></span></div><div class="tile"><small>만 나이</small><span class="num" data-out="year"></span></div></div><p class="sub" style="margin-top:8px" data-out="growth"></p></form>
 ${lead(`${D.fmt(birth)}에 태어난 아기는 이 페이지를 만든 ${D.fmtShort(TODAY)} 기준 <b>${age.months}개월 ${age.days}일</b>, 생후 ${num(age.totalDays)}일째입니다(위 상자는 열 때마다 오늘로 다시 계산). 100일은 ${D.fmt(marks[0][1])}, 첫돌은 ${D.fmt(marks[2][1])}이고 초등학교는 ${D.schoolYear(birth)}년 3월에 입학합니다.`)}
 ${section('기념일', null, tiles(marks.slice(0, 3).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))) + tiles(marks.slice(3).concat([['초등 입학', D.utc(D.schoolYear(birth), 3, 2)]]).map(([l, dt]) => ({ label: l, value: `${dt.getUTCFullYear()}.${dt.getUTCMonth() + 1}.${dt.getUTCDate()}` }))))}
-${section('예방접종 일정', '국가예방접종(무료) 표준 일정 · 날짜는 접종 시작 시기 · 지난 접종은 흐리게', `<div class="tbl"><table><thead><tr><th>백신</th><th>시기</th><th>날짜</th></tr></thead><tbody>${rows.map((r) => `<tr${r.past ? ' style="color:var(--ghost)"' : ''}>${r.cells.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
+${section('예방접종 일정', '국가예방접종(무료) 표준 일정 · 날짜는 접종 시작 시기 · 지난 접종은 흐리게 · ＋는 구글 캘린더에 하나씩 추가', `<div class="tbl"><table><thead><tr><th>백신</th><th>시기</th><th>날짜</th><th>캘린더</th></tr></thead><tbody>${rows.map((r) => `<tr${r.past ? ' style="color:var(--ghost)"' : ''}>${r.cells.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
+<div class="cal-box">
+  <div class="cal-head"><b>캘린더에 한 번에 넣기</b><span>접종 ${events.filter((e) => e.kind === 'vaccine').length}일 · 건강검진 ${checks.length}회 · 100일·돌</span></div>
+  ${nextDose ? `<p class="cal-next">다음 접종 <b>${nextDose.name.split(' (')[0]} ${nextDose.label}</b> · ${D.fmt(nextDose.dt)} (${D.diffDays(TODAY, nextDose.dt) === 0 ? '오늘' : `D-${D.diffDays(TODAY, nextDose.dt)}`})</p>` : '<p class="cal-next">표준 일정의 영유아 접종은 모두 지났습니다. 만 4~6세·11~12세 접종은 표에서 확인하세요.</p>'}
+  <div class="btn-row"><a class="btn" href="${url}vaccines.ics">캘린더 파일 받기 (.ics)</a>${nextDose ? `<a class="btn btn-share" href="${I.gcalUrl(`💉 ${nextDose.name} ${nextDose.label}`, nextDose.dt, '국가예방접종 표준 일정 시작 시기 · 실제 접종은 소아과와 상의', `${SITE}${url}`)}" target="_blank" rel="noopener">다음 접종만 구글 캘린더에</a>` : ''}</div>
+  <p class="cal-how"><b>아이폰</b> 파일을 열면 캘린더에 "모두 추가" · <b>안드로이드</b> 내려받은 파일을 구글 캘린더 앱으로 열기 · <b>PC</b> calendar.google.com ▸ 설정 ▸ 가져오기. 하루 전 오전 9시에 알림이 울립니다.</p>
+</div>
+${section('영유아 건강검진', '검진 기간 시작일 · 기간 안에 지정 병원에서', table(['검진', '기간 시작', '구강검진'], checks.map((c) => ({ cells: [c.label, D.fmt(c.date), c.dental || '—'], cls: c.date < TODAY ? '' : '' }))))}
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>개월수는 달력으로 셉니다.</b> 태어난 날짜와 같은 날짜가 될 때마다 1개월이고, 그 사이 남은 날을 "일"로 붙입니다. 육아수첩·병원의 기준과 같습니다.</p>
@@ -483,8 +495,8 @@ function babyIndex(dates) {
 ${crumb([['/', '홈'], [null, '아기 개월수']])}
 <h1 class="title">아기 개월수·예방접종 일정</h1>
 <p class="meta">생년월일로 · 오늘 몇 개월 · 100일·돌 · 국가예방접종 날짜</p>
-<form class="quick live" data-live="baby" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>생일을 넣으면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생년월일</span><input data-k="birth" type="date" value="${D.iso(D.addDays(TODAY, -100))}"></label></div><div class="tiles"><div class="tile"><small>개월수</small><span class="num" data-out="age"></span></div><div class="tile"><small>생후</small><span class="num" data-out="days"></span></div><div class="tile"><small>만 나이</small><span class="num" data-out="year"></span></div></div><p class="sub" style="margin-top:8px" data-out="growth"></p><div class="live-foot"><a data-out="link" href="/baby/">접종 일정 표 →</a></div></form>
-${lead('아기의 생년월일을 넣으면 오늘 몇 개월 며칠인지, 100일과 돌이 언제인지, 국가예방접종을 언제 맞아야 하는지 날짜로 나옵니다. 아래에서 생일을 누르면 그 아기의 전체 일정표가 열립니다.')}
+<form class="quick live" data-live="baby" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>생일을 넣으면 바로</span></div><div class="ye-grid"><label class="ye-f"><span>생년월일</span><input data-k="birth" type="date" value="${D.iso(D.addDays(TODAY, -100))}"></label></div><div class="tiles"><div class="tile"><small>개월수</small><span class="num" data-out="age"></span></div><div class="tile"><small>생후</small><span class="num" data-out="days"></span></div><div class="tile"><small>만 나이</small><span class="num" data-out="year"></span></div></div><p class="sub" style="margin-top:8px" data-out="growth"></p><div class="live-foot"><a data-out="link" href="/baby/">접종 일정 표 →</a><a data-out="ics" href="/baby/">캘린더 파일(.ics) 받기 →</a></div></form>
+${lead('아기의 생년월일을 넣으면 오늘 몇 개월 며칠인지, 100일과 돌이 언제인지, 국가예방접종을 언제 맞아야 하는지 날짜로 나옵니다. 접종·건강검진·100일·돌을 캘린더 파일 하나로 받아 아이폰·구글 캘린더에 넣을 수 있고, 아래에서 생일을 누르면 그 아기의 전체 일정표가 열립니다.')}
 ${Object.entries(byMonth).map(([k, list]) => section(k, null, `<div class="chips" style="flex-wrap:wrap;overflow:visible">${list.map((dt) => `<a class="chip" style="min-width:0;padding:4px 8px" href="${babyUrl(dt)}">${dt.getUTCDate()}일</a>`).join('')}</div>`)).join('\n')}
 ${ad()}`;
   write('/baby/', shell({ url: '/baby/', title: '아기 개월수 계산기 — 생년월일로 오늘 몇 개월·예방접종 일정·100일 돌', desc: '아기 생년월일을 넣으면 오늘 개월수와 생후 일수, 100일·첫돌 날짜, 국가예방접종 표준 일정 날짜가 나옵니다.', body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
@@ -499,7 +511,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -513,8 +525,9 @@ ${section('먹고 태우기', null, `<div class="dict">
 </div>`)}
 ${section('임신과 아기', null, `<div class="dict">
 <a href="/due-date/"><b>출산예정일</b><span>마지막 생리일 + 280일 · 주수별 검사 일정 · 오늘 몇 주</span></a>
+<a href="/pregnancy/card/"><b>임신 디데이 카드</b><span>D-140 · 20주 3일 · 태명 — 카톡·인스타용 이미지로 저장·공유</span></a>
 <a href="/ovulation/"><b>배란일 · 가임기</b><span>생리 시작일과 주기로 · 다음 생리 예정일</span></a>
-<a href="/baby/"><b>아기 개월수 · 예방접종</b><span>생년월일로 오늘 몇 개월 · 100일·돌 · 접종 날짜</span></a>
+<a href="/baby/"><b>아기 개월수 · 예방접종</b><span>생년월일로 오늘 몇 개월 · 100일·돌 · 접종 날짜 · <span class="num">캘린더 파일</span>로 아이폰·구글에 넣기</span></a>
 <a href="/pregnancy/week/"><b>임신 주차별 안내</b><span>1~42주 · 아기 크기 · 엄마 몸 · 검사 일정</span></a>
 <a href="/baby/month/"><b>아기 개월별 발달</b><span>0~36개월 · 평균 키·몸무게 · 수유·수면·접종</span></a>
 <a href="/child-height/"><b>아이 키 예측</b><span>아빠 175 엄마 162 → 아들 <span class="num">${X.childHeight(175, 162).boy}</span>cm · 딸 ${X.childHeight(175, 162).girl}cm</span></a>
@@ -546,6 +559,7 @@ function docs() {
 <h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal. 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량.</p>
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
 <h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
+<h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 몸자 서버에 저장되지 않습니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>몸자의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
   doc('/about/', '소개 — 몸자', '몸자는 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `

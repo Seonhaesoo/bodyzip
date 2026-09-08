@@ -18,7 +18,7 @@ for (const f of files) {
   while ((m = re.exec(html))) {
     const u = m[1];
     checked++;
-    if (/\.(css|js|svg|xml|txt|png|jpg)$/.test(u)) { if (!fs.existsSync(path.join(OUT, u))) broken[u] = (broken[u] || 0) + 1; continue; }
+    if (/\.(css|js|svg|xml|txt|png|jpg|ics)$/.test(u)) { if (!fs.existsSync(path.join(OUT, u))) broken[u] = (broken[u] || 0) + 1; continue; }
     const key = u.endsWith('/') ? u : u + '/';
     if (!exists.has(key)) broken[u] = (broken[u] || 0) + 1;
   }

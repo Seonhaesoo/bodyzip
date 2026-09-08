@@ -75,6 +75,18 @@ export const VACCINES = [
   { name: '인플루엔자', doses: [[6, '6개월부터 매년 (첫해 2회)']] },
   { name: 'Tdap · HPV', doses: [[132, '만 11~12세']] },
 ];
+/* 영유아 건강검진 8차(2021년 개편) + 구강검진 4회 — 기간 시작 시점 */
+export const CHECKUPS = [
+  { key: 1, label: '1차 (생후 14~35일)', days: 14 },
+  { key: 2, label: '2차 (4~6개월)', m: 4 },
+  { key: 3, label: '3차 (9~12개월)', m: 9 },
+  { key: 4, label: '4차 (18~24개월)', m: 18, dental: '1차 (18~29개월)' },
+  { key: 5, label: '5차 (30~36개월)', m: 30, dental: '2차 (30~41개월)' },
+  { key: 6, label: '6차 (42~48개월)', m: 42, dental: '3차 (42~53개월)' },
+  { key: 7, label: '7차 (54~60개월)', m: 54, dental: '4차 (54~65개월)' },
+  { key: 8, label: '8차 (66~71개월)', m: 66 },
+];
+export const checkupDates = (birth) => CHECKUPS.map((c) => ({ ...c, date: c.days != null ? addDays(birth, c.days) : addMonths(birth, c.m) }));
 export function vaccineDates(birth) {
   return VACCINES.map((v) => ({ name: v.name, doses: v.doses.map(([m, label]) => ({ label, date: addMonths(birth, m) })) }));
 }

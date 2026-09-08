@@ -13,9 +13,10 @@ export function makeBundle() {
     wrap('F', strip(read('fmt.mjs')), ['num', 'won', 'pct']),
     wrap('B', strip(read('body.mjs')), ['BMI_CATS', 'bmi', 'bmiCat', 'bmiOf', 'normalRange', 'standardWeight', 'broca', 'toNormal', 'weeksFor', 'bmr', 'bmrHB', 'ACTIVITY', 'tdee', 'bodyFatNavy', 'bodyFatCat', 'water', 'protein']),
     wrap('K', strip(read('kcal.mjs')), ['burn', 'minutesFor', 'bowls', 'RICE_BOWL']),
-    wrap('D', strip(read('dates.mjs')), ['utc', 'addDays', 'diffDays', 'iso', 'fmt', 'fmtShort', 'wd', 'pregnancy', 'weeksOn', 'MILESTONES', 'cycle', 'ageOn', 'addMonths', 'vaccineDates', 'growthText', 'schoolYear']),
+    wrap('D', strip(read('dates.mjs')), ['utc', 'addDays', 'diffDays', 'iso', 'fmt', 'fmtShort', 'wd', 'pregnancy', 'weeksOn', 'MILESTONES', 'cycle', 'ageOn', 'addMonths', 'VACCINES', 'CHECKUPS', 'checkupDates', 'vaccineDates', 'growthText', 'schoolYear']),
+    wrap('I', 'const { VACCINES, CHECKUPS, addDays, addMonths, iso } = D;\n' + strip(read('ics.mjs')), ['monthLabel', 'babyEvents', 'babyIcs', 'gcalUrl']),
     wrap('X', 'const { burn } = K; const { weeksFor } = B;\n' + strip(read('extra.mjs')), ['STRIDE', 'steps', 'bedtimes', 'waketimes', 'childHeight', 'DRINKS', 'alcoholGrams', 'bac', 'bacLevel', 'dietPlan', 'KCAL_NEED']),
-    `window.Momja = Object.assign({}, F, B, K, D, X);`,
+    `window.Momja = Object.assign({}, F, B, K, D, X, I);`,
   ];
   return `/* 몸자 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;
 }
