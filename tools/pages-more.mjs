@@ -16,7 +16,7 @@ export function buildMore(ctx) {
   const NOTE = (s) => `<p class="note">${s} <a href="/method/">계산 기준 보기</a></p>`;
 
   /* ---------- 아기 100일·돌 카드 ---------- */
-  write('/baby/card/', shell({ url: '/baby/card/', title: '아기 100일·200일·첫돌 카드 만들기 — 생일로 D+day 이미지 (카톡·인스타 공유)', desc: '아기 생년월일과 이름을 넣으면 오늘 D+며칠, 개월수, 다음 기념일(50일·100일·200일·첫돌)까지 남은 날이 들어간 카드 이미지가 만들어집니다. 저장하거나 카카오톡·인스타그램으로 바로 공유.', nav: 'baby', scripts: ['/js/engine.js', '/js/baby-card.js'], body: `
+  write('/baby/card/', shell({ og: 'babycard', url: '/baby/card/', title: '아기 100일·200일·첫돌 카드 만들기 — 생일로 D+day 이미지 (카톡·인스타 공유)', desc: '아기 생년월일과 이름을 넣으면 오늘 D+며칠, 개월수, 다음 기념일(50일·100일·200일·첫돌)까지 남은 날이 들어간 카드 이미지가 만들어집니다. 저장하거나 카카오톡·인스타그램으로 바로 공유.', nav: 'baby', scripts: ['/js/engine.js', '/js/baby-card.js'], body: `
 ${crumb([['/baby/', '아기'], [null, '100일·돌 카드']])}
 <h1 class="title">아기 100일·돌 카드</h1>
 <p class="meta">D+day · 개월수 · 다음 기념일 · 카드는 이 기기 안에서만 만들어집니다</p>
@@ -73,9 +73,9 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: pctUrl(sex === 'm' ? 'f' : 'm', m), title: `${sexName(sex === 'm' ? 'f' : 'm')} ${m}개월 백분위`, sub: '' }, { href: `/baby/month/${dev.m}/`, title: `아기 ${dev.m === 0 ? '신생아' : `${dev.m}개월`} 발달`, sub: '할 수 있는 것 · 돌봄' }, { href: '/baby/', title: '아기 개월수 · 예방접종', sub: '생일로' }]))}
 ${NOTE('WHO Child Growth Standards(2006) LMS 값으로 계산합니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 같은 표준을 씁니다. 백분위는 참고용이며 진단은 소아과에서.')}`;
-    write(url, shell({ url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'percentile', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/baby/percentile/', shell({ url: '/baby/percentile/', title: '아기 성장 백분위 계산기 — 몸무게·키·머리둘레가 또래 어디쯤 (WHO·질병관리청 성장도표)', desc: '성별·개월·몸무게·키·머리둘레를 넣으면 백분위와 판정이 바로 나옵니다. 남아·여아 0~36개월 백분위표(3·5·10·25·50·75·90·95·97).', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/baby/percentile/', shell({ og: 'percentile', url: '/baby/percentile/', title: '아기 성장 백분위 계산기 — 몸무게·키·머리둘레가 또래 어디쯤 (WHO·질병관리청 성장도표)', desc: '성별·개월·몸무게·키·머리둘레를 넣으면 백분위와 판정이 바로 나옵니다. 남아·여아 0~36개월 백분위표(3·5·10·25·50·75·90·95·97).', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/baby/', '아기'], [null, '성장 백분위']])}
 <h1 class="title">아기 성장 백분위</h1>
 <p class="meta">WHO 아동 성장 표준 · 질병관리청 2017 성장도표 0~35개월 · 남아·여아</p>
@@ -115,9 +115,9 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: `/food/${k === 'americano' ? 'americano' : k === 'mix' ? 'mixed-coffee' : k === 'cola' ? 'cola' : 'americano'}/`, title: '음료 칼로리', sub: '음식 칼로리 사전' }, { href: '/sleep/', title: '몇 시에 자야 할까', sub: '수면 주기 계산' }, { href: '/water/', title: '하루 물 섭취량', sub: '커피도 수분에 포함' }]))}
 ${NOTE('카페인 함량은 식약처 식품영양성분 DB와 주요 매장 공개 자료의 대표값이며 제품마다 다릅니다. 반감기 5시간은 성인 평균(3~7시간)입니다.')}`;
-    write(url, shell({ url, title, desc, body, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'caffeine', url, title, desc, body, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/caffeine/', shell({ url: '/caffeine/', title: '카페인 계산기 — 오늘 마신 커피·에너지드링크 카페인과 잘 때 남는 양 (성인 400mg·임신 300mg)', desc: '아메리카노·믹스커피·캔커피·에너지드링크·콜라·녹차를 잔 수로 넣으면 오늘 카페인 총량, 기준 대비 비율, 잠자리에 들 때 남은 양이 나옵니다. 음료별 카페인표.', nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/caffeine/', shell({ og: 'caffeine', url: '/caffeine/', title: '카페인 계산기 — 오늘 마신 커피·에너지드링크 카페인과 잘 때 남는 양 (성인 400mg·임신 300mg)', desc: '아메리카노·믹스커피·캔커피·에너지드링크·콜라·녹차를 잔 수로 넣으면 오늘 카페인 총량, 기준 대비 비율, 잠자리에 들 때 남은 양이 나옵니다. 음료별 카페인표.', nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/food/', '칼로리'], [null, '카페인']])}
 <h1 class="title">오늘 카페인 얼마나</h1>
 <p class="meta">성인 400mg · 임신 300mg · 청소년 몸무게 × 2.5mg · 반감기 5시간</p>
@@ -151,9 +151,9 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: '/bmr/', title: '기초대사량', sub: '금연 뒤 체중 관리' }, { href: '/steps/', title: '걸음 수 칼로리', sub: '흡연 욕구가 올 때 10분 걷기' }, { href: 'https://donpyo.com/goal/', title: '모은 돈으로 목표 저축 (돈표)', sub: '자매 사이트' }]))}
 ${NOTE('되찾은 시간은 개비당 약 20분(University College London, 2024)이며 통계적 추정입니다. 몸의 변화 시점은 미국 폐협회(ALA)·보건복지부 금연길라잡이의 일반 안내입니다.')}`;
-    write(url, shell({ url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'quit', url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/quit-smoking/', shell({ url: '/quit-smoking/', title: '금연 계산기 — 끊은 지 며칠, 안 피운 담배·모은 돈·되찾은 시간과 몸의 변화', desc: '담배 끊은 날짜와 하루 개비 수를 넣으면 안 피운 담배, 모은 돈, 되찾은 시간, 지금 몸에서 일어나는 변화가 나옵니다. 1일부터 10년까지 날짜별 표.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/quit-smoking/', shell({ og: 'quit', url: '/quit-smoking/', title: '금연 계산기 — 끊은 지 며칠, 안 피운 담배·모은 돈·되찾은 시간과 몸의 변화', desc: '담배 끊은 날짜와 하루 개비 수를 넣으면 안 피운 담배, 모은 돈, 되찾은 시간, 지금 몸에서 일어나는 변화가 나옵니다. 1일부터 10년까지 날짜별 표.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '금연']])}
 <h1 class="title">담배 끊은 지</h1>
 <p class="meta">안 피운 담배 · 모은 돈 · 되찾은 시간 · 몸의 변화</p>

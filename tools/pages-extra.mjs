@@ -91,7 +91,7 @@ ${ad()}
 ${section('많이 보는 주차', null, list([8, 12, 16, 20, 24, 28, 32, 36].map((w) => { const y = WEEKS[w - 1]; return { href: weekUrl(w), title: `임신 ${w}주`, sub: y.check || y.baby.slice(0, 40), value: y.size }; })))}` }));
 
   /* ---------- 임신 디데이 카드 ---------- */
-  write('/pregnancy/card/', shell({ url: '/pregnancy/card/', title: '임신 디데이 카드 만들기 — 출산예정일 D-day·주수·태명 이미지 (카톡·인스타 공유)', desc: '출산예정일을 넣으면 오늘 기준 D-day, 임신 주수, 아기 크기, 태명이 들어간 카드 이미지를 만들어 저장하거나 카카오톡·인스타그램으로 바로 공유할 수 있습니다. 회원 가입 없음, 이미지는 기기 안에서만 만들어집니다.', nav: 'preg', scripts: ['/js/engine.js', '/js/card.js'], body: `
+  write('/pregnancy/card/', shell({ og: 'pregcard', url: '/pregnancy/card/', title: '임신 디데이 카드 만들기 — 출산예정일 D-day·주수·태명 이미지 (카톡·인스타 공유)', desc: '출산예정일을 넣으면 오늘 기준 D-day, 임신 주수, 아기 크기, 태명이 들어간 카드 이미지를 만들어 저장하거나 카카오톡·인스타그램으로 바로 공유할 수 있습니다. 회원 가입 없음, 이미지는 기기 안에서만 만들어집니다.', nav: 'preg', scripts: ['/js/engine.js', '/js/card.js'], body: `
 ${crumb([['/due-date/', '임신'], [null, '디데이 카드']])}
 <h1 class="title">임신 디데이 카드</h1>
 <p class="meta">출산예정일 · 오늘 주수 · 아기 크기 · 태명 · 카드는 이 기기 안에서만 만들어집니다</p>
@@ -184,10 +184,10 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: '/exercise/walking/', title: '걷기 소모 칼로리', sub: '시간별·몸무게별' }, { href: '/exercise/brisk-walking/', title: '빠르게 걷기', sub: '시속 5.6km' }, { href: '/diet/', title: '다이어트 기간 계산', sub: '목표 체중까지 몇 주' }]))}
 ${NOTE('소모 칼로리 = MET 3.0 × 3.5 × 몸무게 ÷ 200 × 분. 보폭은 키 × 0.415(평균 어림값), 시속 4km 가정.')}`;
-    write(url, shell({ url, title, desc, body, nav: 'exercise', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'steps', url, title, desc, body, nav: 'exercise', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
   { const r = X.steps(10000, 60, 170);
-  write('/steps/', shell({ url: '/steps/', title: '걸음 수 칼로리 계산기 — 만보 걸으면 몇 칼로리·몇 km (몸무게·키별)', desc: `만보는 약 ${r.km}km, ${r.minutes}분, 60kg 기준 ${num(r.kcal)}kcal입니다. 1,000~30,000보를 걸음 수·몸무게·키별로 거리와 소모 칼로리로 환산했습니다.`, nav: 'exercise', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/steps/', shell({ og: 'steps', url: '/steps/', title: '걸음 수 칼로리 계산기 — 만보 걸으면 몇 칼로리·몇 km (몸무게·키별)', desc: `만보는 약 ${r.km}km, ${r.minutes}분, 60kg 기준 ${num(r.kcal)}kcal입니다. 1,000~30,000보를 걸음 수·몸무게·키별로 거리와 소모 칼로리로 환산했습니다.`, nav: 'exercise', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/exercise/', '운동'], [null, '걸음 수']])}
 <h1 class="title">걸음 수 → 거리·칼로리</h1>
 <p class="meta">보폭 = 키 × 0.415 · 보통 걷기 시속 4km · MET 3.0</p>
@@ -221,9 +221,9 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: '/guide/sleep-cycle/', title: '90분 수면 주기 계산', sub: '서재 — 몇 시에 자야 개운할까' }, { href: '/bmr/', title: '기초대사량', sub: '수면 부족은 대사에도 영향' }]))}
 <p class="note">수면 주기 90분은 평균값이며, 계산은 참고용입니다. 만성 불면·코골이·주간 졸림은 수면클리닉 상담을 권합니다.</p>`;
-    write(url, shell({ url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'sleep', url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/sleep/', shell({ url: '/sleep/', title: '수면 시간 계산기 — 몇 시에 자야 개운할까 (90분 수면 주기 · 기상 시각별 취침 시각)', desc: '일어날 시각을 넣으면 90분 수면 주기에 맞춘 취침 시각이, 지금 누우면 언제 일어나야 하는지가 바로 나옵니다. 기상 5시~10시 30분 단위 표.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/sleep/', shell({ og: 'sleep', url: '/sleep/', title: '수면 시간 계산기 — 몇 시에 자야 개운할까 (90분 수면 주기 · 기상 시각별 취침 시각)', desc: '일어날 시각을 넣으면 90분 수면 주기에 맞춘 취침 시각이, 지금 누우면 언제 일어나야 하는지가 바로 나옵니다. 기상 5시~10시 30분 단위 표.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '수면']])}
 <h1 class="title">몇 시에 자야 개운할까</h1>
 <p class="meta">90분 수면 주기 · 잠드는 데 15분 · 얕은 잠에서 깨기</p>
@@ -235,6 +235,7 @@ ${section('이어서', null, list([{ href: '/guide/sleep-cycle/', title: '90분 
 
   /* ---------- 아이 키 예측 ---------- */
   const chUrl = (f, m) => `/child-height/${f}-${m}/`;
+  const chCard = `<div class="card-wrap" data-card="child"><div class="card-prev"><img alt="아이 예상 키 카드"><canvas hidden></canvas></div><div class="btn-row"><button type="button" class="btn" data-act="save">결과 카드 저장</button><button type="button" class="btn btn-share" data-act="share">바로 공유</button></div><p class="cal-how">위 계산기 숫자로 그린 카드입니다. 아빠·엄마 키를 바꾸면 카드도 바뀝니다.</p></div>`;
   const chForm = (f, m) => `<form class="quick live" data-live="child" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>부모 키(cm)</span></div><div class="ye-grid"><label class="ye-f"><span>아빠 키</span><input data-k="f" type="text" inputmode="numeric" value="${f}"></label><label class="ye-f"><span>엄마 키</span><input data-k="m" type="text" inputmode="numeric" value="${m}"></label></div><div class="tiles"><div class="tile"><small>아들 예상</small><span class="num" data-out="boy"></span></div><div class="tile"><small>딸 예상</small><span class="num" data-out="girl"></span></div><div class="tile"><small>범위 (±8.5cm)</small><span class="num" data-out="range"></span></div></div><div class="live-foot"><a data-out="link" href="/child-height/">이 조합 표 →</a></div></form>`;
   for (const f of FATHERS) for (const m of MOTHERS) {
     const url = chUrl(f, m), c = X.childHeight(f, m);
@@ -248,6 +249,7 @@ ${crumb([['/child-height/', '아이 키 예측'], [null, `아빠 ${f} · 엄마 
 ${tiles([{ label: '아들 예상 키', value: `${c.boy}cm` }, { label: '딸 예상 키', value: `${c.girl}cm` }, { label: '95% 범위', value: '±8.5cm' }])}
 ${lead(`아버지 ${f}cm, 어머니 ${m}cm이면 아들은 약 <b>${c.boy}cm</b>, 딸은 약 <b>${c.girl}cm</b>로 예상됩니다. 실제 성인 키는 이 값 앞뒤 8.5cm 안에 약 95%가 들어가니, 아들은 ${c.boy - 8.5}~${c.boy + 8.5}cm, 딸은 ${c.girl - 8.5}~${c.girl + 8.5}cm 어디든 정상 범위입니다.`)}
 ${chForm(f, m)}
+${chCard}
 ${section('아빠 키가 다르면', `엄마 ${m}cm 고정`, table(['아빠', '아들', '딸'], near(FATHERS, f, 3).map((x) => { const y = X.childHeight(x, m); return { cells: [`<a href="${chUrl(x, m)}">${x}cm</a>`, `${y.boy}cm`, `${y.girl}cm`], cls: x === f ? 'on' : '' }; })))}
 ${section('엄마 키가 다르면', `아빠 ${f}cm 고정`, table(['엄마', '아들', '딸'], near(MOTHERS, m, 3).map((x) => { const y = X.childHeight(f, x); return { cells: [`<a href="${chUrl(f, x)}">${x}cm</a>`, `${y.boy}cm`, `${y.girl}cm`], cls: x === m ? 'on' : '' }; })))}
 ${ad()}
@@ -259,13 +261,14 @@ ${section('유전 말고 키를 좌우하는 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: '/guide/child-height/', title: '우리 아이 키 예측 — 공식과 한계', sub: '서재' }, { href: '/baby/month/', title: '아기 개월별 평균 키·몸무게', sub: '0~36개월' }, { href: '/bmi/', title: '부모 BMI', sub: '키·몸무게별' }]))}
 <p class="note">Tanner 중간 부모 키 공식(1970)입니다. 예측값은 통계적 평균이며 실제 키는 영양·수면·질병·사춘기 시기에 따라 달라집니다. 정확한 예측은 손목 X선 뼈 나이 검사로 합니다.</p>`;
-    write(url, shell({ url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
   }
-  write('/child-height/', shell({ url: '/child-height/', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나옵니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/child-height/', shell({ og: 'child', url: '/child-height/', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나오고 결과 카드로 저장·공유할 수 있습니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'], body: `
 ${crumb([['/', '홈'], [null, '아이 키 예측']])}
 <h1 class="title">아이 키 예측</h1>
 <p class="meta">중간 부모 키 공식 · 아들 (아빠+엄마+13)÷2 · 딸 (아빠+엄마−13)÷2 · ±8.5cm</p>
 ${chForm(175, 162)}
+${chCard}
 ${lead('아이의 최종 키는 유전이 70~80%를 결정합니다. 부모 키로 어림하는 가장 단순한 방법이 중간 부모 키 공식이며, 실제 키는 예측값 앞뒤 8.5cm 안에 약 95%가 들어갑니다. 아래 표에서 아빠 키를 고르면 엄마 키별 페이지가 열립니다.')}
 ${section('아빠 키 × 엄마 키', '아들 예상 키 · cm', `<div class="tbl"><table><thead><tr><th>아빠 \\ 엄마</th>${[150, 155, 160, 165, 170, 175].map((m) => `<th>${m}</th>`).join('')}</tr></thead><tbody>${[160, 165, 170, 175, 180, 185, 190].map((f) => `<tr><td>${f}cm</td>${[150, 155, 160, 165, 170, 175].map((m) => `<td><a href="${chUrl(f, m)}">${X.childHeight(f, m).boy}</a></td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
 ${section('딸 예상 키', 'cm', `<div class="tbl"><table><thead><tr><th>아빠 \\ 엄마</th>${[150, 155, 160, 165, 170, 175].map((m) => `<th>${m}</th>`).join('')}</tr></thead><tbody>${[160, 165, 170, 175, 180, 185, 190].map((f) => `<tr><td>${f}cm</td>${[150, 155, 160, 165, 170, 175].map((m) => `<td><a href="${chUrl(f, m)}">${X.childHeight(f, m).girl}</a></td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
@@ -298,9 +301,9 @@ ${section('다른 술', `${c}${k === 'wine' ? '잔' : '병'} 기준`, wrapChips(
 ${section('단속 기준', '도로교통법', table(['농도', '처분'], [{ cells: ['0.03% 이상', '면허 정지 · 1년 이하 징역 또는 500만원 이하 벌금'] }, { cells: ['0.08% 이상', '면허 취소 · 1~2년 징역 또는 500~1,000만원 벌금'] }, { cells: ['0.2% 이상', '면허 취소 · 2~5년 징역 또는 1,000~2,000만원 벌금'] }]))}
 ${section('이어서', null, list([{ href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재 — 위드마크 공식' }, { href: `/food/${k === 'wine' ? 'wine' : k === 'beer' ? 'beer' : k}/`, title: `${DR[k].label.split(' ')[0]} 칼로리`, sub: '음식 칼로리 사전' }]))}
 <p class="note">위드마크 공식(흡수율 90%, 남 0.68·여 0.55, 마지막 잔 뒤 흡수 1.5시간, 시간당 0.015%p 분해)의 평균값이며 공복·음주 속도·체지방에 따라 실제 농도는 더 높을 수 있습니다. 실제 단속은 호흡측정기로 하며, 이 계산은 음주운전 가능 여부를 보증하지 않습니다. 술을 마셨다면 운전하지 마세요.</p>`;
-    write(url, shell({ url, title, desc, body, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'alcohol', url, title, desc, body, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/alcohol/', shell({ url: '/alcohol/', title: '혈중알코올농도 계산기 — 소주·맥주 몇 병이면 면허 정지, 몇 시간 뒤 운전 가능한지 (위드마크)', desc: '술 종류와 양, 몸무게, 성별, 지난 시간을 넣으면 위드마크 공식으로 혈중알코올농도와 0.03% 아래로 내려오는 시간이 나옵니다. 소주·맥주·막걸리·와인 1~5병 표.', nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/alcohol/', shell({ og: 'alcohol', url: '/alcohol/', title: '혈중알코올농도 계산기 — 소주·맥주 몇 병이면 면허 정지, 몇 시간 뒤 운전 가능한지 (위드마크)', desc: '술 종류와 양, 몸무게, 성별, 지난 시간을 넣으면 위드마크 공식으로 혈중알코올농도와 0.03% 아래로 내려오는 시간이 나옵니다. 소주·맥주·막걸리·와인 1~5병 표.', nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '혈중알코올농도']])}
 <h1 class="title">혈중알코올농도</h1>
 <p class="meta">위드마크 공식 · 단속 0.03% · 취소 0.08% · 마지막 잔 뒤 흡수 1.5시간 + 시간당 0.015%p 분해</p>
@@ -308,8 +311,34 @@ ${alForm('soju', 1)}
 ${lead('알코올은 시간당 혈중농도 0.015%p씩만 분해되고, 물·커피·사우나로 빨라지지 않습니다. 소주 1병을 마신 70kg 남성이 마지막 잔 뒤 0.03% 아래로 내려오는 데 약 5시간 30분, 2병이면 11시간 넘게 걸립니다. 술 종류와 양을 누르면 몸무게·성별 표가 나옵니다.')}
 ${section('소주 · 맥주 · 막걸리 · 와인', '70kg 남성 최고 농도 · 마지막 잔부터 0.03% 아래로 걸리는 시간', table(['술', '1', '2', '3', '4', '5'], DRINK_PAGES.map((k) => ({ cells: [DR[k].label.split(' ')[0]].concat(DRINK_COUNTS.map((c) => { const r = X.bac(X.alcoholGrams(DR[k].ml * c, DR[k].abv), 70, 'm'); return `<a href="${alUrl(k, c)}">${r.peak}%<br><small>${r.driveHours}h</small></a>`; })) }))))}
 ${ad()}
-${section('이어서', null, list([{ href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재' }, { href: '/food/soju/', title: '술 칼로리', sub: '소주 1병 · 맥주 500ml' }]))}
+${section('이어서', null, list([{ href: '/alcohol/team/', title: '회식 음주 표 만들기', sub: '우리 팀 사람별 0.03% 시각 · 카드로 공유' }, { href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재' }, { href: '/food/soju/', title: '술 칼로리', sub: '소주 1병 · 맥주 500ml' }]))}
 <p class="note">이 계산은 참고용이며 음주운전 가능 여부를 보증하지 않습니다. 술을 마셨다면 운전하지 마세요.</p>` }));
+
+  /* ---------- 회식 음주 표 ---------- */
+  const teamRow = (i, name, sex, kg, drink, n) => `<div class="team-row" data-row="${i}"><input data-k="name" type="text" placeholder="이름" value="${name}" maxlength="6"><select data-k="sex"><option value="m"${sex === 'm' ? ' selected' : ''}>남</option><option value="f"${sex === 'f' ? ' selected' : ''}>여</option></select><input data-k="kg" type="text" inputmode="numeric" placeholder="kg" value="${kg}"><select data-k="drink">${X.DRINKS.map((d) => `<option value="${d.key}"${d.key === drink ? ' selected' : ''}>${d.label.split(' (')[0]}</option>`).join('')}</select><input data-k="n" type="text" inputmode="decimal" placeholder="양" value="${n}"></div>`;
+  write('/alcohol/team/', shell({ og: 'alcohol', url: '/alcohol/team/', title: '회식 뒤 운전은 언제부터 — 우리 팀 혈중알코올농도 표 만들기 (사람별 0.03% 시각)', desc: '이름·몸무게·마신 술과 양을 넣으면 사람별 최고 혈중알코올농도와 0.03% 아래로 내려오는 시각, 완전 분해 시각이 표와 카드 이미지로 나옵니다. 단톡방에 올려 대리·택시를 정하세요.', nav: 'food', scripts: ['/js/engine.js', '/js/team-card.js'], body: `
+${crumb([['/alcohol/', '혈중알코올농도'], [null, '회식 음주 표']])}
+<h1 class="title">회식 뒤 운전은 언제부터</h1>
+<p class="meta">사람별 · 위드마크 공식 · 마지막 잔 시각 기준 · 표와 카드 이미지</p>
+<form class="quick live" data-live="team" style="margin-top:14px">
+<div class="live-head"><b>우리 팀</b><span>이름 · 성별 · 몸무게 · 술 · 양(병·잔)</span></div>
+<div class="team-rows">${[['김대리', 'm', 70, 'soju', 1], ['이과장', 'm', 80, 'soju', 2], ['박주임', 'f', 55, 'beer', 2], ['', 'm', '', 'soju', ''], ['', 'f', '', 'beer', ''], ['', 'm', '', 'makgeolli', '']].map((r, i) => teamRow(i, ...r)).join('')}</div>
+<label class="ye-f" style="margin-top:10px;max-width:220px"><span>마지막 잔 마신 시각</span><input data-k="end" type="time" value="23:00"></label>
+<p class="sub" style="margin-top:8px" data-out="hint"></p>
+<div class="tbl"><table><thead><tr><th>이름</th><th>최고 농도</th><th>0.03% 아래</th><th>완전 분해</th></tr></thead><tbody data-out="rows"></tbody></table></div>
+<div class="card-prev"><img id="card-img" alt="회식 음주 표 카드"><canvas id="card-canvas" hidden></canvas></div>
+<div class="btn-row"><button type="button" class="btn" data-act="save">카드 저장</button><button type="button" class="btn btn-share" data-act="share">단톡방에 공유</button></div>
+<p class="cal-how">카드는 이 기기 안에서만 그려지고 입력값은 저장되지 않습니다.</p>
+</form>
+${lead('회식 자리에서 한 사람씩 넣으면 누가 언제부터 운전할 수 있는지 한 장으로 나옵니다. 0.03% 아래 시각은 마지막 잔을 마신 때부터 흡수 시간 1.5시간을 더한 값이고, 그 시각이 되어도 술이 남은 느낌이면 운전하지 마세요.')}
+${section('알아두면 좋은 것', null, `<div class="doc">
+<p><b>같은 양이라도 몸무게가 가볍고 여성이면 농도가 높습니다.</b> 체수분 비율 차이 때문이며, 표에서 55kg 여성이 70kg 남성보다 1.5배 가까이 높게 나오는 이유입니다.</p>
+<p><b>자고 일어나도 남아 있습니다.</b> 소주 2병을 자정에 끝냈다면 0.03% 아래는 다음 날 낮이 되어야 합니다. 아침 출근길 운전이 가장 흔한 숙취 운전 단속입니다.</p>
+<p><b>대리·택시 비용은 벌금의 100분의 1도 안 됩니다.</b> 0.03% 이상은 면허 정지에 500만원 이하 벌금, 0.08% 이상은 면허 취소입니다.</p>
+</div>`)}
+${ad()}
+${section('이어서', null, list([{ href: '/alcohol/', title: '혈중알코올농도 계산기', sub: '한 사람 자세히' }, { href: '/alcohol/soju/2/', title: '소주 2병 마시면', sub: '몸무게·성별 표' }, { href: '/guide/alcohol-bac/', title: '위드마크 공식 설명', sub: '서재' }]))}
+<p class="note">위드마크 공식(흡수율 90%, 남 0.68·여 0.55, 마지막 잔 뒤 흡수 1.5시간, 시간당 0.015%p 분해)의 평균값이며 공복·음주 속도·체질에 따라 실제 농도는 더 높을 수 있습니다. 실제 단속은 호흡측정기로 하며, 이 표는 음주운전 가능 여부를 보증하지 않습니다.</p>` }));
 
   /* ---------- 다이어트 기간 ---------- */
   const dietUrl = (kg) => `/diet/${kg}/`;
@@ -342,7 +371,7 @@ ${section('이어서', null, list([{ href: '/bmr/', title: '기초대사량·하
 ${NOTE('체지방 1kg ≈ 7,700kcal 가정. 실제 감량 속도는 체성분·대사 적응·수분 변화에 따라 달라집니다.')}`;
     write(url, shell({ url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/diet/', shell({ url: '/diet/', title: '다이어트 기간 계산기 — 목표 체중까지 몇 주 걸리나 (하루 500kcal 기준 감량 kg별 표)', desc: '지금 몸무게와 목표 몸무게를 넣으면 하루 줄이는 칼로리별로 걸리는 기간과 목표 날짜가 나옵니다. 1~30kg 감량 표, 500kcal을 만드는 운동·음식.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/diet/', shell({ og: 'diet', url: '/diet/', title: '다이어트 기간 계산기 — 목표 체중까지 몇 주 걸리나 (하루 500kcal 기준 감량 kg별 표)', desc: '지금 몸무게와 목표 몸무게를 넣으면 하루 줄이는 칼로리별로 걸리는 기간과 목표 날짜가 나옵니다. 1~30kg 감량 표, 500kcal을 만드는 운동·음식.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '다이어트 기간']])}
 <h1 class="title">목표 체중까지 몇 주</h1>
 <p class="meta">체지방 1kg ≈ 7,700kcal · 하루 500kcal 결손 = 주 0.45kg</p>

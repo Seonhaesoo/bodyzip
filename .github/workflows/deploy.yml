@@ -3,6 +3,7 @@ name: build-and-deploy
 on:
   push:
     branches: [main]
+    paths-ignore: ['drafts/**']
   schedule:
     - cron: '20 15 * * *'   # 매일 00:20 KST — 아기 개월수·출산예정일 '오늘' 기준 갱신
   workflow_dispatch:

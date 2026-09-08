@@ -26,6 +26,7 @@ const DOMAIN_READY = false;                          /* 도메인 연결 뒤 tru
 const GA_ID = '';                                    /* GA4 측정 ID — 속성 만들면 채움 */
 const ADSENSE = 'ca-pub-9924140539322407';
 const SISTERS = { donpyo: 'https://donpyo.com', saju: 'https://sajucheop.com' };
+const OG_KEYS = new Set(fs.existsSync(path.join(SRC, 'og')) ? fs.readdirSync(path.join(SRC, 'og')).filter((f) => f.endsWith('.png')).map((f) => f.replace('.png', '')) : []);
 const kst = new Date(Date.now() + 9 * 3600 * 1000);
 const TODAY = D.utc(kst.getUTCFullYear(), kst.getUTCMonth() + 1, kst.getUTCDate());
 const YEAR = TODAY.getUTCFullYear();
@@ -69,6 +70,10 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 <meta property="og:description" content="${esc(o.desc)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${SITE}${o.url}">
+<meta property="og:image" content="${SITE}/og/${OG_KEYS.has(o.og || o.nav) ? (o.og || o.nav) : 'home'}.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 <div class="app">
@@ -353,7 +358,7 @@ ${crumb([['/', '홈'], [null, '물 섭취량']])}
 <h1 class="title">몸무게별 하루 물 섭취량과 단백질</h1>
 <p class="meta">몸무게 × 33ml · 단백질 0.8~1.6g/kg</p>
 ${section('몸무게별', null, table(['몸무게', '물 (ml)', '컵', '단백질'], WATER_KG.map((kg) => { const w = B.water(kg), p = B.protein(kg); return { cells: [`<a href="/water/${kg}/">${kg}kg</a>`, num(w.ml), `${w.cups}잔`, `${p.base}~${p.active}g`] }; })))}`;
-  write('/water/', shell({ url: '/water/', title: '몸무게별 하루 물 섭취량·단백질 권장량표', desc: '몸무게 40~120kg별 하루 물 권장량(ml·컵)과 단백질 권장량을 정리했습니다.', body, nav: 'bmr' }));
+  write('/water/', shell({ og: 'water', url: '/water/', title: '몸무게별 하루 물 섭취량·단백질 권장량표', desc: '몸무게 40~120kg별 하루 물 권장량(ml·컵)과 단백질 권장량을 정리했습니다.', body, nav: 'bmr' }));
 }
 
 /* ---------- 출산예정일 ---------- */
@@ -626,7 +631,18 @@ buildExtra(CTX); buildPet(CTX); buildMore(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));
-fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${indexable.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${BUILD_ISO}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+/* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height)\//], ['guide', /.*/]];
+const smFiles = [];
+for (const [key, re] of SM_GROUPS) {
+  const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));
+  if (!list.length) continue;
+  const file = `sitemap-${key}.xml`;
+  fs.writeFileSync(path.join(OUT, file), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${BUILD_ISO}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+  smFiles.push({ file, set: new Set(list), n: list.length });
+}
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${BUILD_ISO}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
+console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'momja.com\n');
 console.log(`몸자 빌드 완료: 페이지 ${urls.length}장, ${((Date.now() - t0) / 1000).toFixed(1)}s`);

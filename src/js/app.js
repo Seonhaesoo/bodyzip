@@ -58,6 +58,7 @@
       return { href: '/child-height/', label: '아이 키 예측 계산' };
     }
     // 혈중알코올농도
+    if (/회식|팀\s*음주|단체|우리\s*팀/.test(t)) return { href: '/alcohol/team/', label: '회식 음주 표 만들기' };
     if (/혈중|음주|알코올|알콜|알코홀|숙취|소주|맥주|막걸리|와인|운전/.test(t) && !/칼로리|kcal/.test(t)) {
       var dk = /맥주/.test(t) ? 'beer' : /막걸리/.test(t) ? 'makgeolli' : /와인/.test(t) ? 'wine' : 'soju';
       var cm = t.match(/(\d+(?:\.\d+)?)\s*(?:병|잔|캔)/), cnt = cm ? Math.round(+cm[1]) : 1; if (/반\s*병/.test(t)) cnt = 1;

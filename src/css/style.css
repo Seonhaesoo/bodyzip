@@ -282,3 +282,13 @@ body.bare { background: transparent; }
 .card-prev img { width: 100%; max-width: 360px; border-radius: 14px; box-shadow: 0 12px 32px rgba(33, 28, 21, .14); background: var(--card); min-height: 120px; }
 .live .btn-row { margin: 12px 0 4px; }
 .live .btn-row .btn { font-size: 13.5px; }
+
+/* 회식 표 · 결과 카드 */
+.team-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.team-row { display: grid; grid-template-columns: 1.3fr .7fr .8fr 1.4fr .7fr; gap: 6px; }
+.team-row input, .team-row select { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); padding: 8px 8px; font: inherit; font-size: 13.5px; color: var(--ink); min-width: 0; }
+.team-row input:focus, .team-row select:focus { border-color: var(--green); outline: none; }
+.tbl td small { display: block; font-size: 10.5px; color: var(--faint); font-family: var(--sans); white-space: normal; }
+.card-wrap { margin-top: 12px; }
+.card-wrap .btn-row { margin: 10px 0 4px; }
+.card-wrap .btn-row .btn { font-size: 13.5px; }

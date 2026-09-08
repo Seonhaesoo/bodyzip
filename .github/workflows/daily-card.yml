@@ -1,0 +1,99 @@
+name: daily-card
+
+on:
+  schedule:
+    - cron: '30 23 * * *'   # 매일 08:30 KST — 오늘의 숫자 카드 생성·게시
+  workflow_dispatch:
+    inputs:
+      force:
+        description: '시크릿 없이도 카드 생성 (true/false)'
+        default: 'false'
+      index:
+        description: '특정 사실 번호로 강제 (비우면 날짜순)'
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  card:
+    runs-on: ubuntu-latest
+    env:
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 키 확인 — 없으면 이번 회차 건너뜀
+        id: gate
+        env:
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+        run: |
+          if [ -n "$THREADS_ACCESS_TOKEN" ] || [ -n "$IG_ACCESS_TOKEN" ] || [ "$FORCE" = "true" ]; then
+            echo "go=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=0" >> "$GITHUB_OUTPUT"
+            echo "게시 키가 없어 건너뜁니다. 저장소 Settings › Secrets 에 THREADS_USER_ID / THREADS_ACCESS_TOKEN (사주첩과 같은 값) 을 넣으면 다음 아침부터 자동 게시됩니다."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.go == '1'
+        with:
+          node-version: 22
+
+      - name: Playwright 설치
+        if: steps.gate.outputs.go == '1'
+        run: |
+          npm i --no-audit --no-fund --no-save playwright > /dev/null
+          npx playwright install --with-deps chromium
+
+      - name: 카드 생성
+        if: steps.gate.outputs.go == '1'
+        run: |
+          if [ -n "${{ github.event.inputs.index }}" ]; then node tools/daily-card.mjs --index "${{ github.event.inputs.index }}"; else node tools/daily-card.mjs; fi
+
+      - name: 커밋 (배포 워크플로가 이어서 실행됨)
+        if: steps.gate.outputs.go == '1'
+        run: |
+          git config user.name 'momja-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add src/cards/
+          git commit -m "오늘의 숫자 카드 $(TZ=Asia/Seoul date +%F)" || echo '변경 없음'
+          git pull --rebase
+          git push
+
+      - name: 공개 주소 정하기 (도메인 연결 전에는 github.io)
+        if: steps.gate.outputs.go == '1'
+        id: url
+        run: |
+          if [ -f src/CNAME ] || grep -q "DOMAIN_READY = true" tools/build.mjs; then base="https://momja.com"; else base="https://seonhaesoo.github.io/momja"; fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "공개 주소: $base/cards/latest.png"
+
+      - name: 배포 대기 (새 카드가 올라올 때까지 최대 12분)
+        if: steps.gate.outputs.go == '1'
+        run: |
+          for i in $(seq 1 48); do
+            sleep 15
+            if curl -sf "${{ steps.url.outputs.base }}/cards/latest.png" | cmp -s - src/cards/latest.png; then
+              echo '배포 확인 완료'; exit 0
+            fi
+            echo "대기 중... ($i/48)"
+          done
+          echo '배포 확인 실패 — 이전 카드로 게시될 수 있음'
+
+      - name: 쓰레드 게시
+        if: steps.gate.outputs.go == '1' && env.THREADS_ACCESS_TOKEN != ''
+        env:
+          IMAGE_URL: ${{ steps.url.outputs.base }}/cards/latest.png
+          IMAGE_VER: ${{ github.run_id }}
+        run: node tools/publish.mjs threads
+
+      - name: 인스타 스토리 게시
+        if: steps.gate.outputs.go == '1' && env.IG_ACCESS_TOKEN != ''
+        env:
+          IMAGE_URL: ${{ steps.url.outputs.base }}/cards/latest.png
+          IMAGE_VER: ${{ github.run_id }}
+        run: node tools/publish.mjs ig

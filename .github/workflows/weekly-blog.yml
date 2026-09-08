@@ -1,0 +1,28 @@
+name: weekly-blog-draft
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'   # 매주 월요일 09:00 KST — 네이버 블로그 초안 한 편
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 초안 생성
+        run: node tools/blog-draft.mjs
+      - name: 커밋
+        run: |
+          git config user.name 'momja-bot'
+          git config user.email 'bot@users.noreply.github.com'
+          git add drafts/
+          git commit -m "블로그 초안 $(TZ=Asia/Seoul date +%F)" || echo '변경 없음'
+          git pull --rebase
+          git push
