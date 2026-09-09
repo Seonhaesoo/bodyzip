@@ -42,14 +42,14 @@ ${crumb([['/guide/', '서재'], [null, g.title.split(' — ')[0]]])}
 <div class="doc">${g.body}</div>
 ${ad()}
 ${section('다른 글', null, list(others.map((o) => ({ href: `/guide/${o.slug}/`, title: o.title.split(' — ')[0], sub: o.desc.length > 60 ? o.desc.slice(0, 60) + '…' : o.desc }))))}
-<p class="note">이 글은 공개된 의학 기준과 공식을 풀어 쓴 참고 정보이며 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`;
+<p class="note">이 글은 공개된 학회 기준과 공식을 풀어 쓴 일반 정보이며, 개인의 상태에 따라 맞지 않을 수 있습니다. 의학적 진단·치료·처방을 대신하지 않으므로 증상이 있거나 결과가 걱정되면 의료기관에서 상담하세요. 반려동물에 관한 내용은 수의사의 판단이 우선합니다.</p>`;
     write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
   }
-  write('/guide/', shell({ url: '/guide/', title: '서재 — 몸 계산의 기준을 풀어 쓴 글 (BMI·대사량·체지방·임신·예방접종·수면·음주)', desc: 'BMI 한국 기준이 다른 이유, 기초대사량과 다이어트, 줄자로 재는 체지방률, 임신 주수 세는 법, 아기 예방접종 일정, 물 섭취량, 수면 주기, 아이 키 예측, 혈중알코올농도 계산법.', nav: 'guide', body: `
+  write('/guide/', shell({ url: '/guide/', title: '서재 — 검진 수치·다이어트·임신·육아·반려동물을 풀어 쓴 글', desc: '건강검진 결과지 읽는 법, 혈압·혈당·콜레스테롤·간수치·요산 해석, BMI 한국 기준, 기초대사량과 다이어트 정체기, 임신 주수와 금기 음식, 아기 수면과 이유식, 강아지·고양이 체형과 노령 관리까지 26편.', nav: 'guide', body: `
 ${crumb([['/', '홈'], [null, '서재']])}
 <h1 class="title">서재</h1>
-<p class="meta">계산기 뒤에 있는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편</p>
-${lead('"왜 한국은 BMI 23부터 과체중인가", "기초대사량보다 적게 먹으면 왜 안 빠지나" 같은, 숫자만 봐서는 풀리지 않는 질문을 하나씩 정리했습니다. 각 글 끝에 관련 계산기를 연결해 두었습니다.')}
+<p class="meta">계산기 뒤에 있는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편 · 검진 · 다이어트 · 임신 · 육아 · 반려동물</p>
+${lead('"검진 결과지의 이 숫자는 무슨 뜻인가", "왜 한국은 BMI 23부터 과체중인가", "기초대사량보다 적게 먹으면 왜 안 빠지나" 같은, 숫자만 봐서는 풀리지 않는 질문을 하나씩 정리했습니다. 학회와 공공기관이 공개한 기준을 바탕으로 쓰고, 각 글 끝에 관련 계산기를 연결해 두었습니다.')}
 ${section('글', null, list(GUIDES.map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 70 ? g.desc.slice(0, 70) + '…' : g.desc }))))}
 ${ad()}` }));
 

@@ -80,7 +80,7 @@ ok(BM.length >= 20 && BM.every((m, i) => i === 0 || m.m > BM[i - 1].m) && BM[0].
 ok(BM.every((m, i) => i === 0 || (parseFloat(m.h) > parseFloat(BM[i - 1].h) && parseFloat(m.w) > parseFloat(BM[i - 1].w))), '개월별 평균 키·몸무게 단조 증가');
 ok(new Set(GUIDES.map((g) => g.slug)).size === GUIDES.length && GUIDES.every((g) => g.body.length > 600 && g.desc.length > 30), '서재 슬러그 고유·본문 길이');
 ok(new Set(FOODS.map((f) => f.slug)).size === FOODS.length && FOODS.length >= 250, '음식 슬러그 고유 · 250개 이상', FOODS.length);
-ok(GUIDES.every((g) => !/href="\/(?!bmi|bmr|bodyfat|food|exercise|water|due-date|ovulation|baby|pregnancy|guide|steps|sleep|child-height|alcohol|diet|kcal-need|method)/.test(g.body)), '서재 내부 링크 경로');
+ok(GUIDES.every((g) => !/href="\/(?!bmi|bmr|bodyfat|food|exercise|water|due-date|ovulation|baby|pregnancy|guide|steps|sleep|child-height|alcohol|diet|kcal-need|method|pet|checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric|today|weight|caffeine|quit-smoking|embed)/.test(g.body)), '서재 내부 링크 경로');
 
 /* 캘린더 내보내기 */
 { const b = D.utc(2025, 6, 15), ics = I.babyIcs(b, { now: D.utc(2026, 9, 8) }), ev = I.babyEvents(b);
