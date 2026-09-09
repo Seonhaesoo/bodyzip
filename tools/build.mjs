@@ -24,7 +24,7 @@ const SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'dist');
 const SITE = 'https://bodyzip.com';
 const DOMAIN_READY = true;                          /* 도메인 연결 뒤 true → CNAME 생성 */
-const GA_ID = '';                                    /* GA4 측정 ID — 속성 만들면 채움 */
+const GA_ID = 'G-QFFQZVRKQJ';                   /* GA4 측정 ID */
 const ADSENSE = 'ca-pub-9924140539322407';
 /* 검색엔진 소유권 확인 태그 — 사용자가 서치콘솔·서치어드바이저에서 받은 값 */
 const VERIFY = [
