@@ -53,7 +53,7 @@ function write(url, html) {
 
 function shell(o) {
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');</script>\n` : '';
-  const ADS = ADSENSE ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
+  const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
   const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
   const on = (k) => o.nav === k ? ' class="on"' : '';
   return `<!doctype html>
@@ -80,8 +80,8 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 </head>
-<body>
-<div class="app">
+<body${o.bare ? ' class="bare"' : ''}>
+${o.bare ? o.body : `<div class="app">
 <header class="hdr">
   <a class="brand" href="/">${LOGO}<span class="brand-name">바디집</span></a>
   <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/pet/"${on('pet')}>반려</a><a href="/guide/"${on('guide')}>서재</a></nav>
@@ -89,10 +89,10 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 </header>
 ${o.body}
 <footer class="foot">
-  <div class="frow"><span>© 바디집 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
+  <div class="frow"><span>© 바디집 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/embed/">위젯</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
-</div>
+</div>`}
 <script src="/js/app.js" defer></script>
 ${(o.scripts || []).map((s) => `<script src="${s}" defer></script>`).join('\n')}
 </body>
@@ -581,6 +581,43 @@ ${section('기준', null, `<div class="callout"><b>대한비만학회 비만 진
   write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
 }
 
+/* ---------- 임베드 위젯 ---------- */
+function embedPages() {
+  const brandRow = (title) => `<div class="em-head"><a class="em-brand" href="${SITE}/?utm_source=embed" target="_top" rel="noopener">${LOGO}<b>바디집</b></a><span>${title}</span></div>`;
+  const bmi = `<form class="em" data-embed="bmi">
+${brandRow('BMI · 정상 체중')}
+<div class="em-row"><label><span>키 (cm)</span><input type="text" inputmode="numeric" data-k="h" value="170"></label><label><span>몸무게 (kg)</span><input type="text" inputmode="numeric" data-k="w" value="65"></label></div>
+<div class="tiles"><div class="tile"><small>BMI</small><span class="num" data-out="bmi"></span></div><div class="tile"><small>판정</small><span class="num" data-out="cat"></span></div><div class="tile"><small>정상 체중</small><span class="num" data-out="range"></span></div></div>
+<div class="em-foot"><span>대한비만학회 2022 기준 · <b class="num" data-out="to"></b></span><a data-out="link" href="${SITE}/bmi/" target="_top" rel="noopener">자세히 보기 →</a></div>
+</form>`;
+  const due = `<form class="em" data-embed="due">
+${brandRow('출산예정일')}
+<div class="em-row"><label><span>마지막 생리 시작일</span><input type="date" data-k="lmp" value="${D.iso(D.addDays(TODAY, -140))}"></label></div>
+<div class="tiles"><div class="tile"><small>출산예정일</small><span class="num" data-out="due"></span></div><div class="tile"><small>오늘 주수</small><span class="num" data-out="week"></span></div><div class="tile"><small>남은 날</small><span class="num" data-out="left"></span></div></div>
+<div class="em-foot"><span>네겔레 법칙 · 마지막 생리일 + 280일</span><a data-out="link" href="${SITE}/due-date/" target="_top" rel="noopener">검사 일정 보기 →</a></div>
+</form>`;
+  write('/embed/bmi/', shell({ url: '/embed/bmi/', title: 'BMI 계산기 위젯 — 바디집', desc: '블로그에 붙이는 BMI·정상 체중 계산기 위젯.', body: bmi, bare: true, noindex: true, scripts: ['/js/engine.js', '/js/embed.js'] }));
+  write('/embed/due/', shell({ url: '/embed/due/', title: '출산예정일 계산기 위젯 — 바디집', desc: '블로그에 붙이는 출산예정일·임신 주수 계산기 위젯.', body: due, bare: true, noindex: true, scripts: ['/js/engine.js', '/js/embed.js'] }));
+  const snip = (kind, h, label) => `&lt;iframe src="${SITE}/embed/${kind}/" width="100%" height="${h}" style="border:0;max-width:640px" loading="lazy" title="바디집 ${label} 계산기"&gt;&lt;/iframe&gt;`;
+  const body = `
+${crumb([['/', '홈'], [null, '위젯']])}
+<h1 class="title">블로그에 붙이는 계산기 위젯</h1>
+<p class="meta">코드 한 줄을 글에 붙여 넣으면 방문자가 그 자리에서 BMI와 출산예정일을 계산합니다 · 무료 · 회원가입 없음</p>
+${section('BMI · 정상 체중 위젯', '키와 몸무게를 넣으면 BMI 판정과 정상 체중 범위', `<iframe class="em-preview" src="/embed/bmi/" width="100%" height="270" style="border:0" title="BMI 계산기 미리보기"></iframe>
+<textarea class="copybox" id="em-code-bmi" rows="3" readonly onclick="this.select()">${snip('bmi', 270, 'BMI')}</textarea><div class="btn-row"><button class="btn btn-share" type="button" data-copy="#em-code-bmi">코드 복사</button></div>`)}
+${section('출산예정일 위젯', '마지막 생리 시작일을 넣으면 예정일과 오늘 주수', `<iframe class="em-preview" src="/embed/due/" width="100%" height="270" style="border:0" title="출산예정일 계산기 미리보기"></iframe>
+<textarea class="copybox" id="em-code-due" rows="3" readonly onclick="this.select()">${snip('due', 270, '출산예정일')}</textarea><div class="btn-row"><button class="btn btn-share" type="button" data-copy="#em-code-due">코드 복사</button></div>`)}
+${ad()}
+${section('붙이는 방법', null, `<div class="doc">
+<p><b>티스토리·워드프레스·자체 사이트</b> — 글 편집기를 HTML 모드로 바꾸고 원하는 자리에 위 코드를 붙여 넣으면 끝입니다. 폭은 글 영역에 맞춰 늘어나고, 높이가 잘리면 <code>height</code> 값을 키우세요.</p>
+<p><b>네이버 블로그·카페, 브런치</b> — iframe을 허용하지 않아 붙일 수 없습니다. 대신 결과 페이지 링크(예: <a href="/bmi/170/65/">bodyzip.com/bmi/170/65/</a>)를 넣어 주세요.</p>
+<p><b>조건</b> — 위젯 안의 '바디집' 표시와 링크는 지우지 말아 주세요. 위젯 안에는 광고가 나오지 않고, 입력값은 방문자의 브라우저 안에서만 처리됩니다. 기준이 바뀌면 위젯도 함께 갱신됩니다.</p>
+</div>`)}
+${section('이어서', null, list([{ href: '/bmi/', title: 'BMI 계산표', sub: '키·몸무게별 전체 표' }, { href: '/due-date/', title: '출산예정일 계산기', sub: '주수별 검사 일정·캘린더' }, { href: '/method/', title: '계산 기준', sub: '공식과 출처' }]))}
+<p class="note">위젯은 방문자의 브라우저 안에서만 계산하며 입력값을 서버로 보내지 않습니다. 결과는 참고용이며 진단을 대신하지 않습니다.</p>`;
+  write('/embed/', shell({ url: '/embed/', title: '블로그에 붙이는 BMI·출산예정일 계산기 위젯 — 바디집', desc: '코드 한 줄로 블로그·홈페이지에 BMI 계산기와 출산예정일 계산기를 붙이세요. 무료, 회원가입 없음, 기준 자동 갱신.', body }));
+}
+
 /* ---------- 문서 ---------- */
 function docs() {
   const doc = (url, title, desc, inner) => write(url, shell({ url, title, desc, body: `${crumb([['/', '홈'], [null, title.split(' — ')[0]]])}<h1 class="title">${title.split(' — ')[0]}</h1><div class="doc">${inner}</div>`, noindex: url === '/terms/' || url === '/privacy/' }));
@@ -634,6 +671,7 @@ babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
 buildExtra(CTX); buildPet(CTX); buildMore(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
+embedPages();
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
