@@ -292,3 +292,12 @@ body.bare { background: transparent; }
 .card-wrap { margin-top: 12px; }
 .card-wrap .btn-row { margin: 10px 0 4px; }
 .card-wrap .btn-row .btn { font-size: 13.5px; }
+
+/* 오늘 담기 · 체중 기록 */
+.today-bar { margin-top: 12px; height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.today-fill { display: block; height: 100%; width: 0; background: var(--green); border-radius: 999px; transition: width .2s; }
+.today-fill.over { background: #C96B3F; }
+.chart { margin-top: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px 8px; }
+.lnk { border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--muted); text-decoration: underline; cursor: pointer; }
+.lnk:hover { color: var(--green); }
+.live-foot .lnk { font-weight: 700; }

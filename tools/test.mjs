@@ -8,6 +8,7 @@ import * as X from '../engine/extra.mjs';
 import * as I from '../engine/ics.mjs';
 import * as G from '../engine/growth.mjs';
 import * as P from '../engine/pet.mjs';
+import * as CK from '../engine/checkup.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES } from '../data/guides.mjs';
@@ -112,6 +113,24 @@ ok(I.babyEvents(D.utc(2025, 6, 15)).filter((e) => e.kind === 'food').length === 
 /* 카페인 · 금연 */
 ok(X.caffeineLeft(300, 5) === 150 && X.caffeineLeft(300, 10) === 75 && X.caffeineLimit('teen', 50) === 125 && X.caffeineLimit('300') === 300, '카페인 반감기·기준');
 { const qs = X.quitStats(30, 20, 4500); ok(qs.cigs === 600 && qs.money === 135000 && qs.lifeText === '8일 8시간' && X.quitStage(30).label === '1~9개월' && X.quitStage(2.5).label === '48시간' && X.quitStage(7).label === '1주', '금연 30일 600개비·135,000원·8일 8시간', JSON.stringify(qs)); }
+
+/* 건강검진 수치 */
+ok(CK.bloodPressure(119, 79).key === 'normal' && CK.bloodPressure(125, 78).key === 'attention' && CK.bloodPressure(130, 80).key === 'pre' && CK.bloodPressure(140, 90).key === 'stage1' && CK.bloodPressure(160, 100).key === 'stage2' && CK.bloodPressure(180, 120).key === 'crisis', '혈압 구간 (대한고혈압학회 2022)');
+ok(CK.bloodPressure(135, 75).key === 'pre' && CK.bloodPressure(118, 85).key === 'pre', '수축기·이완기 중 높은 쪽으로 판정');
+ok(CK.bloodPressure(145, 85).isolated === true && CK.bloodPressure(145, 95).isolated === false, '수축기 단독 고혈압');
+ok(CK.glucose(99).key === 'normal' && CK.glucose(100).key === 'pre' && CK.glucose(125).key === 'pre' && CK.glucose(126).key === 'dm' && CK.glucose(65).key === 'low', '공복혈당 구간');
+ok(CK.hba1c(5.6).key === 'normal' && CK.hba1c(5.7).key === 'pre' && CK.hba1c(6.5).key === 'dm', '당화혈색소 구간');
+ok(CK.totalChol(199).key === 'ok' && CK.totalChol(200).key === 'border' && CK.totalChol(240).key === 'high', '총콜레스테롤');
+ok(CK.ldl(99).key === 'ok' && CK.ldl(130).key === 'border' && CK.ldl(160).key === 'high' && CK.ldl(190).key === 'veryhigh', 'LDL 구간');
+ok(CK.hdl(39).key === 'low' && CK.hdl(45).key === 'ok' && CK.hdl(60).key === 'good', 'HDL 구간');
+ok(CK.triglyceride(149).key === 'ok' && CK.triglyceride(150).key === 'border' && CK.triglyceride(200).key === 'high' && CK.triglyceride(500).key === 'veryhigh', '중성지방 구간');
+ok(CK.ldlEstimate(200, 50, 100) === 130 && CK.ldlEstimate(200, 50, 400) === null, 'Friedewald LDL 추정');
+{ const l = CK.liver(60, 30); ok(l.key === 'mild' && l.ratio === 2 && l.alcoholHint === true, 'AST/ALT 2배 → 음주 의심', JSON.stringify(l)); }
+ok(CK.liver(30, 30).key === 'ok' && CK.liver(150, 120).key === 'moderate' && CK.liver(300, 250).key === 'severe', '간수치 구간');
+ok(CK.uric(7.0, 'm').key === 'ok' && CK.uric(7.5, 'm').key === 'high' && CK.uric(6.5, 'f').key === 'high' && CK.uric(9.5, 'm').key === 'veryhigh', '요산 남녀 기준');
+ok(CK.ggt(50, 'm').key === 'ok' && CK.ggt(50, 'f').key === 'mild', '감마지티피 남녀 기준');
+{ const s1 = CK.summary({ sys: 118, dia: 76, glucose: 92, ldl: 95 }); ok(s1.worst === 0 && s1.rows.length === 3 && s1.text.includes('정상'), '종합 — 모두 정상', JSON.stringify(s1.text));
+  const s2 = CK.summary({ sys: 165, dia: 105, glucose: 130 }); ok(s2.worst === 3 && s2.text.includes('진료'), '종합 — 진료 필요'); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

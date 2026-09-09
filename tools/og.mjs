@@ -27,6 +27,7 @@ export const OG = [
   { key: 'percentile', title: '우리 아기 몸무게\n또래 어디쯤', sub: '몸무게·키·머리둘레 백분위 · WHO·질병관리청 성장도표', kicker: '성장 백분위' },
   { key: 'caffeine', title: '오늘 카페인\n얼마나 마셨을까', sub: '커피·에너지드링크 잔 수 → 총량 · 잘 때 남는 양', kicker: '카페인' },
   { key: 'quit', title: '담배 끊은 지\n며칠', sub: '안 피운 담배 · 모은 돈 · 몸의 변화', kicker: '금연' },
+  { key: 'checkup', title: '검진 결과지의 숫자,\n무슨 뜻일까', sub: '혈압·혈당·콜레스테롤·간수치·요산 · 학회 기준으로 판정', kicker: '건강검진 해석' },
   { key: 'water', title: '하루 물,\n내 몸무게로는 몇 잔', sub: '몸무게 × 33ml · 단백질 권장량', kicker: '물 · 단백질' },
 ];
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>');

@@ -16,6 +16,7 @@ import { makeBundle } from './bundle.mjs';
 import { buildExtra, STEPS, WAKES, FATHERS, MOTHERS, DIET_KG, DRINK_PAGES, DRINK_COUNTS, BABY_MONTHS } from './pages-extra.mjs';
 import { buildPet, DOG_YEARS, CAT_YEARS, DOG_KG, CAT_KG } from './pages-pet.mjs';
 import { buildMore, PCT_MONTHS, CAFFEINE_PAGES, CAFFEINE_COUNTS, QUIT_DAYS } from './pages-more.mjs';
+import { buildCheckup, SYS, DIA, GLU, TC, LDL, HDL, TG, ALT, URIC } from './pages-checkup.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -84,7 +85,7 @@ ${o.noindex ? '<meta name="robots" content="noindex">\n' : ''}<link rel="icon" t
 ${o.bare ? o.body : `<div class="app">
 <header class="hdr">
   <a class="brand" href="/">${LOGO}<span class="brand-name">바디집</span></a>
-  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/pet/"${on('pet')}>반려</a><a href="/guide/"${on('guide')}>서재</a></nav>
+  <nav class="nav"><a href="/bmi/"${on('bmi')}>BMI</a><a href="/bmr/"${on('bmr')}>대사량</a><a href="/food/"${on('food')}>칼로리</a><a href="/exercise/"${on('exercise')}>운동</a><a href="/due-date/"${on('preg')}>임신</a><a href="/baby/"${on('baby')}>아기</a><a href="/today/"${on('today')}>오늘</a><a href="/checkup/"${on('checkup')}>검진</a><a href="/pet/"${on('pet')}>반려</a><a href="/guide/"${on('guide')}>서재</a></nav>
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
@@ -126,7 +127,7 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.BODYZIP_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS })}</script>`;
+const grid = () => `<script>window.BODYZIP_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), kcal: Object.fromEntries(FOODS.map((f) => [f.slug, f.kcal])), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS, sys: SYS, dia: DIA, glu: GLU, tc: TC, ldl: LDL, hdl: HDL, tg: TG, alt: ALT, uric: URIC })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
@@ -282,12 +283,13 @@ ${crumb([['/food/', '음식 칼로리'], [null, f.name]])}
 <p class="meta">${f.serving} 기준 · ${f.cat} · 식약처 식품영양성분 DB 대략값</p>
 ${lead(tiny ? `${f.name} ${f.serving} 기준 약 <b>${num(f.kcal)}kcal</b>로 칼로리가 거의 없어 밥 공기·운동 환산이 의미 없습니다. 설탕·시럽·크림이 들어가면 얘기가 달라지니 같은 종류의 다른 음식과 비교해 보세요.` : `${f.name} ${f.serving} 기준 약 <b>${num(f.kcal)}kcal</b>입니다. 밥 한 공기(300kcal)의 ${K.bowls(f.kcal)}배이고, 성인 하루 필요 칼로리(약 2,000kcal)의 ${pct(f.kcal / 2000, 0)}입니다. 60kg인 사람이 걷기로 태우려면 ${K.minutesFor(f.kcal, EX.walking.met, 60)}분, 달리기로는 ${K.minutesFor(f.kcal, EX['running-8'].met, 60)}분이 걸립니다.`)}
 ${hero({ label: `${f.name} (${f.serving})`, value: num(f.kcal), unit: 'kcal', sub: tiny ? '칼로리가 거의 없는 음식' : `밥 ${K.bowls(f.kcal)}공기 · 하루 2,000kcal의 ${pct(f.kcal / 2000, 0)}${f.per100 ? ` · 100g당 ${num(f.per100)}kcal` : ''}`, bars: [Math.min(1, f.kcal / 2000)], legendL: '0', legendR: '하루 2,000kcal' })}
+<div class="btn-row"><button type="button" class="btn btn-share" data-add="${f.slug}" data-name="${f.name}" data-kcal="${f.kcal}">오늘 먹은 것에 담기</button><a class="btn" href="/today/">오늘 담은 것 보기 →</a></div>
 ${tiny ? '' : section('태우려면', '몸무게별 · 분', table(['운동', '50kg', '60kg', '70kg', '80kg'], burnRows))}
 ${ad()}
 ${same.length ? section(`다른 ${f.cat}`, 'kcal', chips(same.map((x) => ({ label: x.name.length > 9 ? x.name.slice(0, 9) + '…' : x.name, value: num(x.kcal), href: foodUrl(x.slug) })))) : ''}
 ${section('이어서 계산하기', null, list([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }]))}
 <p class="note">${FOODS_ASOF} 기준 대략값입니다. 식당·브랜드·조리법·양에 따라 ±20% 이상 차이 날 수 있으니 정확한 값은 제품 영양성분표를 보세요. <a href="/method/">계산 기준 보기</a></p>`;
-  write(url, shell({ url, title, desc, body, nav: 'food' }));
+  write(url, shell({ url, title, desc, body, nav: 'food', scripts: ['/js/today.js'] }));
 }
 
 function foodIndex() {
@@ -537,7 +539,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -560,6 +562,14 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
 <a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 — 카톡·인스타용 이미지</span></a>
 </div>`)}
+${section('건강검진 결과', null, `<div class="dict">
+<a href="/checkup/"><b>검진 결과 해석</b><span>혈압·혈당·콜레스테롤·간수치를 넣으면 <span class="num">한 번에</span> 판정</span></a>
+<a href="/bp/120-80/"><b>혈압</b><span>정상 <span class="num">120/80</span> 미만 · 고혈압 140/90 이상</span></a>
+<a href="/glucose/100/"><b>공복혈당</b><span>정상 <span class="num">100</span> 미만 · 당뇨 126 이상</span></a>
+<a href="/ldl/130/"><b>콜레스테롤</b><span>LDL 적정 <span class="num">100</span> 미만 · 중성지방 150 미만</span></a>
+<a href="/liver/40/"><b>간수치</b><span>AST·ALT <span class="num">40</span> 이하 · 지방간이 가장 흔한 원인</span></a>
+<a href="/uric/7/"><b>요산</b><span>남 <span class="num">7.0</span> · 여 6.0 초과면 고요산혈증</span></a>
+</div>`)}
 ${section('반려동물', null, `<div class="dict">
 <a href="/pet/dog-age/"><b>강아지 나이</b><span>5살 → 사람 <span class="num">${P.dogAge(5, 'small')}</span>세 (소형견) · 대형견 ${P.dogAge(5, 'large')}세</span></a>
 <a href="/pet/dog-food/"><b>사료량</b><span>5kg 중성화 → 하루 <span class="num">${P.petFood('dog', 5, 'neutered').grams}</span>g · 고양이 4kg ${P.petFood('cat', 4, 'neutered').grams}g</span></a>
@@ -572,6 +582,8 @@ ${section('생활', null, `<div class="dict">
 <a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 마지막 잔 뒤 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}시간이면 0.03% 아래</span></a>
 <a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal</span></a>
 <a href="/caffeine/"><b>카페인</b><span>아메리카노 2잔 <span class="num">300</span>mg · 성인 400 · 임신 300mg</span></a>
+<a href="/today/"><b>오늘 먹은 것 담기</b><span>음식을 담으면 하루 칼로리와 <span class="num">남은 양</span>이 바로</span></a>
+<a href="/weight/"><b>체중 기록</b><span>매일 재서 그래프로 · 목표까지 <span class="num">며칠</span> 남았는지</span></a>
 <a href="/quit-smoking/"><b>금연 계산기</b><span>30일이면 <span class="num">${num(X.quitStats(30).money)}</span>원 · 600개비 · 몸의 변화</span></a>
 <a href="/guide/"><b>서재</b><span>${GUIDES.length}편 · BMI 한국 기준 · 대사량과 다이어트 · 수면 주기 · 음주</span></a>
 </div>`)}
@@ -579,6 +591,68 @@ ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => {
 ${ad()}
 ${section('기준', null, `<div class="callout"><b>대한비만학회 비만 진료지침 2022</b>(BMI 구간), Mifflin-St Jeor 식(기초대사량), 미 해군 공식(체지방률), Compendium of Physical Activities(운동 MET), 식약처 식품영양성분 DB(칼로리), 질병관리청 표준 예방접종 일정. 모두 참고용이며 진단·치료를 대신하지 않습니다.</div>`)}`;
   write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
+}
+
+/* ---------- 오늘 담기 · 체중 기록 ---------- */
+function toolPages() {
+  const todayBody = `
+${crumb([['/', '홈'], [null, '오늘 담기']])}
+<h1 class="title">오늘 먹은 것</h1>
+<p class="meta">음식을 담으면 하루 칼로리가 쌓입니다 · 이 기기에만 저장 · 자정에 새로 시작</p>
+<form class="quick live" data-live="today" style="margin-top:14px">
+<div class="live-head"><b>내 기준</b><span>한 번 넣으면 다음에도 기억합니다</span></div>
+<div class="ye-grid">
+<label class="ye-f"><span>성별</span><select data-k="sex"><option value="m">남</option><option value="f">여</option></select></label>
+<label class="ye-f"><span>나이</span><input data-k="age" type="text" inputmode="numeric" value="30"></label>
+<label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="numeric" value="170"></label>
+<label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="numeric" value="65"></label>
+<label class="ye-f" style="grid-column: span 2"><span>활동량</span><select data-k="act">${B.ACTIVITY.map((a) => `<option value="${a.key}"${a.key === 'light' ? ' selected' : ''}>${a.label}</option>`).join('')}</select></label>
+</div>
+<div class="tiles"><div class="tile"><small>오늘 먹은 칼로리</small><span class="num" data-out="total"></span></div><div class="tile"><small>하루 필요 (TDEE)</small><span class="num" data-out="tdee"></span></div><div class="tile"><small>남은 양</small><span class="num" data-out="left"></span></div></div>
+<div class="today-bar"><i class="today-fill" data-out="bar"></i></div>
+<div class="live-foot"><span>밥 <b class="num" data-out="bowls"></b> · 다 태우려면 걷기 <b class="num" data-out="walk"></b></span><button type="button" class="lnk" data-act="clear">전부 비우기</button></div>
+<div class="ye-grid" style="margin-top:12px"><label class="ye-f" style="grid-column: 1 / -1"><span>음식 찾아 담기</span><input data-k="q" type="text" placeholder="치킨, 라면, 아메리카노…" autocomplete="off"></label></div>
+<div class="chips" style="flex-wrap:wrap;overflow:visible;margin-top:6px" data-out="sug"></div>
+<div class="tbl" style="margin-top:12px"><table><thead><tr><th>담은 것</th><th>칼로리</th><th></th></tr></thead><tbody data-out="rows"></tbody></table></div>
+<p class="cal-how">담은 목록과 내 기준은 이 브라우저 안에만 저장되고 서버로 보내지 않습니다. 다른 기기에서는 보이지 않습니다.</p>
+</form>
+${lead('음식 이름을 쳐서 담으면 오늘 먹은 칼로리가 쌓이고, 내 하루 필요 칼로리와 견줘 얼마나 남았는지 보여 줍니다. 음식 페이지마다 있는 "오늘 먹은 것에 담기" 버튼으로도 담을 수 있습니다.')}
+${section('많이 담는 음식', null, list(['rice', 'ramen', 'fried-chicken', 'americano', 'samgyeopsal', 'kimbap'].filter((x) => FOODS.some((f) => f.slug === x)).map((x) => { const f = FOODS.find((y) => y.slug === x); return { href: `/food/${f.slug}/`, title: f.name, sub: f.serving, value: `${num(f.kcal)}kcal` }; })))}
+${ad()}
+${section('이어서', null, list([{ href: '/weight/', title: '체중 기록', sub: '매일 재서 그래프로' }, { href: '/bmr/', title: '기초대사량 계산', sub: '내 하루 필요 칼로리' }, { href: '/food/', title: '음식 칼로리 사전', sub: `${FOODS.length}가지` }]))}
+<p class="note">칼로리는 1인분 대략값이며 조리법·양에 따라 다릅니다. 기록은 참고용입니다.</p>
+${grid()}`;
+  write('/today/', shell({ url: '/today/', og: 'food', title: '오늘 먹은 칼로리 담기 — 하루 필요 칼로리와 비교 (기기에만 저장)', desc: '음식을 담으면 오늘 먹은 칼로리가 쌓이고 내 하루 필요 칼로리(TDEE)와 견줘 남은 양을 보여 줍니다. 회원 가입 없이 이 기기에만 저장됩니다.', body: todayBody, nav: 'today', scripts: ['/js/engine.js', '/js/today.js'] }));
+
+  const weightBody = `
+${crumb([['/', '홈'], [null, '체중 기록']])}
+<h1 class="title">체중 기록</h1>
+<p class="meta">매일 같은 시간에 재서 넣으면 그래프와 추세, 목표 도달일이 나옵니다 · 이 기기에만 저장</p>
+<form class="quick live" data-live="weight" style="margin-top:14px">
+<div class="live-head"><b>오늘 몸무게</b><span>같은 날짜를 다시 넣으면 덮어씁니다</span></div>
+<div class="ye-grid">
+<label class="ye-f"><span>날짜</span><input data-k="date" type="date"></label>
+<label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="decimal" placeholder="65.4"></label>
+<label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="numeric" value="170"></label>
+<label class="ye-f"><span>목표 (kg)</span><input data-k="goal" type="text" inputmode="decimal" placeholder="60"></label>
+</div>
+<div class="btn-row"><button type="button" class="btn" data-act="add">기록 추가</button><button type="button" class="btn btn-share" data-act="clear">전부 지우기</button></div>
+<div class="tiles"><div class="tile"><small>지금</small><span class="num" data-out="now"></span></div><div class="tile"><small>BMI</small><span class="num" data-out="bmi"></span></div><div class="tile"><small>처음과 비교</small><span class="num" data-out="diff"></span></div></div>
+<div class="chart" data-out="chart"></div>
+<div class="live-foot"><span>목표 도달 예상 <b class="num" data-out="eta"></b></span><a href="/diet/">감량 기간 계산 →</a></div>
+<div class="tbl" style="margin-top:12px"><table><thead><tr><th>날짜</th><th>몸무게</th><th>변화</th><th></th></tr></thead><tbody data-out="rows"></tbody></table></div>
+<p class="cal-how">기록은 이 브라우저 안에만 저장되고 서버로 보내지 않습니다. 브라우저 데이터를 지우면 함께 사라집니다.</p>
+</form>
+${lead('몸무게는 하루에도 1kg 넘게 오르내립니다. 아침 화장실을 다녀온 뒤 같은 옷차림으로 재고, 하루하루가 아니라 주 단위 흐름을 보세요. 기록이 쌓이면 목표까지 얼마나 걸릴지 추세로 계산해 드립니다.')}
+${section('재는 법', null, `<div class="doc">
+<p><b>아침 공복이 가장 안정적입니다.</b> 자고 일어나 소변을 본 뒤, 식사 전에 재세요. 저녁에 재면 낮에 먹고 마신 무게가 1~2kg 더해집니다.</p>
+<p><b>여성은 생리 주기에 따라 1~2kg 늘었다 줄어듭니다.</b> 생리 전 부종은 체지방이 아니라 수분입니다.</p>
+<p><b>주 0.5~1kg이 안전한 속도입니다.</b> 그보다 빠르면 근육이 함께 빠집니다.</p>
+</div>`)}
+${ad()}
+${section('이어서', null, list([{ href: '/today/', title: '오늘 먹은 칼로리 담기', sub: '섭취를 세면 더 빨리 보입니다' }, { href: '/diet/', title: '다이어트 기간 계산', sub: '목표까지 몇 주' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '내 키의 정상 범위' }]))}
+<p class="note">체중 변화는 수분·식사·배변에 크게 좌우됩니다. 급격한 체중 변화가 이유 없이 이어지면 진료를 받으세요.</p>`;
+  write('/weight/', shell({ url: '/weight/', og: 'diet', title: '체중 기록 그래프 — 매일 재서 목표까지 며칠 남았는지 (기기에만 저장)', desc: '몸무게를 날짜별로 기록하면 그래프와 추세, 목표 도달 예상일이 나옵니다. 회원 가입 없이 이 기기에만 저장되고 서버로 전송하지 않습니다.', body: weightBody, nav: 'bmr', scripts: ['/js/engine.js', '/js/weight.js'] }));
 }
 
 /* ---------- 임베드 위젯 ---------- */
@@ -631,6 +705,7 @@ function docs() {
 <h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal. 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량.</p>
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
 <h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
+<h2>건강검진 수치</h2><p>혈압은 대한고혈압학회 「2022 고혈압 진료지침」(정상 120/80 미만, 주의 120~129, 고혈압 전단계 130/80, 1기 140/90, 2기 160/100), 혈당은 대한당뇨병학회 「2023 당뇨병 진료지침」(공복 100 미만 정상·100~125 공복혈당장애·126 이상 당뇨, 당화혈색소 5.7·6.5%), 지질은 한국지질동맥경화학회 「2022 이상지질혈증 진료지침」(총콜레스테롤 200·240, LDL 100·130·160·190, HDL 40·60, 중성지방 150·200·500), 간수치는 국가건강검진 일반 참고치(AST·ALT 40 IU/L 이하, 감마지티피 남 11~63·여 8~35), 요산은 남 3.4~7.0·여 2.4~6.0 mg/dL을 기준으로 판정합니다. LDL 추정은 Friedewald 식(총콜레스테롤 − HDL − 중성지방/5, 중성지방 400 미만에서만 유효)입니다. 검진 수치는 한 번의 결과로 진단하지 않으며 재검과 진료가 우선합니다.</p>
 <h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 바디집 서버에 저장되지 않습니다.</p>
 <h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. WHO 일 단위 표에서 개월 × 30.4375일 행을 뽑아 월 값으로 쓰며(공식 월 표와 최대 0.06cm·0.02kg 차이), 이웃한 달 사이는 선형 보간.</p>
 <h2>반려동물</h2><p>나이 환산은 AVMA 지침(중형견 기준 1살 15세, 2살 24세, 이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식(고양이는 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
@@ -668,14 +743,15 @@ dueIndex(); MONTHS.forEach(([m, d]) => duePage(m, d));
 ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
-const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX);
+const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
+toolPages();
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
-const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height)\//], ['guide', /.*/]];
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['guide', /.*/]];
 const smFiles = [];
 for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));

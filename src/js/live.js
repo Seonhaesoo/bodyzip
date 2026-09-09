@@ -229,4 +229,60 @@
       out(box, 'days', days + '일'); out(box, 'cigs', num(r.cigs) + '개비'); out(box, 'money', num(r.money) + '원'); out(box, 'life', r.lifeText); out(box, 'stage', st.label + ' — ' + st.text); out(box, 'year', num(y.money) + '원');
     });
   });
+
+  /* 건강검진 — 단일 수치 */
+  function simple(kind, fn, fmt) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-live="' + kind + '"]'), function (box) {
+      bind(box, function () {
+        var v = val(box, 'v'); if (!v) return;
+        var r = fn(v, sel(box, 'sex') || 'm');
+        out(box, 'label', r.label); out(box, 'note', r.note);
+        var link = box.querySelector('[data-out="link"]'); if (link) link.href = fmt(v);
+      });
+    });
+  }
+  var nearOf = function (arr, v) { if (!arr || !arr.length) return v; return arr.reduce(function (a, b) { return Math.abs(b - v) < Math.abs(a - v) ? b : a; }); };
+  var G2 = window.BODYZIP_GRID || {};
+  simple('glucose', M.glucose, function (v) { return '/glucose/' + nearOf(G2.glu, v) + '/'; });
+  simple('chol', M.totalChol, function (v) { return '/cholesterol/' + nearOf(G2.tc, v) + '/'; });
+  simple('ldl', M.ldl, function (v) { return '/ldl/' + nearOf(G2.ldl, v) + '/'; });
+  simple('hdl', M.hdl, function (v) { return '/hdl/' + nearOf(G2.hdl, v) + '/'; });
+  simple('tg', M.triglyceride, function (v) { return '/triglyceride/' + nearOf(G2.tg, v) + '/'; });
+  simple('uric', function (v, sex) { return M.uric(v, sex); }, function (v) { return '/uric/' + nearOf(G2.uric, v) + '/'; });
+
+  /* 혈압 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="bp"]'), function (box) {
+    bind(box, function () {
+      var s = val(box, 'sys'), d = val(box, 'dia'); if (!s || !d) return;
+      var r = M.bloodPressure(s, d);
+      out(box, 'label', r.label); out(box, 'pulse', r.pulse + 'mmHg'); out(box, 'note', r.note);
+      var link = box.querySelector('[data-out="link"]');
+      if (link) link.href = '/bp/' + nearOf(G2.sys, s) + '-' + nearOf(G2.dia, d) + '/';
+    });
+  });
+
+  /* 간수치 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="liver"]'), function (box) {
+    bind(box, function () {
+      var a = val(box, 'ast'), b = val(box, 'alt'); if (!a && !b) return;
+      var r = M.liver(a, b);
+      out(box, 'label', r.label); out(box, 'ratio', r.ratio == null ? '—' : r.ratio + (r.alcoholHint ? ' (음주 의심)' : ''));
+      out(box, 'note', r.note);
+      var link = box.querySelector('[data-out="link"]'); if (link) link.href = '/liver/' + nearOf(G2.alt, b || a) + '/';
+    });
+  });
+
+  /* 검진 종합 */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="checkup"]'), function (box) {
+    bind(box, function () {
+      var v = {}, keys = ['sys', 'dia', 'glucose', 'hba1c', 'total', 'hdl', 'ldl', 'tg', 'ast', 'alt', 'ggt', 'uric'];
+      keys.forEach(function (k) { var x = val(box, k); if (x) v[k] = x; });
+      var r = M.summary(v, sel(box, 'sex') || 'm');
+      out(box, 'summary', r.text);
+      var tb = box.querySelector('[data-out="rows"]');
+      if (tb) tb.innerHTML = r.rows.length ? r.rows.map(function (x) {
+        return '<tr><td>' + x.name + '</td><td>' + x.value + '<small>' + x.unit + '</small></td><td>' + x.label + '<small>' + x.note + '</small></td></tr>';
+      }).join('') : '<tr><td colspan="3">수치를 넣으면 여기에 판정이 나옵니다</td></tr>';
+    });
+  });
 })();

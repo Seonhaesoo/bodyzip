@@ -19,6 +19,18 @@
     // 날짜: 3월 5일 / 3/5 / 2025-01-31
     var ymd = t.match(/(20\d\d)[-./년\s]+(\d{1,2})[-./월\s]+(\d{1,2})/);
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
+    if (/오늘\s*먹은|칼로리\s*담|담기|식단\s*기록|하루\s*칼로리\s*계산/.test(t)) return { href: '/today/', label: '오늘 먹은 칼로리 담기' };
+    if (/체중\s*기록|몸무게\s*기록|체중\s*그래프|다이어트\s*기록/.test(t)) return { href: '/weight/', label: '체중 기록 그래프' };
+    // 건강검진 수치
+    if (/혈압/.test(t)) { var bpn = (t.match(/\d{2,3}/g) || []).map(Number).filter(function (x) { return x >= 40 && x <= 200; }); if (bpn.length >= 2) { var bs = nearest(G.sys || [bpn[0]], bpn[0]), bd = nearest(G.dia || [bpn[1]], bpn[1]); return { href: '/bp/' + bs + '-' + bd + '/', label: '혈압 ' + bs + '/' + bd + ' 판정' }; } return { href: '/bp/', label: '혈압 정상 수치' }; }
+    if (/공복\s*혈당|혈당|당뇨/.test(t) && !/당화/.test(t)) { var gn = nums.filter(function (x) { return x >= 50 && x <= 300; }); if (gn.length) return { href: '/glucose/' + nearest(G.glu || [gn[0]], gn[0]) + '/', label: '공복혈당 ' + gn[0] + ' 판정' }; return { href: '/glucose/', label: '공복혈당 정상 수치' }; }
+    if (/ldl|엘디엘|나쁜\s*콜레스테롤/.test(t)) { var ln = nums.filter(function (x) { return x >= 30 && x <= 300; }); if (ln.length) return { href: '/ldl/' + nearest(G.ldl || [ln[0]], ln[0]) + '/', label: 'LDL ' + ln[0] + ' 판정' }; return { href: '/ldl/', label: 'LDL 정상 수치' }; }
+    if (/hdl|에이치디엘|좋은\s*콜레스테롤/.test(t)) { var hn = nums.filter(function (x) { return x >= 10 && x <= 150; }); if (hn.length) return { href: '/hdl/' + nearest(G.hdl || [hn[0]], hn[0]) + '/', label: 'HDL ' + hn[0] + ' 판정' }; return { href: '/hdl/', label: 'HDL 정상 수치' }; }
+    if (/중성지방|트리글리/.test(t)) { var tn = nums.filter(function (x) { return x >= 20 && x <= 900; }); if (tn.length) return { href: '/triglyceride/' + nearest(G.tg || [tn[0]], tn[0]) + '/', label: '중성지방 ' + tn[0] + ' 판정' }; return { href: '/triglyceride/', label: '중성지방 정상 수치' }; }
+    if (/콜레스테롤/.test(t)) { var cn = nums.filter(function (x) { return x >= 80 && x <= 400; }); if (cn.length) return { href: '/cholesterol/' + nearest(G.tc || [cn[0]], cn[0]) + '/', label: '총콜레스테롤 ' + cn[0] + ' 판정' }; return { href: '/cholesterol/', label: '콜레스테롤 정상 수치' }; }
+    if (/간\s*수치|ast|alt|sgot|sgpt|지방간|감마지티피|간\s*효소/.test(t)) { var an = nums.filter(function (x) { return x >= 3 && x <= 400; }); if (an.length) return { href: '/liver/' + nearest(G.alt || [an[0]], an[0]) + '/', label: '간수치 ' + an[0] + ' 판정' }; return { href: '/liver/', label: '간수치 정상 범위' }; }
+    if (/요산|통풍/.test(t)) { var un = nums.filter(function (x) { return x >= 1 && x <= 20; }); if (un.length) return { href: '/uric/' + nearest(G.uric || [un[0]], un[0]) + '/', label: '요산 ' + un[0] + ' 판정' }; return { href: '/uric/', label: '요산 정상 수치' }; }
+    if (/건강검진|검진\s*결과|당화혈색소|검진표|결과지/.test(t)) return { href: '/checkup/', label: '건강검진 결과 해석' };
     if (/아기\s*카드|돌\s*카드|백일\s*카드|100일\s*카드|기념일\s*카드/.test(t)) return { href: '/baby/card/', label: '아기 100일·돌 카드' };
     if (/디데이|d-?day|카드/.test(t) && !/아기\s*카드/.test(t)) return { href: '/pregnancy/card/', label: '임신 디데이 카드 만들기' };
     if (/백분위|또래|성장\s*곡선|성장\s*도표/.test(t)) { var ps = /여아|여자|딸/.test(t) ? 'girl' : 'boy', pmm = t.match(/(\d{1,2})\s*개월/); if (pmm) { var pm2 = Math.max(0, Math.min(36, +pmm[1])); return { href: '/baby/percentile/' + ps + '/' + pm2 + '/', label: (ps === 'girl' ? '여아 ' : '남아 ') + pm2 + '개월 백분위표' }; } return { href: '/baby/percentile/', label: '아기 성장 백분위 계산' }; }
