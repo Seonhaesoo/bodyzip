@@ -616,7 +616,7 @@ ${crumb([['/', '홈'], [null, '오늘 담기']])}
 <div class="tbl" style="margin-top:12px"><table><thead><tr><th>담은 것</th><th>칼로리</th><th></th></tr></thead><tbody data-out="rows"></tbody></table></div>
 <p class="cal-how">담은 목록과 내 기준은 이 브라우저 안에만 저장되고 서버로 보내지 않습니다. 다른 기기에서는 보이지 않습니다.</p>
 </form>
-${lead('음식 이름을 쳐서 담으면 오늘 먹은 칼로리가 쌓이고, 내 하루 필요 칼로리와 견줘 얼마나 남았는지 보여 줍니다. 음식 페이지마다 있는 "오늘 먹은 것에 담기" 버튼으로도 담을 수 있습니다.')}
+${lead('음식 이름을 쳐서 담으면 오늘 먹은 칼로리가 쌓이고, 내 하루 필요 칼로리와 견주어 얼마나 남았는지 보여 줍니다. 음식 페이지마다 있는 "오늘 먹은 것에 담기" 버튼으로도 담을 수 있습니다.')}
 ${section('많이 담는 음식', null, list(['rice', 'ramen', 'fried-chicken', 'americano', 'samgyeopsal', 'kimbap'].filter((x) => FOODS.some((f) => f.slug === x)).map((x) => { const f = FOODS.find((y) => y.slug === x); return { href: `/food/${f.slug}/`, title: f.name, sub: f.serving, value: `${num(f.kcal)}kcal` }; })))}
 ${ad()}
 ${section('이어서', null, list([{ href: '/weight/', title: '체중 기록', sub: '매일 재서 그래프로' }, { href: '/bmr/', title: '기초대사량 계산', sub: '내 하루 필요 칼로리' }, { href: '/food/', title: '음식 칼로리 사전', sub: `${FOODS.length}가지` }]))}
