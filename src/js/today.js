@@ -12,7 +12,8 @@
   Array.prototype.forEach.call(document.querySelectorAll('[data-add]'), function (btn) {
     btn.addEventListener('click', function () {
       var d = load();
-      d.items.push({ n: btn.getAttribute('data-name'), k: +btn.getAttribute('data-kcal'), s: btn.getAttribute('data-add') });
+      var kc = +btn.getAttribute('data-kcal'); if (!isFinite(kc)) return;
+      d.items.push({ n: btn.getAttribute('data-name'), k: kc, s: btn.getAttribute('data-add') });
       save(d);
       var t = btn.textContent; btn.textContent = '담았어요 (' + d.items.length + '개)';
       setTimeout(function () { btn.textContent = t; }, 1600);
@@ -83,6 +84,6 @@
     el.addEventListener('change', function () { saveProfile(); render(); });
   });
   var clear = box.querySelector('[data-act="clear"]');
-  if (clear) clear.addEventListener('click', function () { save({ date: todayKey(), items: [] }); render(); });
+  if (clear) clear.addEventListener('click', function () { if (confirm('오늘 담은 것을 모두 비울까요?')) { save({ date: todayKey(), items: [] }); render(); } });
   profile(); render();
 })();

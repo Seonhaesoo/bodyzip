@@ -7,8 +7,8 @@ export const BP_LEVELS = [
   { key: 'attention', label: '주의혈압', note: '아직 고혈압은 아니지만 위로 올라가는 길목입니다. 싱겁게 먹고 체중을 관리하세요.' },
   { key: 'pre', label: '고혈압 전단계', note: '생활습관 교정이 필요한 구간입니다. 6개월~1년마다 재고 짜게 먹지 않도록 하세요.' },
   { key: 'stage1', label: '고혈압 1기', note: '여러 번 재도 이 수치라면 진료가 필요합니다. 생활습관 교정과 함께 약물치료를 고려합니다.' },
-  { key: 'stage2', label: '고혈압 2기', note: '병원 진료가 필요합니다. 대개 약물치료를 바로 시작합니다.' },
-  { key: 'crisis', label: '고혈압 위기', note: '180/120 이상입니다. 두통·시야 흐림·가슴 통증이 있으면 바로 응급실로 가세요.' },
+  { key: 'stage2', label: '고혈압 2기', note: '다른 날 다시 재서 확인합니다. 이 구간에서는 약물치료를 시작하는 경우가 많지만, 시작 여부는 의사가 심혈관 위험도를 보고 정합니다.' },
+  { key: 'crisis', label: '고혈압 위기', note: '180/120 이상입니다. 5분 쉰 뒤 다시 재 보고, 그래도 이 수치면 증상이 없어도 오늘 안에 진료를 받으세요. 가슴 통증·호흡곤란·심한 두통·시야 흐림·말이 어눌해짐·한쪽 마비가 있으면 재지 말고 바로 119나 응급실로 가세요.' },
 ];
 const bpLevel = (k) => BP_LEVELS.find((x) => x.key === k);
 export function bloodPressure(sys, dia) {
@@ -35,7 +35,7 @@ export function hba1c(v) {
   if (v < 6.5) return { key: 'pre', label: '당뇨 전단계', note: '5.7~6.4%입니다. 식사와 운동으로 되돌릴 수 있는 구간입니다.' };
   return { key: 'dm', label: '당뇨병 범위', note: '6.5% 이상입니다. 진료가 필요합니다.' };
 }
-export const glucoseAfter = (v) => v < 140 ? { key: 'normal', label: '정상' } : v < 200 ? { key: 'pre', label: '내당능장애' } : { key: 'dm', label: '당뇨병 범위' };
+export const glucoseAfter = (v) => v < 140 ? { key: 'normal', label: '정상', note: '식후 2시간 140mg/dL 미만입니다.' } : v < 200 ? { key: 'pre', label: '내당능장애', note: '140~199mg/dL입니다. 당뇨 전단계에 해당합니다.' } : { key: 'dm', label: '당뇨병 범위', note: '200mg/dL 이상입니다. 진료가 필요합니다.' };
 
 /* ---------- 콜레스테롤 ---------- */
 export function totalChol(v) {
@@ -70,7 +70,8 @@ export function liver(ast, alt) {
   const hi = Math.max(ast, alt);
   const ratio = alt > 0 ? Math.round(ast / alt * 100) / 100 : null;
   let key, label, note;
-  if (hi <= 40) { key = 'ok'; label = '정상'; note = '두 수치 모두 40 IU/L 이하입니다.'; }
+  const both = ast > 0 && alt > 0;
+  if (hi <= 40) { key = 'ok'; label = '정상'; note = both ? '두 수치 모두 40 IU/L 이하입니다.' : '40 IU/L 이하로 정상 범위입니다.'; }
   else if (hi <= 80) { key = 'mild'; label = '경도 상승'; note = '정상 상한의 2배 이내입니다. 술·과체중·약물이 흔한 원인이며 1~3개월 뒤 재검을 권합니다.'; }
   else if (hi <= 200) { key = 'moderate'; label = '중등도 상승'; note = '원인을 찾는 검사가 필요합니다. 지방간·간염·약물을 확인합니다.'; }
   else { key = 'severe'; label = '고도 상승'; note = '급성 간염 등을 의심합니다. 바로 진료를 받으세요.'; }

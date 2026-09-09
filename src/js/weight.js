@@ -17,6 +17,8 @@
     var W = 640, H = 220, P = 34;
     var ws = list.map(function (r) { return r.w; });
     var lo = Math.min.apply(null, ws), hi = Math.max.apply(null, ws);
+    var goalV = val('goal');
+    if (goalV) { lo = Math.min(lo, goalV); hi = Math.max(hi, goalV); }
     if (hi - lo < 2) { lo -= 1; hi += 1; }
     var t0 = new Date(list[0].d), t1 = new Date(list[list.length - 1].d);
     var span = Math.max(1, (t1 - t0) / 86400000);
@@ -27,8 +29,8 @@
     });
     var line = pt.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
     var area = line + ' L' + pt[pt.length - 1][0].toFixed(1) + ' ' + (H - P) + ' L' + pt[0][0].toFixed(1) + ' ' + (H - P) + ' Z';
-    var goal = val('goal');
-    var gy = goal && goal >= lo && goal <= hi ? P + (hi - goal) / (hi - lo) * (H - P * 2) : null;
+    var goal = goalV;
+    var gy = goal ? P + (hi - goal) / (hi - lo) * (H - P * 2) : null;
     el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="체중 변화 그래프">' +
       '<path d="' + area + '" fill="#1F6F6B" opacity=".08"></path>' +
       (gy ? '<line x1="' + P + '" y1="' + gy.toFixed(1) + '" x2="' + (W - P) + '" y2="' + gy.toFixed(1) + '" stroke="#C96B3F" stroke-width="1.5" stroke-dasharray="5 4"></line><text x="' + (W - P) + '" y="' + (gy - 6).toFixed(1) + '" text-anchor="end" font-size="12" fill="#C96B3F">목표 ' + goal + 'kg</text>' : '') +
@@ -49,14 +51,34 @@
       out('now', last.w + 'kg');
       out('bmi', b.bmi + ' · ' + b.label);
       out('diff', list.length > 1 ? (last.w - first.w >= 0 ? '+' : '') + Math.round((last.w - first.w) * 10) / 10 + 'kg (' + days(first.d, last.d) + '일)' : '기록 1개');
-      if (goal && list.length > 1) {
-        var dd = days(first.d, last.d), rate = dd > 0 ? (first.w - last.w) / dd : 0;   /* kg/일 */
-        if (rate > 0.001 && last.w > goal) {
-          var need = Math.ceil((last.w - goal) / rate);
-          var dt = new Date(new Date(last.d).getTime() + need * 86400000);
-          out('eta', need + '일 뒤 · ' + dt.toISOString().slice(0, 10));
-        } else out('eta', last.w <= goal ? '목표 달성' : '아직 추세가 없습니다');
-      } else out('eta', goal ? '기록이 2개 이상이면' : '목표를 넣으면');
+      if (goal && last.w <= goal) out('eta', '목표 달성');
+      else if (goal) {
+        /* 최근 28일 기록으로 최소제곱 기울기 (kg/일). 3점·7일 이상일 때만 */
+        var cut = new Date(last.d).getTime() - 28 * 86400000;
+        var win = list.filter(function (r) { return new Date(r.d).getTime() >= cut; });
+        if (win.length < 3) win = list.slice(-3);
+        var span = win.length > 1 ? days(win[0].d, win[win.length - 1].d) : 0;
+        if (win.length < 3 || span < 7) out('eta', '기록이 3개 이상, 일주일 넘게 쌓이면');
+        else {
+          var n = win.length, sx = 0, sy = 0, sxy = 0, sxx = 0;
+          win.forEach(function (r) { var x = days(win[0].d, r.d); sx += x; sy += r.w; sxy += x * r.w; sxx += x * x; });
+          var denom = n * sxx - sx * sx;
+          var slope = denom ? (n * sxy - sx * sy) / denom : 0;      /* kg/일, 음수면 감량 중 */
+          var rate = -slope;
+          if (rate <= 0.005) out('eta', rate < -0.005 ? '지금은 늘고 있습니다' : '아직 뚜렷한 추세가 없습니다');
+          else {
+            var SAFE = 1 / 7;                                        /* 주 1kg */
+            var capped = rate > SAFE;
+            var use = capped ? SAFE : rate;
+            var need = Math.ceil((last.w - goal) / use);
+            if (need > 365) out('eta', '지금 속도로는 1년 안에 어렵습니다');
+            else {
+              var dt = new Date(new Date(last.d).getTime() + need * 86400000);
+              out('eta', need + '일 뒤 · ' + dt.toISOString().slice(0, 10) + (capped ? ' (주 1kg 기준)' : ''));
+            }
+          }
+        }
+      } else out('eta', '목표를 넣으면');
     } else { out('now', '—'); out('bmi', '—'); out('diff', '—'); out('eta', '—'); }
     var tb = box.querySelector('[data-out="rows"]');
     if (tb) tb.innerHTML = list.length ? list.slice().reverse().slice(0, 30).map(function (r, i) {
@@ -72,7 +94,7 @@
   var add = box.querySelector('[data-act="add"]');
   if (add) add.addEventListener('click', function () {
     var w = val('w'), d = (box.querySelector('[data-k="date"]') || {}).value || today();
-    if (!w) return;
+    if (!w || w < 20 || w > 300) { out('eta', '몸무게를 20~300kg 사이로 넣어 주세요'); return; }
     var list = read().filter(function (r) { return r.d !== d; });
     list.push({ d: d, w: Math.round(w * 10) / 10 });
     save(list); render();
