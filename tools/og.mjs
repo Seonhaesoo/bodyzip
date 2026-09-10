@@ -25,6 +25,7 @@ export const OG = [
   { key: 'alcohol', title: '소주 한 병,\n몇 시간 뒤 운전 가능', sub: '혈중알코올농도 · 위드마크 공식 · 소주·맥주·막걸리·와인', kicker: '혈중알코올농도' },
   { key: 'child', title: '아빠 175 엄마 162면\n아이 키는', sub: '중간 부모 키 공식 · 아들·딸 예상 키', kicker: '아이 키 예측' },
   { key: 'percentile', title: '우리 아기 몸무게\n또래 어디쯤', sub: '몸무게·키·머리둘레 백분위 · WHO·질병관리청 성장도표', kicker: '성장 백분위' },
+  { key: 'kids', title: '우리 아이 키,\n또래 100명 중 몇 번째', sub: '만 3~18세 키·몸무게·BMI 백분위 · 학년별 평균 키 · 2017 성장도표', kicker: '아이 키 백분위' },
   { key: 'caffeine', title: '오늘 카페인\n얼마나 마셨을까', sub: '커피·에너지드링크 잔 수 → 총량 · 잘 때 남는 양', kicker: '카페인' },
   { key: 'quit', title: '담배 끊은 지\n며칠', sub: '안 피운 담배 · 모은 돈 · 몸의 변화', kicker: '금연' },
   { key: 'checkup', title: '검진 결과지의 숫자,\n무슨 뜻일까', sub: '혈압·혈당·콜레스테롤·간수치·요산 · 학회 기준으로 판정', kicker: '건강검진 해석' },
@@ -55,7 +56,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-  for (const o of OG) {
+  const only = (process.argv[2] || '').split(',').filter(Boolean);   /* node tools/og.mjs kids — 일부만 다시 그리기 */
+  for (const o of OG.filter((x) => !only.length || only.includes(x.key))) {
     await page.setContent(html(o), { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(150);

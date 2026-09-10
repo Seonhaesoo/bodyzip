@@ -21,6 +21,18 @@
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
     if (/오늘\s*먹은|칼로리\s*담|담기|식단\s*기록|하루\s*칼로리\s*계산/.test(t)) return { href: '/today/', label: '오늘 먹은 칼로리 담기' };
     if (/체중\s*기록|몸무게\s*기록|체중\s*그래프|다이어트\s*기록/.test(t)) return { href: '/weight/', label: '체중 기록 그래프' };
+    // 아이 키 백분위 — "초3 평균 키", "중2 여자 몸무게", "10살 키 140", "만 7세 키"
+    var ksex = /여자|여아|딸|소녀/.test(t) ? 'girl' : 'boy', ksn = ksex === 'girl' ? '여자' : '남자';
+    if (!/임신|개월|주차|강아지|고양이|반려/.test(t)) {
+      var kgr = t.match(/(초|중|고)(?:등학교|학교|등)?\s*([1-6])\s*(?:학년)?/);
+      if (kgr && /키|몸무게|체중|평균|백분위|성장/.test(t)) { var gi = +kgr[2], gp = kgr[1] === '초' ? 'e' : kgr[1] === '중' ? 'm' : 'h'; if (gp === 'e' || gi <= 3) return { href: '/kids/grade/' + gp + gi + '-' + ksex + '/', label: kgr[1] + gi + ' ' + ksn + ' 평균 키·몸무게' }; }
+      var kag = t.match(/(?:만\s*)?(\d{1,2})\s*(?:살|세)/);
+      if (kag && +kag[1] >= 3 && +kag[1] <= 18 && /키|몸무게|체중|평균|백분위|성장|또래/.test(t) && !/아빠|엄마|부모/.test(t)) {
+        var ky = +kag[1], kh = nums.filter(function (x) { return x >= 70 && x <= 200; })[0], kr = (G.kidsRange || {})[ksex + ky];
+        if (kh && kr && Math.round(kh) >= kr[0] && Math.round(kh) <= kr[1]) return { href: '/kids/' + ky + '-' + ksex + '/' + Math.round(kh) + '/', label: '만 ' + ky + '세 ' + ksn + ' 키 ' + Math.round(kh) + 'cm 백분위' };
+        return { href: '/kids/' + ky + '-' + ksex + '/', label: '만 ' + ky + '세 ' + ksn + '아이 평균 키·몸무게' };
+      }
+    }
     // 건강검진 수치
     if (/혈압/.test(t)) { var bpn = (t.match(/\d{2,3}/g) || []).map(Number).filter(function (x) { return x >= 40 && x <= 200; }); if (bpn.length >= 2) { var bs = nearest(G.sys || [bpn[0]], bpn[0]), bd = nearest(G.dia || [bpn[1]], bpn[1]); return { href: '/bp/' + bs + '-' + bd + '/', label: '혈압 ' + bs + '/' + bd + ' 판정' }; } return { href: '/bp/', label: '혈압 정상 수치' }; }
     if (/공복\s*혈당|혈당|당뇨/.test(t) && !/당화/.test(t)) { var gn = nums.filter(function (x) { return x >= 50 && x <= 300; }); if (gn.length) return { href: '/glucose/' + nearest(G.glu || [gn[0]], gn[0]) + '/', label: '공복혈당 ' + gn[0] + ' 판정' }; return { href: '/glucose/', label: '공복혈당 정상 수치' }; }
@@ -33,7 +45,7 @@
     if (/건강검진|검진\s*결과|당화혈색소|검진표|결과지/.test(t)) return { href: '/checkup/', label: '건강검진 결과 해석' };
     if (/아기\s*카드|돌\s*카드|백일\s*카드|100일\s*카드|기념일\s*카드/.test(t)) return { href: '/baby/card/', label: '아기 100일·돌 카드' };
     if (/디데이|d-?day|카드/.test(t) && !/아기\s*카드/.test(t)) return { href: '/pregnancy/card/', label: '임신 디데이 카드 만들기' };
-    if (/백분위|또래|성장\s*곡선|성장\s*도표/.test(t)) { var ps = /여아|여자|딸/.test(t) ? 'girl' : 'boy', pmm = t.match(/(\d{1,2})\s*개월/); if (pmm) { var pm2 = Math.max(0, Math.min(36, +pmm[1])); return { href: '/baby/percentile/' + ps + '/' + pm2 + '/', label: (ps === 'girl' ? '여아 ' : '남아 ') + pm2 + '개월 백분위표' }; } return { href: '/baby/percentile/', label: '아기 성장 백분위 계산' }; }
+    if (/백분위|또래|성장\s*곡선|성장\s*도표/.test(t)) { var ps = /여아|여자|딸/.test(t) ? 'girl' : 'boy', pmm = t.match(/(\d{1,2})\s*개월/); if (pmm) { var pm2 = Math.max(0, Math.min(36, +pmm[1])); return { href: '/baby/percentile/' + ps + '/' + pm2 + '/', label: (ps === 'girl' ? '여아 ' : '남아 ') + pm2 + '개월 백분위표' }; } return /초등|중학|고등|청소년|학년|아이\s*키|어린이/.test(t) ? { href: '/kids/', label: '아이 키 백분위 계산 (3~18세)' } : { href: '/baby/percentile/', label: '아기 성장 백분위 계산' }; }
     if (/강아지|반려견|고양이|냥이|반려묘|사료|반려\s*동물|개\s*나이|멍멍/.test(t)) {
       var pk = /고양이|냥이|반려묘/.test(t) ? 'cat' : 'dog', pn = pk === 'cat' ? '고양이 ' : '강아지 ';
       if (/사료|급여|밥\s*양/.test(t)) { var km = t.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로|키로)/), rg = pk === 'cat' ? (G.catKg || [1, 12]) : (G.dogKg || [1, 50]); if (km) { var kk = Math.max(rg[0], Math.min(rg[1], Math.round(+km[1]))); return { href: '/pet/' + pk + '-food/' + kk + '/', label: pn + kk + 'kg 하루 사료량' }; } return { href: '/pet/' + pk + '-food/', label: pn + '사료량 계산' }; }

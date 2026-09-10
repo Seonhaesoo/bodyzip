@@ -17,6 +17,8 @@ import { buildExtra, STEPS, WAKES, FATHERS, MOTHERS, DIET_KG, DRINK_PAGES, DRINK
 import { buildPet, DOG_YEARS, CAT_YEARS, DOG_KG, CAT_KG } from './pages-pet.mjs';
 import { buildMore, PCT_MONTHS, CAFFEINE_PAGES, CAFFEINE_COUNTS, QUIT_DAYS } from './pages-more.mjs';
 import { buildCheckup, SYS, DIA, GLU, TC, LDL, HDL, TG, ALT, URIC } from './pages-checkup.mjs';
+import { buildKids } from './pages-kids.mjs';
+import * as KD from '../engine/kids.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -127,7 +129,7 @@ const bmiUrl = (h, w) => w ? `/bmi/${h}/${w}/` : `/bmi/${h}/`;
 const foodUrl = (s) => `/food/${s}/`;
 const exUrl = (s) => `/exercise/${s}/`;
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
-const grid = () => `<script>window.BODYZIP_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), kcal: Object.fromEntries(FOODS.map((f) => [f.slug, f.kcal])), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS, sys: SYS, dia: DIA, glu: GLU, tc: TC, ldl: LDL, hdl: HDL, tg: TG, alt: ALT, uric: URIC })}</script>`;
+const grid = () => `<script>window.BODYZIP_GRID=${JSON.stringify({ heights: HEIGHTS, wmin: WMIN, wmax: WMAX, water: WATER_KG, foods: FOODS.map((f) => ({ ks: [f.name.replace(/\s*\(.*?\)|\s*\d.*$| 한 .*$| 1개.*$| 1잔.*$| 1병.*$| 1봉.*$| 1장.*$| 1조각.*$/g, '').trim().toLowerCase()].concat(FOOD_ALIAS[f.slug] || []), name: f.name, slug: f.slug })), kidsRange: Object.fromEntries(['m', 'f'].flatMap((s) => KD.KIDS_AGES.map((y) => [(s === 'f' ? 'girl' : 'boy') + y, KD.kidsHeightRange(s, y)]))), kcal: Object.fromEntries(FOODS.map((f) => [f.slug, f.kcal])), exercises: EXERCISES.map((e) => ({ ks: [e.short.toLowerCase()].concat(EX_ALIAS[e.slug] || []), name: e.short, slug: e.slug })), months: BABY_MONTHS, wakes: WAKES, fathers: [FATHERS[0], FATHERS[FATHERS.length - 1]], mothers: [MOTHERS[0], MOTHERS[MOTHERS.length - 1]], steps: [STEPS[0], STEPS[STEPS.length - 1]], diet: [DIET_KG[0], DIET_KG[DIET_KG.length - 1]], drinks: DRINK_PAGES, counts: [DRINK_COUNTS[0], DRINK_COUNTS[DRINK_COUNTS.length - 1]], dogYears: [DOG_YEARS[0], DOG_YEARS[DOG_YEARS.length - 1]], catYears: [CAT_YEARS[0], CAT_YEARS[CAT_YEARS.length - 1]], dogKg: [DOG_KG[0], DOG_KG[DOG_KG.length - 1]], catKg: [CAT_KG[0], CAT_KG[CAT_KG.length - 1]], pctMonths: [PCT_MONTHS[0], PCT_MONTHS[PCT_MONTHS.length - 1]], caffeine: CAFFEINE_PAGES, quitDays: QUIT_DAYS, sys: SYS, dia: DIA, glu: GLU, tc: TC, ldl: LDL, hdl: HDL, tg: TG, alt: ALT, uric: URIC })}</script>`;
 
 /* ---------- BMI 키×몸무게 ---------- */
 function bmiPage(h, w) {
@@ -539,7 +541,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -560,6 +562,7 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/month/"><b>아기 개월별 발달</b><span>0~36개월 · 평균 키·몸무게 · 수유·수면·접종</span></a>
 <a href="/child-height/"><b>아이 키 예측</b><span>아빠 175 엄마 162 → 아들 <span class="num">${X.childHeight(175, 162).boy}</span>cm · 딸 ${X.childHeight(175, 162).girl}cm</span></a>
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
+<a href="/kids/"><b>아이 키 백분위 (3~18세)</b><span>만 10세 남자 140cm → 또래 <span class="num">${KD.kidsRank(KD.kidsCheck('height', 'm', 126, 140).pct)}</span> · 나이별·학년별 평균 키</span></a>
 <a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 — 카톡·인스타용 이미지</span></a>
 </div>`)}
 ${section('건강검진 결과', null, `<div class="dict">
@@ -710,6 +713,7 @@ function docs() {
 <h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. WHO 일 단위 표에서 개월 × 30.4375일 행을 뽑아 월 값으로 쓰며(공식 월 표와 최대 0.06cm·0.02kg 차이), 이웃한 달 사이는 선형 보간.</p>
 <h2>반려동물</h2><p>나이 환산은 AVMA 지침(중형견 기준 1살 15세, 2살 24세, 이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식(고양이는 4세). 사료량은 RER = 70 × 몸무게^0.75(kcal)에 WSAVA 상태 계수를 곱한 하루 열량을 사료 100g당 열량(기본 370kcal)으로 나눕니다. 접종 일정은 국내 동물병원 일반 일정.</p>
 <h2>카페인·금연</h2><p>카페인 함량은 식약처 DB·매장 공개값의 대표치, 권고량은 식약처(성인 400mg·임산부 300mg·청소년 2.5mg/kg), 반감기 5시간. 금연 계산의 되찾은 시간은 개비당 20분(UCL 2024), 회복 단계는 미국 CDC·보건복지부 금연길라잡이.</p>
+<h2>아이 키 백분위 (만 3~18세)</h2><p>질병관리청·대한소아청소년과학회 「2017 소아청소년 성장도표」의 연령별 신장·체중·체질량지수 LMS 값(36~227개월, 월 단위)으로 z점수를 구해 백분위를 냅니다. 이웃한 달 사이는 선형 보간합니다. 나이별 페이지는 만 N세 0개월, 키별 페이지는 그 나이의 한가운데인 만 N세 6개월 기준이고, 학년별 페이지는 9월 1일 기준 7월생 나이(초1 = 만 7세 2개월, 한 학년에 12개월씩)로 읽었습니다. 판정은 키 3백분위 미만이면 성장 평가 권장, BMI는 5백분위 미만 저체중·85백분위 이상 과체중·95백분위 이상 또는 25 이상 비만입니다. 만 18세 키 어림은 지금 z점수를 216개월에 그대로 대입한 값이라 사춘기 시기에 따라 실제와 차이가 납니다. LMS 표는 공식 엑셀을 옮긴 공개 자료에서 가져왔고, 표 안의 LMS와 백분위 값이 반올림 범위로 맞는지, 국민건강보험공단 공공데이터(영유아 성장도표 LMS 기준)와 겹치는 개월의 값이 같은지 확인했습니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
   doc('/about/', '소개 — 바디집', '바디집은 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
@@ -744,14 +748,14 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
 docs();
 const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
-const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['guide', /.*/]];
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
 const smFiles = [];
 for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));

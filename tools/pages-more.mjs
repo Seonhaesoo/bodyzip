@@ -85,7 +85,7 @@ ${section('남아 개월별 표', null, wrapChips(PCT_MONTHS.map((k) => ({ label
 ${section('여아 개월별 표', null, wrapChips(PCT_MONTHS.map((k) => ({ label: `${k}`, href: pctUrl('f', k) }))))}
 ${ad()}
 ${section('50백분위 한눈에', '몸무게 kg · 키 cm', table(['개월', '남아 몸무게', '남아 키', '여아 몸무게', '여아 키'], [0, 1, 2, 3, 4, 5, 6, 9, 12, 18, 24, 30, 36].map((k) => ({ cells: [`<a href="${pctUrl('m', k)}">${k}</a>`, String(G.round('weight', G.valueAt('weight', 'm', k, 0))), String(G.round('length', G.valueAt('length', 'm', k, 0))), String(G.round('weight', G.valueAt('weight', 'f', k, 0))), String(G.round('length', G.valueAt('length', 'f', k, 0)))] }))))}
-${section('이어서', null, list([{ href: '/baby/month/', title: '아기 개월별 발달', sub: '할 수 있는 것 · 수유 · 수면' }, { href: '/child-height/', title: '아이 예상 키', sub: '부모 키로' }, { href: '/baby/card/', title: '아기 100일·돌 카드', sub: '공유용 이미지' }]))}` }));
+${section('이어서', null, list([{ href: '/baby/month/', title: '아기 개월별 발달', sub: '할 수 있는 것 · 수유 · 수면' }, { href: '/kids/', title: '아이 키 백분위 (3~18세)', sub: '만 3세부터 · 학년별 평균 키' }, { href: '/child-height/', title: '아이 예상 키', sub: '부모 키로' }, { href: '/baby/card/', title: '아기 100일·돌 카드', sub: '공유용 이미지' }]))}` }));
 
   /* ---------- 카페인 ---------- */
   const CF = Object.fromEntries(X.CAFFEINE.map((c) => [c.key, c]));

@@ -171,6 +171,24 @@
     });
   });
 
+  /* 어린이·청소년 백분위 (만 3~18세, 2017 소아청소년 성장도표) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="kids"]'), function (box) {
+    bind(box, function () {
+      var sex = sel(box, 'sex') || 'm', b = dateOf(box, 'birth'), months = val(box, 'y') * 12 + val(box, 'mo');
+      if (b) { var dd = M.diffDays(b, today()); if (dd >= 0) { months = dd / 30.4375; var yy = Math.floor(months / 12), mm = Math.floor(months - yy * 12), yi = q(box, 'y'), mi = q(box, 'mo'); if (yi && document.activeElement !== yi) yi.value = yy; if (mi && document.activeElement !== mi) mi.value = mm; } }
+      var h = val(box, 'h'), w = val(box, 'w'), link = box.querySelector('[data-out="link"]'), s2 = sex === 'f' ? 'girl' : 'boy';
+      ['hp', 'wp', 'bp', 'adult'].forEach(function (k) { out(box, k, '—'); });
+      if (months < 36) { out(box, 'note', '만 3세 미만은 WHO 기준 아기 성장 백분위에서 봅니다.'); if (link) { link.href = '/baby/percentile/'; link.textContent = '아기 성장 백분위 →'; } return; }
+      if (months >= 228) { out(box, 'note', '만 18세까지 계산합니다. 어른은 BMI로 봅니다.'); if (link) { link.href = '/bmi/'; link.textContent = 'BMI 계산 →'; } return; }
+      var notes = [], y = Math.floor(months / 12);
+      if (h) { var rh = M.kidsCheck('height', sex, months, h); out(box, 'hp', rh.pct + ' · ' + M.kidsRank(rh.pct)); notes.push('키 ' + rh.band.label + ' · 또래 한가운데 ' + rh.median + 'cm'); if (months < 204) out(box, 'adult', M.trackAdult(sex, months, h) + 'cm'); }
+      if (w) { var rw = M.kidsCheck('weight', sex, months, w); out(box, 'wp', String(rw.pct)); notes.push('몸무게 ' + rw.band.label + ' · 한가운데 ' + rw.median + 'kg'); }
+      if (h && w) { var bmi = M.kidsBmi(h, w), rb = M.kidsCheck('bmi', sex, months, bmi); out(box, 'bp', bmi + ' · ' + rb.pct); notes.push('BMI ' + rb.band.label); }
+      out(box, 'note', notes.length ? notes.join(' / ') : '키와 몸무게 가운데 아는 것만 넣어도 됩니다.');
+      if (link) { var rg = M.kidsHeightRange(sex, y), hr = Math.round(h); if (h && hr >= rg[0] && hr <= rg[1]) { link.href = '/kids/' + y + '-' + s2 + '/' + hr + '/'; link.textContent = '만 ' + y + '세 ' + hr + 'cm 자세히 →'; } else { link.href = '/kids/' + y + '-' + s2 + '/'; link.textContent = '만 ' + y + '세 ' + (sex === 'f' ? '여자' : '남자') + ' 백분위표 →'; } }
+    });
+  });
+
   /* 반려동물 나이 */
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="petage"]'), function (box) {
     var kind = box.getAttribute('data-kind') || 'dog';

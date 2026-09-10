@@ -100,6 +100,19 @@ ok(G.round('weight', G.valueAt('weight', 'm', 12, 0)) === 9.65 && G.round('lengt
 ok(G.growthCheck('weight', 'm', 12, 7.7).pct < 4 && G.growthCheck('weight', 'm', 12, 7.7).band.key !== 'mid' && G.growthCheck('weight', 'm', 12, 12.0).pct > 96, '남 12개월 7.7kg ≈ 3백분위 · 12.0kg ≈ 97백분위', [G.growthCheck('weight', 'm', 12, 7.7).pct, G.growthCheck('weight', 'm', 12, 12.0).pct]);
 ok(Math.abs(G.cdf(1.2816) - 0.9) < 0.001 && Math.abs(G.cdf(-1.8808) - 0.03) < 0.001, '정규분포 누적');
 ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', 'm', 6)[4][0] === 50, '백분위표 9칸');
+/* 아이 키 백분위 (2017 소아청소년 성장도표, 만 3~18세) */
+{ const KD = await import('../engine/kids.mjs');
+  ok(KD.kidsRound(KD.kidsValue('height', 'm', 120, 0)) === 138.8 && KD.kidsRound(KD.kidsValue('height', 'f', 216, 0)) === 160.6 && KD.kidsRound(KD.kidsValue('weight', 'm', 216, 0)) === 66.7, '성장도표 중간값 남 10세 138.8cm · 여 18세 160.6cm · 남 18세 66.7kg', [KD.kidsValue('height', 'm', 120, 0), KD.kidsValue('height', 'f', 216, 0)]);
+  { const r = KD.kidsCheck('height', 'm', 120, 138.8); ok(Math.abs(r.pct - 50) < 0.6 && r.band.key === 'mid', '아이 중간값은 50백분위', JSON.stringify(r)); }
+  { const a = KD.kidsCheck('height', 'm', 120, 128.4).pct, b = KD.kidsCheck('height', 'm', 120, 150.2).pct; ok(a > 2.5 && a < 3.5 && b > 96.5 && b < 97.5, '남 10세 3·97백분위 = 표 값 128.4·150.2cm', [a, b]); }
+  ok(KD.kidsCheck('bmi', 'f', 204, 25.2).band.key === 'obese' && KD.kidsCheck('bmi', 'm', 144, 22).band.key === 'mid', 'BMI 25 이상은 백분위와 무관하게 비만 · 남 12세 22는 정상');
+  ok(KD.kidsBand('bmi', 86, 20).key === 'over' && KD.kidsBand('bmi', 4, 14).key === 'under' && KD.kidsBand('height', 2.9).key === 'low2', '판정 구간 85 · 5 · 3');
+  ok(KD.trackAdult('m', 120, 138.8) === KD.kidsRound(KD.kidsValue('height', 'm', 216, 0)), '50백분위를 따라가면 18세 중간값', KD.trackAdult('m', 120, 138.8));
+  ok(KD.gradeMonths(1) === 86 && KD.gradeMonths(12) === 218 && KD.gradesForAge(10).join() === '4,5' && KD.gradeFor(110) === 3, '학년 나이 초1 86개월 · 만 10세 = 초4~초5', KD.gradesForAge(10));
+  ok(KD.kidsRank(57.9) === '상위 42%' && KD.kidsRank(8.2) === '하위 8%' && KD.kidsRank(99.95) === '상위 0.1%', '상위·하위 표기', [KD.kidsRank(57.9), KD.kidsRank(8.2), KD.kidsRank(99.95)]);
+  { const [lo, hi] = KD.kidsHeightRange('m', 10); ok(lo === 125 && hi > 150 && hi < 165, '남 10세 키 페이지 범위', [lo, hi]); }
+  ok(KD.kidsLms('height', 'm', 30)[1] === KD.kidsLms('height', 'm', 36)[1] && KD.kidsLms('height', 'f', 300)[1] === KD.kidsLms('height', 'f', 227)[1], '범위 밖은 끝값');
+}
 /* 반려동물 */
 ok(P.dogAge(1) === 15 && P.dogAge(2) === 24 && P.dogAge(5, 'small') === 36 && P.dogAge(5, 'large') === 42 && P.catAge(5) === 36 && P.catAge(0.5) === 8, '나이 환산', [P.dogAge(5, 'small'), P.dogAge(5, 'large'), P.catAge(5)]);
 { const f = P.petFood('dog', 5, 'neutered'); ok(f.rer === 234 && f.der === 374 && f.grams === 101, '5kg 중성화 성견 RER 234 · DER 374 · 101g', JSON.stringify(f)); }
