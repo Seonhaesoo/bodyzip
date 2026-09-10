@@ -100,6 +100,19 @@ ok(G.round('weight', G.valueAt('weight', 'm', 12, 0)) === 9.65 && G.round('lengt
 ok(G.growthCheck('weight', 'm', 12, 7.7).pct < 4 && G.growthCheck('weight', 'm', 12, 7.7).band.key !== 'mid' && G.growthCheck('weight', 'm', 12, 12.0).pct > 96, '남 12개월 7.7kg ≈ 3백분위 · 12.0kg ≈ 97백분위', [G.growthCheck('weight', 'm', 12, 7.7).pct, G.growthCheck('weight', 'm', 12, 12.0).pct]);
 ok(Math.abs(G.cdf(1.2816) - 0.9) < 0.001 && Math.abs(G.cdf(-1.8808) - 0.03) < 0.001, '정규분포 누적');
 ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', 'm', 6)[4][0] === 50, '백분위표 9칸');
+/* 혈압 기록 (가정혈압 135/85) */
+{ const BL = await import('../engine/bplog.mjs');
+  const day = 86400000, now = Date.UTC(2026, 8, 10, 3), list = [];
+  for (let i = 0; i < 6; i++) { list.push({ t: now - i * day - 3 * 3600e3, s: 138, d: 86, p: 72, slot: 'am' }); list.push({ t: now - i * day - 3600e3, s: 126, d: 80, p: 0, slot: 'pm' }); }
+  list.push({ t: now - 10 * day, s: 170, d: 100, p: 0, slot: 'am' });
+  const a = BL.homeAvg(list, now);
+  ok(a.n === 12 && a.s === 132 && a.d === 83 && a.p === 72 && a.days === 6 && a.enough && a.over === false, '7일 평균 132/83 · 12회 · 6일 · 10일 전 값 제외', JSON.stringify(a));
+  ok(a.am.s === 138 && a.am.d === 86 && a.pm.s === 126 && a.pm.n === 6, '아침·저녁 평균 따로');
+  ok(BL.homeAvg(list.map((r) => ({ ...r, d: r.d + 3 })), now).over === true, '이완기 평균 86이면 가정혈압 기준 이상');
+  ok(BL.readingTag(182, 100).key === 'crisis' && BL.readingTag(120, 121).key === 'crisis' && BL.readingTag(136, 80).key === 'high' && BL.readingTag(88, 58).key === 'low' && BL.readingTag(122, 78).key === 'ok', '한 번 잰 값 표시 180/120 · 135/85 · 90/60');
+  ok(BL.slotOf(6) === 'am' && BL.slotOf(11) === 'am' && BL.slotOf(14) === 'etc' && BL.slotOf(22) === 'pm' && BL.slotOf(2) === 'pm', '시간대 나누기');
+  ok(BL.bpValid(120, 80) && !BL.bpValid(80, 90) && !BL.bpValid(300, 80), '입력 범위');
+}
 /* 임신 중 체중 증가 (IOM 2009) */
 { const PW = await import('../engine/pregweight.mjs');
   ok(PW.pwCat(18.4).key === 'under' && PW.pwCat(18.5).key === 'normal' && PW.pwCat(24.9).key === 'normal' && PW.pwCat(25).key === 'over' && PW.pwCat(29.9).key === 'over' && PW.pwCat(30).key === 'obese', 'BMI 구간 WHO 18.5·25·30');

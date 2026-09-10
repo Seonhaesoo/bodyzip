@@ -50,6 +50,8 @@
         return { href: '/kids/' + ky + '-' + ksex + '/', label: '만 ' + ky + '세 ' + ksn + '아이 평균 키·몸무게' };
       }
     }
+    // 혈압 기록 — "혈압 기록", "가정혈압", "혈압 수첩", "집에서 잰 혈압"
+    if (/혈압\s*(기록|수첩|일지|관리)|가정\s*혈압|집에서\s*(잰|재는|잴)?\s*혈압|아침\s*저녁\s*혈압/.test(t)) return { href: '/bp/log/', label: '혈압 기록 (7일 평균)' };
     // 건강검진 수치
     if (/혈압/.test(t)) { var bpn = (t.match(/\d{2,3}/g) || []).map(Number).filter(function (x) { return x >= 40 && x <= 200; }); if (bpn.length >= 2) { var bs = nearest(G.sys || [bpn[0]], bpn[0]), bd = nearest(G.dia || [bpn[1]], bpn[1]); return { href: '/bp/' + bs + '-' + bd + '/', label: '혈압 ' + bs + '/' + bd + ' 판정' }; } return { href: '/bp/', label: '혈압 정상 수치' }; }
     if (/공복\s*혈당|혈당|당뇨/.test(t) && !/당화/.test(t)) { var gn = nums.filter(function (x) { return x >= 50 && x <= 300; }); if (gn.length) return { href: '/glucose/' + nearest(G.glu || [gn[0]], gn[0]) + '/', label: '공복혈당 ' + gn[0] + ' 판정' }; return { href: '/glucose/', label: '공복혈당 정상 수치' }; }
