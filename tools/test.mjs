@@ -100,6 +100,18 @@ ok(G.round('weight', G.valueAt('weight', 'm', 12, 0)) === 9.65 && G.round('lengt
 ok(G.growthCheck('weight', 'm', 12, 7.7).pct < 4 && G.growthCheck('weight', 'm', 12, 7.7).band.key !== 'mid' && G.growthCheck('weight', 'm', 12, 12.0).pct > 96, '남 12개월 7.7kg ≈ 3백분위 · 12.0kg ≈ 97백분위', [G.growthCheck('weight', 'm', 12, 7.7).pct, G.growthCheck('weight', 'm', 12, 12.0).pct]);
 ok(Math.abs(G.cdf(1.2816) - 0.9) < 0.001 && Math.abs(G.cdf(-1.8808) - 0.03) < 0.001, '정규분포 누적');
 ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', 'm', 6)[4][0] === 50, '백분위표 9칸');
+/* 분유 수유량 (미국소아과학회 1kg당 165ml · 하루 960ml) */
+{ const FM = await import('../engine/formula.mjs');
+  ok(FM.dailyFor(4) === 660 && FM.dailyFor(3.3) === 540 && FM.dailyFor(6) === 960 && FM.dailyFor(9) === 960, '하루 총량 4kg 660 · 3.3kg 540 · 6kg 이상 960 상한', [FM.dailyFor(4), FM.dailyFor(3.3), FM.dailyFor(6)]);
+  ok(Math.abs(75 / 0.453 - FM.ML_PER_KG) < 1, '1파운드당 75ml ≈ 1kg당 165ml');
+  ok(FM.formulaPlan(3, 3.3).stage === 'week1' && FM.formulaPlan(3, 3.3).per[1] === 60, '생후 1주 안은 1회 30~60ml');
+  { const p = FM.formulaPlan(76, 5.6); ok(p.stage === 'weight' && p.feeds === 6 && p.daily === 920 && p.per === 150, '2개월 반 5.6kg → 하루 920ml · 6회 · 1회 150ml', JSON.stringify(p)); }
+  { const p = FM.formulaPlan(76, 5.6, 5); ok(p.feeds === 5 && p.per === 180, '횟수를 5회로 바꾸면 1회 180ml', p.per); }
+  { const p = FM.formulaPlan(140, 7.5); ok(p.capped && p.daily === 960 && p.per === 190, '4개월 7.5kg은 960ml 상한 · 5회 · 1회 190ml', JSON.stringify(p)); }
+  { const p = FM.formulaPlan(200, 8); ok(p.stage === 'solids' && p.feeds.join() === '3,4' && p.daily.join() === '540,960', '6개월 이후 이유식 2회 + 분유 3~4회', JSON.stringify(p)); }
+  ok(FM.formulaPlan(380, 10).stage === 'milk', '돌 이후는 생우유');
+  ok(FM.FEEDS_RANGE.every(([a, b], i) => a <= FM.FEEDS[i] && FM.FEEDS[i] <= b) && Object.values(FM.SOLIDS).every((s) => s.solids.endsWith('회')), '기준 횟수는 범위 안 · 이유식 라벨은 회로 끝남');
+}
 /* 아이 키 백분위 (2017 소아청소년 성장도표, 만 3~18세) */
 { const KD = await import('../engine/kids.mjs');
   ok(KD.kidsRound(KD.kidsValue('height', 'm', 120, 0)) === 138.8 && KD.kidsRound(KD.kidsValue('height', 'f', 216, 0)) === 160.6 && KD.kidsRound(KD.kidsValue('weight', 'm', 216, 0)) === 66.7, '성장도표 중간값 남 10세 138.8cm · 여 18세 160.6cm · 남 18세 66.7kg', [KD.kidsValue('height', 'm', 120, 0), KD.kidsValue('height', 'f', 216, 0)]);

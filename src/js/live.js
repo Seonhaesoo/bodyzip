@@ -171,6 +171,22 @@
     });
   });
 
+  /* 분유 수유량 (미국소아과학회 1kg당 하루 165ml · 960ml 이내) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="formula"]'), function (box) {
+    bind(box, function () {
+      var b = dateOf(box, 'birth'), days = val(box, 'mo') * 30.4375, kg = val(box, 'kg'), fe = parseInt(sel(box, 'feeds'), 10) || 0;
+      if (b) { var dd = M.diffDays(b, today()); if (dd >= 0) { days = dd; var mi = q(box, 'mo'); if (mi && document.activeElement !== mi) mi.value = Math.round(dd / 30.4375 * 10) / 10; } }
+      var p = M.formulaPlan(days, kg, fe), mm = Math.max(0, Math.min(12, Math.floor(days / 30.4375))), link = box.querySelector('[data-out="link"]');
+      if (p.stage === 'week1') { out(box, 'per', '30~60ml'); out(box, 'feeds', '8~12회'); out(box, 'daily', '—'); out(box, 'interval', '2~3시간'); out(box, 'note', '태어나서 1주까지는 1회 30~60ml로 시작해 배고파할 때마다 먹입니다(미국 CDC·소아과학회). 몸무게로 계산하는 하루 총량은 1주가 지난 뒤부터 봅니다.'); }
+      else if (p.stage === 'weight') {
+        if (!kg) { ['per', 'feeds', 'daily', 'interval'].forEach(function (k) { out(box, k, '—'); }); out(box, 'note', '몸무게를 넣으면 하루 총량과 1회량이 나옵니다.'); }
+        else { out(box, 'per', p.per + 'ml'); out(box, 'feeds', p.feeds + '회'); out(box, 'daily', num(p.daily) + 'ml'); out(box, 'interval', '평균 ' + p.hours + '시간'); out(box, 'note', (p.capped ? '몸무게로는 ' + num(p.raw) + 'ml지만 하루 960ml를 넘기지 않게 잡았습니다. ' : '') + (kg < 2.5 ? '2.5kg 미만이면 병원에서 정한 양을 먼저 따르세요. ' : '') + '1kg당 하루 165ml 기준입니다. 아기가 덜 먹거나 더 원하면 신호를 따르세요.'); }
+      } else if (p.stage === 'solids') { out(box, 'per', '180~240ml'); out(box, 'feeds', p.feeds[0] === p.feeds[1] ? p.feeds[0] + '회' : p.feeds[0] + '~' + p.feeds[1] + '회'); out(box, 'daily', num(p.daily[0]) + '~' + num(p.daily[1]) + 'ml'); out(box, 'interval', '이유식 사이'); out(box, 'note', p.solids + '와 함께 먹는 시기입니다. 이유식을 잘 먹을수록 분유는 줄어듭니다.'); }
+      else { out(box, 'per', '—'); out(box, 'feeds', '—'); out(box, 'daily', '우유 ' + p.milk[0] + '~' + p.milk[1] + 'ml'); out(box, 'interval', '끼니 사이'); out(box, 'note', '돌이 지나면 분유 대신 생우유와 밥(하루 3끼 + 간식 2회)으로 바꿉니다.'); }
+      if (link) { link.href = '/baby/formula/' + mm + '/'; link.textContent = mm === 12 ? '돌 아기 우유량 →' : (mm ? '생후 ' + mm + '개월' : '신생아') + ' 분유량 표 →'; }
+    });
+  });
+
   /* 어린이·청소년 백분위 (만 3~18세, 2017 소아청소년 성장도표) */
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="kids"]'), function (box) {
     bind(box, function () {

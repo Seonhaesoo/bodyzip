@@ -141,7 +141,7 @@ ${ad()}
 ${section('내 아기 날짜로 보기', `${D.fmtShort(TODAY)} 기준 ${mLabel(m)}이면 생일은 ${D.fmt(birth)} 무렵`, list([{ href: `/baby/${D.iso(birth)}/`, title: `${D.fmt(birth)}생 아기 일정표`, sub: '접종 날짜 · 100일·돌 · 오늘 개월수' }, { href: '/baby/', title: '다른 생일로 계산', sub: '생년월일을 넣으면 바로' }]))}
 ${pager(prev, next)}
 ${section('개월별', null, wrapChips(BM.map((y) => ({ label: y.m === 0 ? '신생아' : `${y.m}개월`, href: monthUrl(y.m), on: y.m === m }))))}
-${section('이어서', null, list([{ href: '/guide/baby-vaccines/', title: '예방접종 일정 총정리', sub: '언제 무엇을 맞나 · 미뤄도 되나' }, { href: '/child-height/', title: '아이 키 예측', sub: '부모 키로 계산' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }]))}
+${section('이어서', null, list([...(m <= 12 ? [{ href: `/baby/formula/${m}/`, title: `${mLabel(m)} 분유량`, sub: '몸무게별 1회량 · 하루 횟수' }] : []), { href: '/guide/baby-vaccines/', title: '예방접종 일정 총정리', sub: '언제 무엇을 맞나 · 미뤄도 되나' }, { href: '/child-height/', title: '아이 키 예측', sub: '부모 키로 계산' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }]))}
 <p class="note">발달 시기는 평균이며 아기마다 몇 주에서 몇 달까지 차이가 납니다. 걱정되는 점은 영유아 건강검진에서 소아과 의사와 상의하세요. 접종 일정은 질병관리청 표준 예방접종 일정표 기준입니다.</p>`;
     write(url, shell({ url, title, desc, body, nav: 'baby' }));
   });

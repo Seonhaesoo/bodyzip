@@ -20,7 +20,8 @@ export function makeBundle() {
     wrap('X', 'const { burn } = K; const { weeksFor } = B;\n' + strip(read('extra.mjs')), ['STRIDE', 'steps', 'bedtimes', 'waketimes', 'childHeight', 'DRINKS', 'alcoholGrams', 'bac', 'bacLevel', 'dietPlan', 'KCAL_NEED', 'CAFFEINE', 'caffeineLeft', 'caffeineLimit', 'QUIT_STAGES', 'quitStage', 'quitStats', 'MIN_PER_CIG']),
     wrap('CK', strip(read('checkup.mjs')), ['BP_LEVELS', 'bloodPressure', 'glucose', 'hba1c', 'glucoseAfter', 'totalChol', 'ldl', 'hdl', 'triglyceride', 'ldlEstimate', 'LIVER_REF', 'liver', 'ggt', 'uric', 'CHECK_ITEMS', 'summary']),
     wrap('KD', 'const { cdf } = G;\n' + strip(read('data/kdca-lms.mjs')) + '\n' + strip(read('kids.mjs')), ['KIDS_MEASURES', 'KIDS_PCTS', 'KIDS_AGES', 'KIDS_START', 'KIDS_END', 'kidsLms', 'kidsZ', 'kidsValue', 'kidsRound', 'kidsBand', 'kidsCheck', 'kidsRow', 'trackAdult', 'kidsBmi', 'GRADES', 'GRADE_NAMES', 'gradeMonths', 'ageLabel', 'gradeFor', 'gradesForAge', 'kidsHeightRange', 'kidsRank']),
-    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD);`,
+    wrap('FM', strip(read('formula.mjs')), ['ML_PER_KG', 'DAY_MAX', 'FIRST_WEEK', 'FEEDS', 'FEEDS_RANGE', 'FEEDS_TEXT', 'SOLIDS', 'SOLID_PER', 'MILK_12', 'r10', 'feedsFor', 'dailyFor', 'solidsDaily', 'formulaPlan']),
+    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD, FM);`,
   ];
   return `/* 바디집 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;
 }

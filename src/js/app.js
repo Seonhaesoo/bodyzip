@@ -21,6 +21,17 @@
     var md = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일?/) || t.match(/(?:^|\s)(\d{1,2})\/(\d{1,2})(?:\s|$)/);
     if (/오늘\s*먹은|칼로리\s*담|담기|식단\s*기록|하루\s*칼로리\s*계산/.test(t)) return { href: '/today/', label: '오늘 먹은 칼로리 담기' };
     if (/체중\s*기록|몸무게\s*기록|체중\s*그래프|다이어트\s*기록/.test(t)) return { href: '/weight/', label: '체중 기록 그래프' };
+    // 분유 수유량 — "2개월 분유량", "생후 3주 분유", "5kg 분유량", "100일 분유량", "신생아 분유량"
+    if (/분유|수유\s*량|수유\s*양|젖병/.test(t)) {
+      var fk = t.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로|키로)/), fw = t.match(/(\d{1,2})\s*주/), fm = t.match(/(\d{1,2})\s*개월/), fd = t.match(/(\d{1,3})\s*일/);
+      if (fk) { var fkk = Math.max(2.5, Math.min(9, Math.round(+fk[1] * 2) / 2)); return { href: '/baby/formula/kg/' + fkk + '/', label: fkk + 'kg 아기 분유량' }; }
+      if (fw && +fw[1] >= 1 && +fw[1] <= 8) return { href: '/baby/formula/week/' + (+fw[1]) + '/', label: '생후 ' + (+fw[1]) + '주 분유량' };
+      if (fm) { var fmm = Math.max(0, Math.min(12, +fm[1])); return { href: '/baby/formula/' + fmm + '/', label: (fmm ? '생후 ' + fmm + '개월' : '신생아') + ' 분유량' }; }
+      if (fd) { var fdd = +fd[1]; if (fdd < 7) return { href: '/baby/formula/0/', label: '신생아 첫 주 분유량' }; if (fdd < 60) return { href: '/baby/formula/week/' + Math.max(1, Math.min(8, Math.round(fdd / 7))) + '/', label: '생후 ' + fdd + '일 무렵 분유량' }; var fdm = Math.min(12, Math.floor(fdd / 30.4375)); return { href: '/baby/formula/' + fdm + '/', label: '생후 ' + fdd + '일 무렵 분유량' }; }
+      if (/신생아/.test(t)) return { href: '/baby/formula/0/', label: '신생아 분유량' };
+      if (/돌|12\s*개월/.test(t)) return { href: '/baby/formula/12/', label: '돌 아기 분유와 우유' };
+      return { href: '/baby/formula/', label: '분유 수유량 계산기' };
+    }
     // 아이 키 백분위 — "초3 평균 키", "중2 여자 몸무게", "10살 키 140", "만 7세 키"
     var ksex = /여자|여아|딸|소녀/.test(t) ? 'girl' : 'boy', ksn = ksex === 'girl' ? '여자' : '남자';
     if (!/임신|개월|주차|강아지|고양이|반려/.test(t)) {
