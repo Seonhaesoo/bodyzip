@@ -35,7 +35,9 @@ const GA_ID = 'G-QFFQZVRKQJ';                   /* GA4 측정 ID */
 const ADSENSE = 'ca-pub-9924140539322407';
 /* 검색엔진 소유권 확인 태그 — 사용자가 서치콘솔·서치어드바이저에서 받은 값 */
 const VERIFY = [
-  '<meta name="google-site-verification" content="BmKABvMzaldm5ivGRxxdylslRPgulwiDNnL5Iculrqw">',, '<meta name="naver-site-verification" content="9f06f0a8ddadf03eb6d3170a3a51626954f8a03a" />'];
+  '<meta name="google-site-verification" content="BmKABvMzaldm5ivGRxxdylslRPgulwiDNnL5Iculrqw">',
+  '<meta name="naver-site-verification" content="9f06f0a8ddadf03eb6d3170a3a51626954f8a03a" />',
+];
 const SISTERS = { donpyo: 'https://donpyo.com', saju: 'https://sajucheop.com' };
 const OG_KEYS = new Set(fs.existsSync(path.join(SRC, 'og')) ? fs.readdirSync(path.join(SRC, 'og')).filter((f) => f.endsWith('.png')).map((f) => f.replace('.png', '')) : []);
 const kst = new Date(Date.now() + 9 * 3600 * 1000);
