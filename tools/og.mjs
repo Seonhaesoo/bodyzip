@@ -25,6 +25,7 @@ export const OG = [
   { key: 'alcohol', title: '소주 한 병,\n몇 시간 뒤 운전 가능', sub: '혈중알코올농도 · 위드마크 공식 · 소주·맥주·막걸리·와인', kicker: '혈중알코올농도' },
   { key: 'child', title: '아빠 175 엄마 162면\n아이 키는', sub: '중간 부모 키 공식 · 아들·딸 예상 키', kicker: '아이 키 예측' },
   { key: 'percentile', title: '우리 아기 몸무게\n또래 어디쯤', sub: '몸무게·키·머리둘레 백분위 · WHO·질병관리청 성장도표', kicker: '성장 백분위' },
+  { key: 'pregweight', title: '임신 중 몸무게,\n얼마나 늘어야 할까', sub: '임신 전 BMI별 권장 증가 · 주차별 범위 · 쌍둥이 · IOM 2009', kicker: '임신 체중 증가' },
   { key: 'formula', title: '우리 아기 분유,\n한 번에 몇 ml', sub: '개월·몸무게로 1회량과 하루 총량 · 신생아부터 돌까지', kicker: '분유 수유량' },
   { key: 'kids', title: '우리 아이 키,\n또래 100명 중 몇 번째', sub: '만 3~18세 키·몸무게·BMI 백분위 · 학년별 평균 키 · 2017 성장도표', kicker: '아이 키 백분위' },
   { key: 'caffeine', title: '오늘 카페인\n얼마나 마셨을까', sub: '커피·에너지드링크 잔 수 → 총량 · 잘 때 남는 양', kicker: '카페인' },

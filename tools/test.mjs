@@ -100,6 +100,16 @@ ok(G.round('weight', G.valueAt('weight', 'm', 12, 0)) === 9.65 && G.round('lengt
 ok(G.growthCheck('weight', 'm', 12, 7.7).pct < 4 && G.growthCheck('weight', 'm', 12, 7.7).band.key !== 'mid' && G.growthCheck('weight', 'm', 12, 12.0).pct > 96, '남 12개월 7.7kg ≈ 3백분위 · 12.0kg ≈ 97백분위', [G.growthCheck('weight', 'm', 12, 7.7).pct, G.growthCheck('weight', 'm', 12, 12.0).pct]);
 ok(Math.abs(G.cdf(1.2816) - 0.9) < 0.001 && Math.abs(G.cdf(-1.8808) - 0.03) < 0.001, '정규분포 누적');
 ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', 'm', 6)[4][0] === 50, '백분위표 9칸');
+/* 임신 중 체중 증가 (IOM 2009) */
+{ const PW = await import('../engine/pregweight.mjs');
+  ok(PW.pwCat(18.4).key === 'under' && PW.pwCat(18.5).key === 'normal' && PW.pwCat(24.9).key === 'normal' && PW.pwCat(25).key === 'over' && PW.pwCat(29.9).key === 'over' && PW.pwCat(30).key === 'obese', 'BMI 구간 WHO 18.5·25·30');
+  ok(PW.gainRange('normal', 13).join() === '0.5,2' && PW.gainRange('normal', 40).join() === '11.5,16' && PW.gainRange('under', 40).join() === '12.5,18' && PW.gainRange('over', 40).join() === '7,11.5' && PW.gainRange('obese', 40).join() === '5,9', '13주 = 1분기 0.5~2kg · 40주 = IOM 총량');
+  { const g = PW.gainRange('normal', 20); ok(g.join() === '3.4,5.6', '정상 20주 3.4~5.6kg', g); }
+  { const dev = PW.PW_CATS.map((c) => [Math.abs((c.total[0] - 0.5) / 27 - c.weekly[0]), Math.abs((c.total[1] - 2) / 27 - c.weekly[1])]); ok(dev.every(([a, b]) => a <= 0.06 && b <= 0.03) && dev.filter(([a]) => a > 0.03).length === 1, '주차별 기울기는 IOM 주당 권고와 0.03kg 안, 정상 하한만 0.06kg 안 (계산 기준 문구와 같은 사실)', JSON.stringify(dev)); }
+  { const r = PW.pregWeight(160, 55, 62, 24, false); ok(r.bmi === 21.5 && r.cat.key === 'normal' && r.target.join() === '66.5,71' && r.range.join() === '5,7.7' && r.status === 'within', '160cm 55kg 24주 62kg → 정상 · 범위 안', JSON.stringify(r)); }
+  ok(PW.pregWeight(160, 55, 70, 24, false).status === 'above' && PW.pregWeight(160, 55, 56, 24, false).status === 'below', '범위 밖 판정');
+  ok(PW.pregWeight(160, 55, 0, 0, true).total.join() === '17,25' && PW.pregWeight(160, 45, 0, 0, true).total === null, '쌍둥이 정상 17~25 · 저체중은 권고치 없음');
+}
 /* 분유 수유량 (미국소아과학회 1kg당 165ml · 하루 960ml) */
 { const FM = await import('../engine/formula.mjs');
   ok(FM.dailyFor(4) === 660 && FM.dailyFor(3.3) === 540 && FM.dailyFor(6) === 960 && FM.dailyFor(9) === 960, '하루 총량 4kg 660 · 3.3kg 540 · 6kg 이상 960 상한', [FM.dailyFor(4), FM.dailyFor(3.3), FM.dailyFor(6)]);
@@ -110,6 +120,10 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   { const p = FM.formulaPlan(140, 7.5); ok(p.capped && p.daily === 960 && p.per === 190, '4개월 7.5kg은 960ml 상한 · 5회 · 1회 190ml', JSON.stringify(p)); }
   { const p = FM.formulaPlan(200, 8); ok(p.stage === 'solids' && p.feeds.join() === '3,4' && p.daily.join() === '540,960', '6개월 이후 이유식 2회 + 분유 3~4회', JSON.stringify(p)); }
   ok(FM.formulaPlan(380, 10).stage === 'milk', '돌 이후는 생우유');
+  { const k1 = (x) => Math.round(x * 10) / 10, typ = (mo) => k1((G.valueAt('weight', 'm', mo, 0) + G.valueAt('weight', 'f', mo, 0)) / 2);
+    const bad = [0, 1, 2, 3, 4, 5].filter((m) => { const f = BM.find((x) => x.m === m).feed; return !f.includes(`약 ${FM.r10(FM.dailyFor(typ(m + 0.5)) / FM.FEEDS[m])}ml`) || !f.includes(FM.FEEDS_TEXT[m]); })
+      .concat([6, 7, 8, 9, 10, 11].filter((m) => { const [a, b] = FM.SOLIDS[m].feeds; return !BM.find((x) => x.m === m).feed.includes(`분유 ${a === b ? a : `${a}~${b}`}회`); }));
+    ok(!bad.length, '개월별 발달 페이지 분유량 = 분유 계산기 (0~11개월)', bad); }
   ok(FM.FEEDS_RANGE.every(([a, b], i) => a <= FM.FEEDS[i] && FM.FEEDS[i] <= b) && Object.values(FM.SOLIDS).every((s) => s.solids.endsWith('회')), '기준 횟수는 범위 안 · 이유식 라벨은 회로 끝남');
 }
 /* 아이 키 백분위 (2017 소아청소년 성장도표, 만 3~18세) */

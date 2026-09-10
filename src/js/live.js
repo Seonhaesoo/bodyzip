@@ -171,6 +171,30 @@
     });
   });
 
+  /* 임신 중 체중 증가 (IOM 2009, 임신 전 BMI 기준) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="pregweight"]'), function (box) {
+    bind(box, function () {
+      var h = val(box, 'h'), pre = val(box, 'pre'), now = val(box, 'now'), week = val(box, 'week'), twins = sel(box, 'twins') === '1', l = dateOf(box, 'lmp');
+      if (l) { var wd = Math.floor(M.diffDays(l, today()) / 7); if (wd >= 0 && wd <= 42) { week = wd; var wi = q(box, 'week'); if (wi && document.activeElement !== wi) wi.value = wd; } }
+      var link = box.querySelector('[data-out="link"]');
+      if (!h || !pre) { ['bmi', 'total', 'target', 'range', 'gain'].forEach(function (k) { out(box, k, '—'); }); out(box, 'verdict', ''); out(box, 'note', '키와 임신 전 몸무게를 넣으면 권장 범위가 나옵니다.'); return; }
+      var r = M.pregWeight(h, pre, now, week, twins), notes = [];
+      out(box, 'bmi', r.bmi + ' · ' + r.cat.label);
+      out(box, 'total', r.total ? r.total[0] + '~' + r.total[1] + 'kg' : '권고치 없음');
+      out(box, 'target', r.target ? r.target[0] + '~' + r.target[1] + 'kg' : '—');
+      out(box, 'range', r.range ? r.range[0] + '~' + r.range[1] + 'kg' : '—');
+      out(box, 'gain', r.gain != null ? (r.gain > 0 ? '+' : '') + r.gain + 'kg' : '—');
+      out(box, 'verdict', r.status ? Math.round(week) + '주 기준 ' + M.PW_STATUS[r.status] + '.' : '');
+      if (!r.status) notes.push(twins ? '쌍둥이는 출산까지 총량으로만 봅니다.' : week > 0 ? '지금 몸무게를 넣으면 판정합니다.' : '주수나 마지막 생리 시작일을 넣으면 이번 주 범위가 나옵니다.');
+      if (twins && !r.total) notes.push('임신 전 저체중인 쌍둥이 임신은 IOM 권고치가 없어 담당 의사와 목표를 정합니다.');
+      if (r.status === 'below') notes.push(week <= 13 ? '1분기에는 입덧으로 늘지 않거나 조금 빠지기도 합니다.' : '너무 적게 늘면 아기가 작게 태어날 수 있어 식사량을 담당 의사와 상의하세요.');
+      if (r.status === 'above') notes.push('많이 늘면 아기가 크게 자라고 출산 뒤 몸무게가 남기 쉽습니다. 1주에 1kg 넘게 늘거나 갑자기 부으면 병원에 알리세요.');
+      if (r.bmi >= 23 && r.bmi < 25) notes.push('BMI 23~24.9는 한국 성인 기준으로 비만 전 단계라, 목표는 담당 의사와 정하세요.');
+      out(box, 'note', notes.join(' '));
+      if (link) { if (week >= 4 && !twins) { var ww = Math.min(40, Math.round(week)); link.href = '/pregnancy/weight/week/' + ww + '/'; link.textContent = '임신 ' + ww + '주 표 →'; } else { link.href = '/pregnancy/weight/' + r.cat.key + '/'; link.textContent = '임신 전 ' + r.cat.label + ' 표 →'; } }
+    });
+  });
+
   /* 분유 수유량 (미국소아과학회 1kg당 하루 165ml · 960ml 이내) */
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="formula"]'), function (box) {
     bind(box, function () {

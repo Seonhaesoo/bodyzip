@@ -32,6 +32,12 @@
       if (/돌|12\s*개월/.test(t)) return { href: '/baby/formula/12/', label: '돌 아기 분유와 우유' };
       return { href: '/baby/formula/', label: '분유 수유량 계산기' };
     }
+    // 임신 중 체중 증가 — "임신 20주 몸무게", "임신 체중 증가", "임신 몇 kg 늘어야"
+    if (/임신|임산부/.test(t) && /체중|몸무게|살\s*찌|늘어|증가|kg|킬로/.test(t) && !/아기|태아|예정일|배란|기록/.test(t)) {
+      var pgw = t.match(/(\d{1,2})\s*주/);
+      if (pgw && +pgw[1] >= 4 && +pgw[1] <= 40) return { href: '/pregnancy/weight/week/' + (+pgw[1]) + '/', label: '임신 ' + (+pgw[1]) + '주 체중 증가 범위' };
+      return { href: '/pregnancy/weight/', label: '임신 중 체중 증가 계산' };
+    }
     // 아이 키 백분위 — "초3 평균 키", "중2 여자 몸무게", "10살 키 140", "만 7세 키"
     var ksex = /여자|여아|딸|소녀/.test(t) ? 'girl' : 'boy', ksn = ksex === 'girl' ? '여자' : '남자';
     if (!/임신|개월|주차|강아지|고양이|반려/.test(t)) {

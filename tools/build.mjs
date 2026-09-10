@@ -20,6 +20,8 @@ import { buildCheckup, SYS, DIA, GLU, TC, LDL, HDL, TG, ALT, URIC } from './page
 import { buildKids } from './pages-kids.mjs';
 import { buildFormula } from './pages-formula.mjs';
 import * as FM from '../engine/formula.mjs';
+import { buildPregWeight } from './pages-pregweight.mjs';
+import * as PW from '../engine/pregweight.mjs';
 import * as KD from '../engine/kids.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
@@ -544,7 +546,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">임신 20주 몸무게</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -562,6 +564,7 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/ovulation/"><b>배란일 · 가임기</b><span>생리 시작일과 주기로 · 다음 생리 예정일</span></a>
 <a href="/baby/"><b>아기 개월수 · 예방접종</b><span>생년월일로 오늘 몇 개월 · 100일·돌 · 접종 날짜 · <span class="num">캘린더 파일</span>로 아이폰·구글에 넣기</span></a>
 <a href="/pregnancy/week/"><b>임신 주차별 안내</b><span>1~42주 · 아기 크기 · 엄마 몸 · 검사 일정</span></a>
+<a href="/pregnancy/weight/"><b>임신 중 체중 증가</b><span>임신 전 BMI 정상 → 출산까지 <span class="num">11.5~16</span>kg · 20주엔 ${PW.gainRange('normal', 20).join('~')}kg</span></a>
 <a href="/baby/month/"><b>아기 개월별 발달</b><span>0~36개월 · 평균 키·몸무게 · 수유·수면·접종</span></a>
 <a href="/child-height/"><b>아이 키 예측</b><span>아빠 175 엄마 162 → 아들 <span class="num">${X.childHeight(175, 162).boy}</span>cm · 딸 ${X.childHeight(175, 162).girl}cm</span></a>
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
@@ -719,6 +722,7 @@ function docs() {
 <h2>카페인·금연</h2><p>카페인 함량은 식약처 DB·매장 공개값의 대표치, 권고량은 식약처(성인 400mg·임산부 300mg·청소년 2.5mg/kg), 반감기 5시간. 금연 계산의 되찾은 시간은 개비당 20분(UCL 2024), 회복 단계는 미국 CDC·보건복지부 금연길라잡이.</p>
 <h2>아이 키 백분위 (만 3~18세)</h2><p>질병관리청·대한소아청소년과학회 「2017 소아청소년 성장도표」의 연령별 신장·체중·체질량지수 LMS 값(36~227개월, 월 단위)으로 z점수를 구해 백분위를 냅니다. 이웃한 달 사이는 선형 보간합니다. 나이별 페이지는 만 N세 0개월, 키별 페이지는 그 나이의 한가운데인 만 N세 6개월 기준이고, 학년별 페이지는 9월 1일 기준 7월생 나이(초1 = 만 7세 2개월, 한 학년에 12개월씩)로 읽었습니다. 판정은 키 3백분위 미만이면 성장 평가 권장, BMI는 5백분위 미만 저체중·85백분위 이상 과체중·95백분위 이상 또는 25 이상 비만입니다. 만 18세 키 어림은 지금 z점수를 216개월에 그대로 대입한 값이라 사춘기 시기에 따라 실제와 차이가 납니다. LMS 표는 공식 엑셀을 옮긴 공개 자료에서 가져왔고, 표 안의 LMS와 백분위 값이 반올림 범위로 맞는지, 국민건강보험공단 공공데이터(영유아 성장도표 LMS 기준)와 겹치는 개월의 값이 같은지 확인했습니다.</p>
 <h2>분유 수유량</h2><p>미국소아과학회(AAP) HealthyChildren 「Amount and Schedule of Baby Formula Feedings」(2022)의 규칙대로 하루 총량을 몸무게 1파운드(453g)당 2.5온스(75ml), 즉 1kg당 약 165ml로 잡고 하루 평균 960ml(32온스)를 넘지 않게 자릅니다. 생후 1주 안은 1회 30~60ml를 2~3시간마다(하루 8~12회, 미국 CDC) 먹이는 것으로 안내하고 몸무게 계산은 하지 않습니다. 이후 하루 횟수는 0개월 8회 · 1개월 7회 · 2~3개월 6회 · 4~5개월 5회를 기준으로 두고(AAP·CDC의 3~4시간 간격과 6개월 무렵 4~5회를 이은 값), 1회량은 하루 총량을 횟수로 나눠 10ml 단위로 반올림합니다. 6~11개월은 이유식과 함께 1회 180~240ml(AAP 6개월 무렵)를 이유식 단계에 맞춘 횟수로, 돌 이후는 생우유 하루 400~500ml로 안내합니다. 개월별 보통 몸무게는 WHO 성장 표준 50백분위의 남녀 평균이고, 개월 페이지는 그 달의 한가운데(N개월 15일 무렵) 기준입니다.</p>
+<h2>임신 중 체중 증가</h2><p>미국 국립의학원(IOM) 「Weight Gain During Pregnancy: Reexamining the Guidelines」(2009)의 임신 전 BMI별 권장 총 증가량(저체중 12.5~18kg · 정상 11.5~16kg · 과체중 7~11.5kg · 비만 5~9kg, 쌍둥이 잠정 권고 정상 17~25 · 과체중 14~23 · 비만 11~19kg)을 씁니다. 임신 전 BMI 구간은 세계보건기구 기준(18.5 · 25 · 30)입니다. 주차별 범위는 1분기(13주까지) 0.5~2kg을 주수에 비례해 나누고, 14주부터 40주까지는 총 증가 범위의 하한·상한으로 곧게 이었습니다. 총 증가량에 맞춰 이은 값이라 한 주 증가는 IOM의 2·3분기 주당 권고(저체중 0.44~0.58 · 정상 0.35~0.50 · 과체중 0.23~0.33 · 비만 0.17~0.27kg)와 조금 다를 수 있습니다. 정상 BMI의 하한은 한 주 약 0.41kg으로 권고(0.35kg)보다 높고, 나머지는 한 주 0.03kg 안으로 같습니다. 분기별 추가 칼로리(2분기 하루 약 340kcal · 3분기 약 450kcal)는 미국 CDC 안내입니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
   doc('/about/', '소개 — 바디집', '바디집은 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
@@ -753,7 +757,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();

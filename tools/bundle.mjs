@@ -21,7 +21,8 @@ export function makeBundle() {
     wrap('CK', strip(read('checkup.mjs')), ['BP_LEVELS', 'bloodPressure', 'glucose', 'hba1c', 'glucoseAfter', 'totalChol', 'ldl', 'hdl', 'triglyceride', 'ldlEstimate', 'LIVER_REF', 'liver', 'ggt', 'uric', 'CHECK_ITEMS', 'summary']),
     wrap('KD', 'const { cdf } = G;\n' + strip(read('data/kdca-lms.mjs')) + '\n' + strip(read('kids.mjs')), ['KIDS_MEASURES', 'KIDS_PCTS', 'KIDS_AGES', 'KIDS_START', 'KIDS_END', 'kidsLms', 'kidsZ', 'kidsValue', 'kidsRound', 'kidsBand', 'kidsCheck', 'kidsRow', 'trackAdult', 'kidsBmi', 'GRADES', 'GRADE_NAMES', 'gradeMonths', 'ageLabel', 'gradeFor', 'gradesForAge', 'kidsHeightRange', 'kidsRank']),
     wrap('FM', strip(read('formula.mjs')), ['ML_PER_KG', 'DAY_MAX', 'FIRST_WEEK', 'FEEDS', 'FEEDS_RANGE', 'FEEDS_TEXT', 'SOLIDS', 'SOLID_PER', 'MILK_12', 'r10', 'feedsFor', 'dailyFor', 'solidsDaily', 'formulaPlan']),
-    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD, FM);`,
+    wrap('PW', strip(read('pregweight.mjs')), ['PW_CATS', 'FIRST_TRI', 'EXTRA_KCAL', 'PW_STATUS', 'pwBmi', 'pwCat', 'pwCatBy', 'trimester', 'gainRange', 'pregWeight']),
+    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD, FM, PW);`,
   ];
   return `/* 바디집 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;
 }

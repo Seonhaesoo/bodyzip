@@ -76,7 +76,7 @@ ${ad()}
 ${section('오늘 기준으로 보면', `${D.fmtShort(TODAY)}에 ${w}주 0일이라면`, tiles([{ label: '출산예정일', value: `${due.getUTCFullYear()}.${due.getUTCMonth() + 1}.${due.getUTCDate()}` }, { label: left >= 0 ? '남은 날' : '지난 날', value: `${Math.abs(left)}일` }, { label: '마지막 생리 시작', value: `${lmp.getUTCFullYear()}.${lmp.getUTCMonth() + 1}.${lmp.getUTCDate()}` }]))}
 ${pager(prev, next)}
 ${section('주차별 안내', null, wrapChips(WEEKS.map((y) => ({ label: `${y.w}주`, href: weekUrl(y.w), on: y.w === w }))))}
-${section('이어서', null, list([{ href: `/pregnancy/card/?w=${w}`, title: '임신 디데이 카드 만들기', sub: `${w}주 · D-${Math.max(0, 280 - 7 * w)} · 카톡·인스타용 이미지` }, { href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일·검사 일정' }, { href: '/guide/pregnancy-weeks/', title: '임신 주수 세는 법', sub: '왜 4주인데 아기는 2주인가' }, { href: '/baby/month/0/', title: '신생아 0개월 발달', sub: '태어난 뒤 첫 달' }]))}
+${section('이어서', null, list([{ href: `/pregnancy/card/?w=${w}`, title: '임신 디데이 카드 만들기', sub: `${w}주 · D-${Math.max(0, 280 - 7 * w)} · 카톡·인스타용 이미지` }, { href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로 예정일·검사 일정' }, ...(w >= 4 && w <= 40 ? [{ href: `/pregnancy/weight/week/${w}/`, title: `임신 ${w}주 체중 증가`, sub: '임신 전보다 몇 kg · BMI별' }] : []), { href: '/guide/pregnancy-weeks/', title: '임신 주수 세는 법', sub: '왜 4주인데 아기는 2주인가' }, { href: '/baby/month/0/', title: '신생아 0개월 발달', sub: '태어난 뒤 첫 달' }]))}
 ${NOTE('아기 크기·몸무게는 주차별 평균 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적인 일정으로, 병원마다 다를 수 있습니다.')}`;
     write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
