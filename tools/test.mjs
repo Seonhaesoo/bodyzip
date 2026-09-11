@@ -113,6 +113,14 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   ok(BL.slotOf(6) === 'am' && BL.slotOf(11) === 'am' && BL.slotOf(14) === 'etc' && BL.slotOf(22) === 'pm' && BL.slotOf(2) === 'pm', '시간대 나누기');
   ok(BL.bpValid(120, 80) && !BL.bpValid(80, 90) && !BL.bpValid(300, 80), '입력 범위');
 }
+/* 추석 음식 칼로리 (접시 · 한 상 예시 · 새 음식) */
+{ const CH = await import('./pages-chuseok.mjs');
+  ok(CH.ITEMS.length >= 30 && CH.ITEMS.every((it) => it.kcal > 0), '추석 접시 음식 전부 칼로리 있음', CH.ITEMS.length);
+  ok(CH.PRESETS.every((p) => CH.presetTotal(p) > 300), '한 상 예시 합계', CH.PRESETS.map(CH.presetTotal).join());
+  ok(CH.nextChuseok(D.utc(2026, 9, 11)).d === 25 && CH.nextChuseok(D.utc(2026, 9, 27)).y === 2026 && CH.nextChuseok(D.utc(2026, 9, 28)).y === 2027, '추석 9/25 · 사흘 지나면 다음 해 날짜');
+  const off = FOODS.filter((f) => f.per100 && /\d+\s*g/.test(f.serving)).filter((f) => Math.abs(f.per100 * +f.serving.match(/(\d+)\s*g/)[1] / 100 - f.kcal) > Math.max(8, f.kcal * 0.06));
+  ok(off.length === 0, '1인분 g × 100g당 kcal 이 1인분 kcal 과 맞음 (6% 안)', off.map((f) => f.slug).join());
+}
 /* 임신 중 체중 증가 (IOM 2009) */
 { const PW = await import('../engine/pregweight.mjs');
   ok(PW.pwCat(18.4).key === 'under' && PW.pwCat(18.5).key === 'normal' && PW.pwCat(24.9).key === 'normal' && PW.pwCat(25).key === 'over' && PW.pwCat(29.9).key === 'over' && PW.pwCat(30).key === 'obese', 'BMI 구간 WHO 18.5·25·30');

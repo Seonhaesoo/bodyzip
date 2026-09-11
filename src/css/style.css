@@ -204,7 +204,7 @@ textarea.copybox { resize: vertical; min-height: 120px; }
 /* 푸터 */
 .foot { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); }
 .frow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--faint); }
-.frow nav { display: flex; gap: 14px; }
+.frow nav { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 .frow nav a { color: var(--muted); }
 .fnote { margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--ghost); }
 
@@ -301,3 +301,22 @@ body.bare { background: transparent; }
 .lnk { border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--muted); text-decoration: underline; cursor: pointer; }
 .lnk:hover { color: var(--green); }
 .live-foot .lnk { font-weight: 700; }
+
+/* 명절 접시 담기 (/food/chuseok/) */
+.plate-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
+.plate-presets button { border: 1px solid var(--green-soft); background: var(--green-tint); color: var(--green-deep); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.plate-presets button:hover { border-color: var(--green); }
+.plate-grp { margin-top: 12px; }
+.plate-grp h3 { font-family: var(--sans); font-size: 12px; font-weight: 700; color: var(--faint); padding-bottom: 3px; border-bottom: 1px solid var(--line); }
+.plate-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line-soft); }
+.plate-row .pn { display: flex; flex-direction: column; min-width: 0; font-size: 14px; line-height: 1.35; }
+.plate-row .pn a { color: var(--ink); }
+.plate-row .pn small { font-size: 11.5px; color: var(--faint); }
+.plate-row .pq { display: flex; align-items: center; gap: 6px; flex: none; }
+.plate-row .pq button { width: 32px; height: 32px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--green); font-size: 18px; line-height: 1; cursor: pointer; }
+.plate-row .pq button:hover { border-color: var(--green); }
+.plate-row .pq b { min-width: 18px; text-align: center; font-family: var(--mono); font-size: 14px; color: var(--ghost); }
+.plate-row.on .pn a { color: var(--green-deep); font-weight: 700; }
+.plate-row.on .pq b { color: var(--green); }
+.plate-sum { position: sticky; bottom: 0; z-index: 2; background: var(--card); margin-top: 6px; padding: 4px 0 6px; border-top: 1px solid var(--line); }
+.plate-w { margin-top: 10px; max-width: 200px; }

@@ -26,6 +26,7 @@ export const OG = [
   { key: 'child', title: '아빠 175 엄마 162면\n아이 키는', sub: '중간 부모 키 공식 · 아들·딸 예상 키', kicker: '아이 키 예측' },
   { key: 'percentile', title: '우리 아기 몸무게\n또래 어디쯤', sub: '몸무게·키·머리둘레 백분위 · WHO·질병관리청 성장도표', kicker: '성장 백분위' },
   { key: 'bplog', title: '집에서 잰 혈압,\n7일 평균은 괜찮을까', sub: '아침·저녁 2번씩 기록 · 가정혈압 기준 135/85 · 기기에만 저장', kicker: '혈압 기록' },
+  { key: 'chuseok', title: '송편·전·갈비찜,\n추석 한 상은 몇 kcal', sub: '명절 음식 칼로리표 · 접시에 담아 합계 · 걷기 시간', kicker: '추석 음식 칼로리' },
   { key: 'pregweight', title: '임신 중 몸무게,\n얼마나 늘어야 할까', sub: '임신 전 BMI별 권장 증가 · 주차별 범위 · 쌍둥이 · IOM 2009', kicker: '임신 체중 증가' },
   { key: 'formula', title: '우리 아기 분유,\n한 번에 몇 ml', sub: '개월·몸무게로 1회량과 하루 총량 · 신생아부터 돌까지', kicker: '분유 수유량' },
   { key: 'kids', title: '우리 아이 키,\n또래 100명 중 몇 번째', sub: '만 3~18세 키·몸무게·BMI 백분위 · 학년별 평균 키 · 2017 성장도표', kicker: '아이 키 백분위' },

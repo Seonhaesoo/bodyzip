@@ -23,6 +23,7 @@ import * as FM from '../engine/formula.mjs';
 import { buildPregWeight } from './pages-pregweight.mjs';
 import * as PW from '../engine/pregweight.mjs';
 import { buildBpLog } from './pages-bplog.mjs';
+import { buildChuseok, CHUSEOK_SLUGS } from './pages-chuseok.mjs';
 import * as KD from '../engine/kids.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
@@ -295,7 +296,7 @@ ${hero({ label: `${f.name} (${f.serving})`, value: num(f.kcal), unit: 'kcal', su
 ${tiny ? '' : section('태우려면', '몸무게별 · 분', table(['운동', '50kg', '60kg', '70kg', '80kg'], burnRows))}
 ${ad()}
 ${same.length ? section(`다른 ${f.cat}`, 'kcal', chips(same.map((x) => ({ label: x.name.length > 9 ? x.name.slice(0, 9) + '…' : x.name, value: num(x.kcal), href: foodUrl(x.slug) })))) : ''}
-${section('이어서 계산하기', null, list([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }]))}
+${section('이어서 계산하기', null, list((CHUSEOK_SLUGS.has(f.slug) ? [{ href: '/food/chuseok/', title: '추석 음식 칼로리 한눈에', sub: '송편·전·갈비찜을 접시에 담아 한 상 합계' }] : []).concat([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }])))}
 <p class="note">${FOODS_ASOF} 기준 대략값입니다. 식당·브랜드·조리법·양에 따라 ±20% 이상 차이 날 수 있으니 정확한 값은 제품 영양성분표를 보세요. <a href="/method/">계산 기준 보기</a></p>`;
   write(url, shell({ url, title, desc, body, nav: 'food', scripts: ['/js/today.js'] }));
 }
@@ -307,6 +308,7 @@ ${crumb([['/', '홈'], [null, '음식 칼로리']])}
 <p class="meta">${FOODS.length}가지 · 1인분 기준 · 밥 공기 환산과 태우는 데 걸리는 시간</p>
 <form class="quick" data-quick="smart"><label>음식 이름으로 찾기</label><div class="quick-row"><div class="quick-in"><input type="text" placeholder="치킨, 라면, 아메리카노…" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint>예: 치킨 칼로리</div></form>
 ${lead('자주 먹는 음식의 칼로리를 1인분 기준으로 모았습니다. 숫자보다 "밥 몇 공기"와 "걸어서 몇 분"으로 보면 감이 옵니다. 치킨 한 마리는 밥 6공기가 넘고, 아메리카노는 거의 0입니다.')}
+${list([{ href: '/food/chuseok/', title: '추석 음식 칼로리', sub: '송편·전·갈비찜 한 상을 접시에 담아 합계와 걷기 시간까지' }])}
 ${FOOD_CATS.map((c) => { const items = FOODS.filter((f) => f.cat === c); return items.length ? section(c, null, table(['음식', '1인분', 'kcal', '밥 공기'], items.map((f) => ({ cells: [`<a href="${foodUrl(f.slug)}">${f.name}</a>`, f.serving, num(f.kcal), String(K.bowls(f.kcal))] })))) : ''; }).join('\n')}
 ${ad()}
 <p class="note">${FOODS_ASOF} 기준 대략값(식품의약품안전처 식품영양성분 DB·외식 영양성분 자료). 브랜드·조리법에 따라 다릅니다.</p>`;
@@ -548,7 +550,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">임신 20주 몸무게</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">혈압 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">추석 음식 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">임신 20주 몸무게</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">혈압 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -558,6 +560,7 @@ ${section('몸', null, `<div class="dict">
 </div>`)}
 ${section('먹고 태우기', null, `<div class="dict">
 <a href="/food/"><b>음식 칼로리 사전</b><span>치킨 한 마리 <span class="num">${num(FOODS.find((f) => f.slug === 'fried-chicken').kcal)}</span>kcal = 밥 ${K.bowls(1900)}공기 · ${FOODS.length}가지</span></a>
+<a href="/food/chuseok/"><b>추석 음식 칼로리</b><span>송편 5개 <span class="num">${num(FOODS.find((f) => f.slug === 'songpyeon').kcal)}</span>kcal · 모둠전 한 접시 ${num(FOODS.find((f) => f.slug === 'jeon-assorted').kcal)} · 한 상 담아 합계</span></a>
 <a href="/exercise/"><b>운동 소모 칼로리</b><span>달리기 30분 <span class="num">${num(K.burn(EX['running-8'].met, 60, 30))}</span>kcal · 걷기 ${num(K.burn(EX.walking.met, 60, 30))}kcal (60kg)</span></a>
 </div>`)}
 ${section('임신과 아기', null, `<div class="dict">
@@ -761,7 +764,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
