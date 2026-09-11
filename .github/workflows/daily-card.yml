@@ -84,15 +84,16 @@ jobs:
           done
           echo '배포 확인 실패 — 이전 카드로 게시될 수 있음'
 
+      # 게시 단계는 서로 독립 — 쓰레드가 끝내 실패해도 인스타는 게시한다(작업 결과는 실패로 남음). 일시 오류 재시도는 tools/meta-fetch.mjs
       - name: 쓰레드 게시
-        if: steps.gate.outputs.go == '1' && env.THREADS_ACCESS_TOKEN != ''
+        if: ${{ !cancelled() && steps.url.outcome == 'success' && env.THREADS_ACCESS_TOKEN != '' }}
         env:
           IMAGE_URL: ${{ steps.url.outputs.base }}/cards/latest.png
           IMAGE_VER: ${{ github.run_id }}
         run: node tools/publish.mjs threads
 
       - name: 인스타 스토리 게시
-        if: steps.gate.outputs.go == '1' && env.IG_ACCESS_TOKEN != ''
+        if: ${{ !cancelled() && steps.url.outcome == 'success' && env.IG_ACCESS_TOKEN != '' }}
         env:
           IMAGE_URL: ${{ steps.url.outputs.base }}/cards/latest.png
           IMAGE_VER: ${{ github.run_id }}

@@ -113,6 +113,24 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   ok(BL.slotOf(6) === 'am' && BL.slotOf(11) === 'am' && BL.slotOf(14) === 'etc' && BL.slotOf(22) === 'pm' && BL.slotOf(2) === 'pm', '시간대 나누기');
   ok(BL.bpValid(120, 80) && !BL.bpValid(80, 90) && !BL.bpValid(300, 80), '입력 범위');
 }
+/* 메타 API 일시 오류 재시도 (가짜 fetch · 기다리지 않음) */
+{ const MF = await import('./meta-fetch.mjs');
+  const res = (status, body) => ({ status, ok: status < 400, text: async () => (typeof body === 'string' ? body : JSON.stringify(body)) });
+  const run = async (seq) => {
+    let n = 0; const waits = [];
+    const out = await MF.metaPost('https://graph.test/v1.0/1/threads', { text: 'x' }, { waits: [20, 60, 120], sleep: async (s) => { waits.push(s); }, fetch: async () => { const s = seq[Math.min(n++, seq.length - 1)]; if (s === 'net') throw new Error('fetch failed'); return s; } });
+    return { out, n, waits };
+  };
+  const T = res(500, { error: { message: 'An unexpected error has occurred.', type: 'OAuthException', is_transient: true, code: 2 } }), OK = res(200, { id: '123' });
+  { const r = await run([T, T, OK]); ok(r.out.id === '123' && r.n === 3 && r.waits.join() === '20,60', '일시 오류 2번 → 20초·60초 기다려 3번째에 성공', JSON.stringify(r)); }
+  { const r = await run([res(400, { error: { message: 'Session has expired', code: 190 } }), OK]); ok(r.out.error && r.out.error.code === 190 && r.n === 1 && !r.waits.length, '토큰 만료(190)는 기다리지 않고 바로 실패'); }
+  { const r = await run([res(400, { error: { message: 'Invalid parameter', code: 100 } }), OK]); ok(r.out.error && r.n === 1, '잘못된 값(100)도 바로 실패'); }
+  { const r = await run(['net', OK]); ok(r.out.id === '123' && r.n === 2, '네트워크 끊김은 다시 시도'); }
+  { const r = await run([T]); ok(r.out.error && r.n === 4 && r.waits.join() === '20,60,120', '끝까지 일시 오류면 4번 시도 뒤 마지막 오류', JSON.stringify(r.waits)); }
+  { const r = await run([res(502, '<html>Bad Gateway</html>'), OK]); ok(r.out.id === '123' && r.n === 2, 'JSON 아닌 502 응답도 다시 시도'); }
+  { const r = await run([res(400, { error: { message: 'Media ID is not available', code: 9007, error_subcode: 2207027 } }), OK]); ok(r.out.id === '123' && r.n === 2, '미디어 처리 중(9007)은 기다렸다 게시'); }
+  { let msg = ''; try { await run(['net']); } catch (e) { msg = e.message; } ok(msg === 'fetch failed', '네트워크가 끝까지 안 되면 예외'); }
+}
 /* 추석 음식 칼로리 (접시 · 한 상 예시 · 새 음식) */
 { const CH = await import('./pages-chuseok.mjs');
   ok(CH.ITEMS.length >= 30 && CH.ITEMS.every((it) => it.kcal > 0), '추석 접시 음식 전부 칼로리 있음', CH.ITEMS.length);
