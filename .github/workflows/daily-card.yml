@@ -24,7 +24,7 @@ jobs:
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: 키 확인 — 없으면 이번 회차 건너뜀
         id: gate
@@ -38,10 +38,10 @@ jobs:
             echo "게시 키가 없어 건너뜁니다. 저장소 Settings › Secrets 에 THREADS_USER_ID / THREADS_ACCESS_TOKEN (사주첩과 같은 값) 을 넣으면 다음 아침부터 자동 게시됩니다."
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.go == '1'
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Playwright 설치
         if: steps.gate.outputs.go == '1'
