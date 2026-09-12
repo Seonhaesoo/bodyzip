@@ -130,6 +130,7 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   { const r = await run([res(502, '<html>Bad Gateway</html>'), OK]); ok(r.out.id === '123' && r.n === 2, 'JSON 아닌 502 응답도 다시 시도'); }
   { const r = await run([res(400, { error: { message: 'Media ID is not available', code: 9007, error_subcode: 2207027 } }), OK]); ok(r.out.id === '123' && r.n === 2, '미디어 처리 중(9007)은 기다렸다 게시'); }
   { let msg = ''; try { await run(['net']); } catch (e) { msg = e.message; } ok(msg === 'fetch failed', '네트워크가 끝까지 안 되면 예외'); }
+  { const r = await run([res(500, { error: { message: 'Param text must be at most 500 characters long.', type: 'THApiException', code: 100 } }), OK]); ok(r.out.error && r.n === 1 && !r.waits.length, 'HTTP 500이어도 잘못된 값(100)은 다시 시도하지 않음'); }
 }
 /* 추석 음식 칼로리 (접시 · 한 상 예시 · 새 음식) */
 { const CH = await import('./pages-chuseok.mjs');

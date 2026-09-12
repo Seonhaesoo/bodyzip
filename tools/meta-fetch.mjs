@@ -7,15 +7,18 @@
 
 export const RETRY_WAITS = (process.env.META_RETRY_WAITS || '20,60,120').split(',').map(Number);
 const TRANSIENT_CODES = new Set([1, 2, 4, 17, 32, 341, 613, 9007]);
+const PERMANENT_CODES = new Set([10, 100, 190, 200]);
 const sleepSec = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
-/* HTTP 코드와 응답 JSON 으로 일시 오류인지 가린다 */
+/* HTTP 코드와 응답 JSON 으로 일시 오류인지 가린다.
+ * 잘못된 값·토큰·권한 오류는 HTTP 500 으로 와도 기다려서 풀리지 않는다 — 쓰레드는 500자 초과를 HTTP 500 + 코드 100 으로
+ * 돌려줘서 2026-09-12 참여형 글이 헛되이 세 번 다시 시도했다. */
 export function isTransient(status, body) {
+  const e = body && typeof body.error === 'object' ? body.error : null;
+  if (e && (e.is_transient === true || Number(e.error_subcode) === 2207027)) return true;
+  if (e && PERMANENT_CODES.has(Number(e.code))) return false;
   if (status >= 500 || status === 429) return true;
-  const e = body && body.error;
-  if (!e || typeof e !== 'object') return false;
-  if (e.is_transient === true) return true;
-  return TRANSIENT_CODES.has(Number(e.code)) || Number(e.error_subcode) === 2207027;
+  return !!e && TRANSIENT_CODES.has(Number(e.code));
 }
 
 /* fn() 을 부르고 retryable(결과)가 참이면 기다렸다 다시 부른다. 예외(네트워크)는 늘 다시 시도.

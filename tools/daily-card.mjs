@@ -20,7 +20,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 export function cardHtml(f) {
   const bigSize = f.big.length > 9 ? 120 : f.big.length > 6 ? 150 : 190;
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
