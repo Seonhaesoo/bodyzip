@@ -130,7 +130,8 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: `/pet/${kind}-food/`, title: `${kindName(kind)} 사료량`, sub: '몸무게별' }, { href: `/pet/${kind}-age/`, title: `${kindName(kind)} 나이 환산`, sub: '사람 나이로' }, { href: '/baby/', title: '아기 예방접종 일정', sub: '사람 아기는 이쪽' }]))}
 <p class="note">국내 동물병원에서 흔히 쓰는 일정을 정리한 참고 자료입니다. 백신 종류·간격은 병원과 지역, 동물의 건강 상태에 따라 다르며 수의사의 판단이 우선합니다.</p>`;
-      write(url, shell({ url, title, desc, body, nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'] }));
+      /* 생일별 접종 페이지(강아지·고양이 732장)는 날짜만 다른 부가 페이지라 검색에서 뺀다(2026-09-13) — 허브 /pet/*-vaccine/ 는 색인 */
+      write(url, shell({ url, title, desc, body, nav: 'pet', noindex: true, scripts: ['/js/engine.js', '/js/live.js'] }));
     }
     const byMonth = {};
     for (const dt of dates) { const k = `${dt.getUTCFullYear()}년 ${dt.getUTCMonth() + 1}월`; (byMonth[k] = byMonth[k] || []).push(dt); }

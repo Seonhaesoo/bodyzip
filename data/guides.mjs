@@ -1,4 +1,7 @@
 import { GUIDES_MORE } from './guides2.mjs';
+import { GUIDES_EXTRA as GUIDES_A } from './guides-extra-a.mjs';
+import { GUIDES_EXTRA as GUIDES_B } from './guides-extra-b.mjs';
+import { GUIDES_EXTRA as GUIDES_C } from './guides-extra-c.mjs';
 /* 서재 — 계산 뒤의 규칙을 풀어 쓴 글. body 는 HTML 조각 */
 export const GUIDES = [
   { slug: 'baby-food', title: '이유식 언제 시작하나 — 단계별 시기와 알레르기 재료 순서', desc: '이유식 시작 신호와 시기(4~6개월), 초기·중기·후기·완료기 단계별 형태와 횟수, 소고기·달걀·생선 같은 알레르기 재료를 넣는 순서를 정리했습니다.', body: `
@@ -66,13 +69,13 @@ export const GUIDES = [
 <h2>왜 생리일 기준인가</h2>
 <p>배란일은 정확히 알기 어렵지만 마지막 생리 시작일은 대부분 기억합니다. 그래서 전 세계 산과가 생리일 기준(월경령)을 씁니다. 수정일 기준(수태령)보다 항상 2주 큽니다.</p>
 <h2>출산예정일</h2>
-<p>마지막 생리 시작일 + 280일(40주). 3월 5일이 마지막 생리였다면 12월 10일입니다. 네겔레 법칙(−3개월 +7일)으로 세면 12월 12일로, 달 길이 때문에 하루 이틀 차이가 납니다. 생리주기가 28일이 아니면 차이만큼 조정합니다(35일 주기면 7일 뒤로). 8~12주 초음파에서 아기 머리엉덩길이(CRL)로 잰 주수가 생리일 기준과 5일 이상 다르면 초음파 예정일로 바꿉니다. 이후에는 예정일을 바꾸지 않습니다.</p>
+<p>마지막 생리 시작일 + 280일(40주). 3월 5일이 마지막 생리였다면 12월 10일입니다. 네겔레 법칙(−3개월 +7일)으로 세면 12월 12일로, 달 길이 때문에 하루 이틀 차이가 납니다. 생리주기가 28일이 아니면 차이만큼 조정합니다(35일 주기면 7일 뒤로). 첫 초음파에서 아기 머리엉덩길이(CRL)로 잰 주수가 생리일 기준보다 8주 6일까지는 5일, 9~13주에는 7일을 넘게 다르면 초음파 예정일로 바꿉니다(미국산부인과학회). 그 뒤에는 예정일을 거의 바꾸지 않습니다.</p>
 <h2>분기</h2>
-<p>1분기 0~13주(기관 형성, 입덧), 2분기 14~27주(가장 편한 시기, 정밀 초음파·임당 검사), 3분기 28주~출산. 37주부터 만삭, 42주를 넘기면 과숙입니다. 실제로 예정일 당일에 태어나는 아기는 5%뿐이고 80%는 예정일 앞뒤 2주 안에 태어납니다.</p>
+<p>1분기 0~13주(기관 형성, 입덧), 2분기 14~27주(가장 편한 시기, 정밀 초음파·임당 검사), 3분기 28주~출산. 37주부터 만삭, 42주를 넘기면 과숙입니다. 실제로 예정일 당일에 태어나는 아기는 5% 정도이고, 자연 진통으로 낳은 경우 약 3분의 2가 예정일 앞뒤 1주 안에 태어납니다.</p>
 <h2>주수를 세는 두 가지 방식</h2>
 <p>병원에서 말하는 "임신 N주"는 마지막 생리 시작일 기준(월경령)입니다. 인터넷에서 가끔 보이는 "수정 후 N주"(수태령)는 여기서 2주를 뺀 값이라 늘 헷갈립니다. <b>산부인과와 대화할 때는 항상 월경령</b>을 씁니다.</p>
 <h2>초음파로 예정일이 바뀌는 이유</h2>
-<p>초기 태아는 개인차가 작아 머리엉덩길이(CRL)로 잰 주수가 꽤 정확합니다. 그래서 8~12주 초음파 주수가 생리일 기준과 5일 이상 차이 나면 초음파 쪽으로 예정일을 바꿉니다. 반대로 후기에는 태아 크기 차이가 커져 예정일을 다시 바꾸지 않습니다.</p>
+<p>초기 태아는 개인차가 작아 머리엉덩길이(CRL)로 잰 주수가 꽤 정확합니다. 그래서 첫 초음파 주수가 생리일 기준과 크게 차이 나면(8주 6일까지 5일, 9~13주 7일 초과) 초음파 쪽으로 예정일을 바꿉니다. 기준표와 계산 예시는 <a href="/guide/due-date-change/">출산예정일이 바뀌는 이유</a>에 있습니다. 반대로 후기에는 태아 크기 차이가 커져 예정일을 다시 바꾸지 않습니다.</p>
 <h2>예정일이 지나면</h2>
 <p>예정일에 태어나는 아기는 5% 정도이고 80%는 앞뒤 2주 안에 태어납니다. 41주가 넘어가면 태동 검사와 양수량 확인을 자주 하며, 42주를 넘기지 않도록 유도분만을 상의합니다.</p>
 <p><a href="/due-date/">출산예정일 계산기</a>에 마지막 생리일을 넣으면 오늘 몇 주인지와 검사 일정이, <a href="/pregnancy/week/20/">주차별 안내</a>에 아기 크기와 엄마 몸의 변화가 나옵니다.</p>` },
@@ -134,4 +137,16 @@ export const GUIDES = [
 <h2>주의</h2>
 <p>공식은 평균값입니다. 공복·빠른 속도·체지방이 많으면 농도가 더 높고, 실제 단속은 호흡측정으로 하며 사람마다 편차가 큽니다. 계산상 0이라도 술이 남은 느낌이 있으면 운전하지 마세요. <a href="/alcohol/">혈중알코올농도 계산기</a>는 참고용이며 음주운전 가능 여부를 보증하지 않습니다.</p>` },
 ];
-GUIDES.push(...GUIDES_MORE);
+/* 갈래 — 서재 목록의 묶음 제목. 추가 글(2026-09-13, guides-extra-a·b·c)은 글마다 cat·published·links 를 가진다 */
+export const GUIDE_CATS = { body: '체중·대사·운동', checkup: '건강검진 수치', life: '생활 습관', baby: '임신·육아·아이 성장', pet: '반려동물' };
+const CAT_OF = {
+  body: ['bmi-korea', 'bmr-diet', 'bodyfat-tape', 'calorie-burn', 'water-intake', 'diet-plateau', 'protein-muscle', 'walk-vs-run', 'alcohol-weight', 'quit-weight'],
+  checkup: ['checkup-read', 'blood-pressure-home', 'prediabetes', 'cholesterol-four', 'liver-numbers', 'uric-gout'],
+  life: ['sleep-cycle', 'alcohol-bac'],
+  baby: ['baby-food', 'pregnancy-weeks', 'baby-vaccines', 'child-height', 'pregnancy-food', 'baby-sleep'],
+  pet: ['dog-weight', 'senior-pet'],
+};
+for (const g of GUIDES) g.published ||= '2026-09-08';
+for (const g of GUIDES_MORE) g.published ||= '2026-09-09';
+GUIDES.push(...GUIDES_MORE, ...GUIDES_A, ...GUIDES_B, ...GUIDES_C);
+for (const g of GUIDES) g.cat ||= Object.keys(CAT_OF).find((k) => CAT_OF[k].includes(g.slug));

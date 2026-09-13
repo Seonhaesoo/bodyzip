@@ -9,7 +9,7 @@ import { FOODS } from '../data/foods.mjs';
 import { EXERCISES } from '../data/exercises.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
-import { GUIDES } from '../data/guides.mjs';
+import { GUIDES, GUIDE_CATS } from '../data/guides.mjs';
 
 export const STEPS = []; for (let s = 1000; s <= 30000; s += 1000) STEPS.push(s);
 export const WAKES = []; for (let m = 5 * 60; m <= 10 * 60; m += 30) WAKES.push(m);
@@ -33,24 +33,27 @@ export function buildExtra(ctx) {
   /* ---------- 서재 ---------- */
   for (const g of GUIDES) {
     const url = `/guide/${g.slug}/`;
-    const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4);
+    /* 같은 갈래 글을 먼저, 모자라면 다른 갈래로 */
+    const others = GUIDES.filter((x) => x.slug !== g.slug && x.cat === g.cat).concat(GUIDES.filter((x) => x.cat !== g.cat)).slice(0, 4);
     const chars = g.body.replace(/<[^>]+>/g, '').length;
     const body = `
 ${crumb([['/guide/', '서재'], [null, g.title.split(' — ')[0]]])}
 <h1 class="title">${g.title}</h1>
-<p class="meta">읽는 시간 약 ${Math.max(1, Math.round(chars / 500))}분 · 갱신 ${D.iso(TODAY)}</p>
+<p class="meta">${GUIDE_CATS[g.cat]} · 읽는 시간 약 ${Math.max(1, Math.round(chars / 500))}분 · 갱신 ${D.iso(TODAY)}</p>
 <div class="doc">${g.body}</div>
+${g.links && g.links.length ? section('계산해 보기', null, list(g.links.map((k) => ({ href: k.href, title: k.title })))) : ''}
 ${ad()}
 ${section('다른 글', null, list(others.map((o) => ({ href: `/guide/${o.slug}/`, title: o.title.split(' — ')[0], sub: o.desc.length > 60 ? o.desc.slice(0, 60) + '…' : o.desc }))))}
 <p class="note">이 글은 공개된 학회 기준과 공식을 풀어 쓴 일반 정보이며, 개인의 상태에 따라 맞지 않을 수 있습니다. 의학적 진단·치료·처방을 대신하지 않으므로 증상이 있거나 결과가 걱정되면 의료기관에서 상담하세요. 반려동물에 관한 내용은 수의사의 판단이 우선합니다.</p>`;
-    write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
+    write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', datePublished: g.published, dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
   }
-  write('/guide/', shell({ url: '/guide/', title: '서재 — 검진 수치·다이어트·임신·육아·반려동물을 풀어 쓴 글', desc: '건강검진 결과지 읽는 법, 혈압·혈당·콜레스테롤·간수치·요산 해석, BMI 한국 기준, 기초대사량과 다이어트 정체기, 임신 주수와 금기 음식, 아기 수면과 이유식, 강아지·고양이 체형과 노령 관리까지 26편.', nav: 'guide', body: `
+  const guideItem = (g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 70 ? g.desc.slice(0, 70) + '…' : g.desc });
+  write('/guide/', shell({ url: '/guide/', title: '서재 — 검진 수치·다이어트·운동·임신·육아·반려동물을 풀어 쓴 글', desc: `건강검진 결과지와 혈압·혈당·당화혈색소·중성지방 읽는 법, BMI 한국 기준과 허리둘레, 기초대사량과 근육, 걸음 수와 운동 강도, 카페인·나트륨, 출산예정일·배란일, 성장 백분위와 사춘기, 반려동물 체형까지 ${GUIDES.length}편.`, nav: 'guide', body: `
 ${crumb([['/', '홈'], [null, '서재']])}
 <h1 class="title">서재</h1>
-<p class="meta">계산기 뒤에 있는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편 · 검진 · 다이어트 · 임신 · 육아 · 반려동물</p>
+<p class="meta">계산기 뒤에 있는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편 · ${Object.values(GUIDE_CATS).join(' · ')}</p>
 ${lead('"검진 결과지의 이 숫자는 무슨 뜻인가", "왜 한국은 BMI 23부터 과체중인가", "기초대사량보다 적게 먹으면 왜 안 빠지나" 같은, 숫자만 봐서는 풀리지 않는 질문을 하나씩 정리했습니다. 학회와 공공기관이 공개한 기준을 바탕으로 쓰고, 각 글 끝에 관련 계산기를 연결해 두었습니다.')}
-${section('글', null, list(GUIDES.map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 70 ? g.desc.slice(0, 70) + '…' : g.desc }))))}
+${Object.entries(GUIDE_CATS).map(([k, label]) => { const gs = GUIDES.filter((g) => g.cat === k); return gs.length ? section(label, `${gs.length}편`, list(gs.map(guideItem))) : ''; }).join('\n')}
 ${ad()}` }));
 
   /* ---------- 임신 주차 ---------- */
@@ -261,7 +264,8 @@ ${section('유전 말고 키를 좌우하는 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: '/guide/child-height/', title: '우리 아이 키 예측 — 공식과 한계', sub: '서재' }, { href: '/baby/month/', title: '아기 개월별 평균 키·몸무게', sub: '0~36개월' }, { href: '/bmi/', title: '부모 BMI', sub: '키·몸무게별' }]))}
 <p class="note">Tanner 중간 부모 키 공식(1970)입니다. 예측값은 통계적 평균이며 실제 키는 영양·수면·질병·사춘기 시기에 따라 달라집니다. 정확한 예측은 손목 X선 뼈 나이 검사로 합니다.</p>`;
-    write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
+    /* 아빠×엄마 806 조합은 허브의 조합표와 겹쳐 검색에서 뺀다(2026-09-13) — 허브 /child-height/ 는 색인 */
+    write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', noindex: true, scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
   }
   write('/child-height/', shell({ og: 'child', url: '/child-height/', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나오고 결과 카드로 저장·공유할 수 있습니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'], body: `
 ${crumb([['/', '홈'], [null, '아이 키 예측']])}

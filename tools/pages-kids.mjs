@@ -66,7 +66,8 @@ ${section('이어서', null, list([
   { href: '/child-height/', title: '부모 키로 예상 키', sub: '아빠·엄마 키로 어른 키' },
 ].filter(Boolean)))}
 ${NOTE}`;
-      write(url, shell({ og: 'kids', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+      /* 키별 1,038장은 나이별 백분위표와 겹쳐 검색에서 뺀다(2026-09-13) — 나이별·학년별·허브는 색인 */
+      write(url, shell({ og: 'kids', url, title, desc, body, nav: 'baby', noindex: true, scripts: ['/js/engine.js', '/js/live.js'] }));
     }
   }
 

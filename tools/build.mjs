@@ -47,6 +47,7 @@ const YEAR = TODAY.getUTCFullYear();
 const BUILD_ISO = D.iso(TODAY);
 const t0 = Date.now();
 const urls = [];
+const NOINDEX = new Set();   /* shell({ noindex }) 로 쓴 주소 — 사이트맵에서 뺀다 */
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const n = (v, unit = '') => `<span class="num">${typeof v === 'number' ? num(v) : v}${unit}</span>`;
@@ -62,6 +63,7 @@ function write(url, html) {
 }
 
 function shell(o) {
+  if (o.noindex) NOINDEX.add(o.url);
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
   const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
@@ -169,7 +171,8 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>건강검진 결과표의 판정</b>도 같은 기준입니다. "비만 전단계"는 병이 아니라 관리 구간이라는 뜻이고, 5%만 감량해도(${w}kg이면 ${k1(w * 0.05)}kg) 혈압·혈당이 눈에 띄게 좋아진다는 연구가 많습니다.</p>
 </div>`)}
 ${NOTE_BMI}`;
-  write(url, shell({ url, title, desc, body, nav: 'bmi' }));
+  /* 키×몸무게 조합 4,941장은 키별 페이지의 몸무게별 표와 겹쳐 검색에서 뺀다(애드센스 '가치가 별로 없는 콘텐츠' 대비, 2026-09-13) — 키별 /bmi/{h}/ 는 색인 */
+  write(url, shell({ url, title, desc, body, nav: 'bmi', noindex: true }));
 }
 
 function heightPage(h) {
@@ -423,7 +426,8 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 ${section('날짜가 바뀌면', '출산예정일', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const pp = D.pregnancy(lmpYears(mm, dd).recent); return { label: `${mm}/${dd}`, value: `${pp.due.getUTCMonth() + 1}/${pp.due.getUTCDate()}`, href: dueUrl(mm, dd), on: k === 0 }; })))}
 ${section('이어서', null, list([{ href: `/pregnancy/card/?lmp=${D.iso(recent)}`, title: '임신 디데이 카드 만들기', sub: `D-${Math.max(0, D.diffDays(TODAY, p.due))} · 카톡·인스타에 올릴 이미지` }, { href: `/pregnancy/week/${Math.min(42, Math.max(1, w.weeks || 1))}/`, title: `임신 ${Math.min(42, Math.max(1, w.weeks || 1))}주 안내`, sub: '아기 크기 · 엄마 몸 · 검사' }, { href: ovUrl(m, d), title: `${m}월 ${d}일 시작 배란일·가임기`, sub: '임신 준비 중이라면' }, { href: '/baby/', title: '아기 개월수·예방접종 일정', sub: '태어난 뒤' }, { href: `${SISTERS.saju}/`, title: '출산 택일 (사주첩)', sub: '자매 사이트' }]))}
 <p class="note">네겔레 법칙(마지막 생리 시작일 + 280일)에 따른 계산이며 생리주기 28일·배란 14일째를 가정합니다. 진단이 아니므로 병원 초음파 예정일을 기준으로 하세요.</p>`;
-  write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
+  /* 날짜별 366장은 날짜만 다른 부가 페이지라 검색에서 뺀다(2026-09-13) — 허브 /due-date/ 는 색인 */
+  write(url, shell({ url, title, desc, body, nav: 'preg', noindex: true, scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 function dueIndex() {
   const grid12 = [];
@@ -470,7 +474,8 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 ${section('날짜가 바뀌면', '배란일 (28일)', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const cc = D.cycle(lmpYears(mm, dd, 'cycle').recent, 28); return { label: `${mm}/${dd}`, value: `${cc.ovulation.getUTCMonth() + 1}/${cc.ovulation.getUTCDate()}`, href: ovUrl(mm, dd), on: k === 0 }; })))}
 ${section('이어서', null, list([{ href: dueUrl(m, d), title: `${m}월 ${d}일 시작 출산예정일`, sub: '임신했다면' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '임신 준비 체중 관리' }]))}
 <p class="note">평균 주기와 황체기 14일을 가정한 추정입니다. 다낭성난소증후군 등으로 주기가 불규칙하면 맞지 않을 수 있습니다.</p>`;
-  write(url, shell({ url, title, desc, body, nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'] }));
+  /* 날짜별 366장 — 검색 제외(2026-09-13), 허브 /ovulation/ 은 색인 */
+  write(url, shell({ url, title, desc, body, nav: 'preg', noindex: true, scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 function ovIndex() {
   const grid12 = [];
@@ -524,7 +529,8 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${section('이어서', null, list([{ href: `/baby/card/?birth=${D.iso(birth)}`, title: '100일·돌 카드 만들기', sub: `오늘 D+${age.totalDays + 1} · 카톡·인스타용 이미지` }, { href: `/baby/percentile/boy/${Math.min(36, age.months)}/`, title: `${age.months}개월 성장 백분위`, sub: '몸무게·키·머리둘레가 또래 어디쯤' }, { href: `/baby/month/${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 21, 24, 30, 36].reduce((a, x) => age.months >= x ? x : a, 0)}/`, title: '이 시기 발달·돌봄', sub: '할 수 있는 것 · 수유 · 수면' }, { href: `/baby/formula/${Math.min(12, age.months)}/`, title: age.months === 0 ? '신생아 분유량' : age.months <= 12 ? `${age.months}개월 분유량` : '돌 이후 우유량', sub: '1회량 · 하루 횟수' }, { href: '/bmi/', title: '엄마·아빠 BMI', sub: '키·몸무게별 정상 체중' }, { href: `${SISTERS.saju}/`, title: '아기 사주 (사주첩)', sub: '태어난 시각까지 넣으면' }]))}
 <p class="note">질병관리청 「표준 예방접종 일정표」를 바탕으로 한 안내이며, 아기의 건강 상태에 따라 소아과에서 일정을 조정합니다.</p>`;
-  write(url, shell({ url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+  /* 생년월일별 1,096장 — 검색 제외(2026-09-13), 허브 /baby/ 는 색인 */
+  write(url, shell({ url, title, desc, body, nav: 'baby', noindex: true, scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 function babyIndex(dates) {
   const byMonth = {};
@@ -605,7 +611,13 @@ ${section('생활', null, `<div class="dict">
 </div>`)}
 ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => { const rr = B.normalRange(h); return { href: bmiUrl(h), title: `키 ${h}cm 정상 체중`, sub: `표준체중 남 ${B.standardWeight(h, 'm')} · 여 ${B.standardWeight(h, 'f')}kg`, value: `${rr.min}~${rr.max}kg` }; })))}
 ${ad()}
-${section('기준', null, `<div class="callout"><b>대한비만학회 비만 진료지침 2022</b>(BMI 구간), Mifflin-St Jeor 식(기초대사량), 미 해군 공식(체지방률), Compendium of Physical Activities(운동 MET), 식약처 식품영양성분 DB(칼로리), 질병관리청 표준 예방접종 일정. 모두 참고용이며 진단·치료를 대신하지 않습니다.</div>`)}`;
+${section('바디집은 이렇게 계산해요', null, `<div class="doc">
+<p>숫자는 모두 공개된 기준과 공식으로 직접 계산합니다. BMI 판정은 대한비만학회 「비만 진료지침 2022」, 기초대사량은 Mifflin-St Jeor 식, 음식 칼로리는 식품의약품안전처 식품영양성분 DB, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값을 씁니다. 혈압·혈당·콜레스테롤은 대한고혈압학회·대한당뇨병학회·한국지질동맥경화학회 진료지침으로, 아이 성장은 질병관리청 「2017 소아청소년 성장도표」와 WHO 성장 표준으로 판정합니다.</p>
+<p>표와 계산기는 같은 계산 엔진에서 나옵니다. 배포할 때마다 자동 테스트로 공식이 기준 사례와 같은 값을 내는지 확인하고, 성장도표 값은 국민건강보험공단 공공데이터와, 명절 음식 칼로리는 식약처 식품영양성분 검색값과 대조했습니다. 기준이 개정되면 모든 페이지를 한 번에 다시 계산하고, 날짜가 들어가는 표는 매일 오늘 기준으로 새로 만듭니다.</p>
+<p>결과는 참고용입니다. 같은 BMI라도 근육량에 따라, 같은 검진 수치라도 나이와 병력에 따라 뜻이 달라집니다. 진단이나 치료가 필요한 결정은 의료진과 상의하세요.</p>
+<p><a href="/method/">계산 기준과 출처</a> · <a href="/guide/">서재 — 숫자 뒤의 기준</a> · <a href="/about/">바디집 소개</a></p>
+</div>`)}
+${section('처음이라면 읽어 볼 글', '숫자 뒤의 기준을 풀어 쓴 서재 글', list(['bmi-korea', 'waist-belly', 'checkup-read', 'bmr-diet', 'growth-percentile', 'due-date-change'].map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 60 ? g.desc.slice(0, 60) + '…' : g.desc }))) + `<p class="sub" style="margin-top:8px"><a href="/guide/">서재 전체 보기 →</a></p>`)}`;
   write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
 }
 
@@ -662,7 +674,7 @@ ${crumb([['/', '홈'], [null, '체중 기록']])}
 ${lead('몸무게는 하루에도 1kg 넘게 오르내립니다. 아침 화장실을 다녀온 뒤 같은 옷차림으로 재고, 하루하루가 아니라 주 단위 흐름을 보세요. 기록이 쌓이면 목표까지 얼마나 걸릴지 추세로 계산해 드립니다.')}
 ${section('재는 법', null, `<div class="doc">
 <p><b>아침 공복이 가장 안정적입니다.</b> 자고 일어나 소변을 본 뒤, 식사 전에 재세요. 저녁에 재면 낮에 먹고 마신 무게가 1~2kg 더해집니다.</p>
-<p><b>여성은 생리 주기에 따라 1~2kg 늘었다 줄어듭니다.</b> 생리 전 부종은 체지방이 아니라 수분입니다.</p>
+<p><b>여성은 생리 주기에 따라 몸무게가 늘었다 줄어듭니다.</b> 평균 0.5kg 안팎이고 붓기가 심하면 1~2kg까지 오갑니다. 생리 전후의 부종은 체지방이 아니라 수분입니다.</p>
 <p><b>주 0.5~1kg이 안전한 속도입니다.</b> 그보다 빠르면 근육이 함께 빠집니다.</p>
 </div>`)}
 ${ad()}
@@ -732,11 +744,37 @@ function docs() {
 <h2>혈압 기록</h2><p>집에서 잰 혈압은 이 브라우저(localStorage)에만 저장하고 서버로 보내지 않습니다. 최근 7일 안의 측정값을 모두 산술평균해 대한고혈압학회의 가정혈압 고혈압 기준(135/85mmHg, 수축기나 이완기 중 하나라도 이상)과 비교하고, 시각으로 아침(4~12시)·저녁(18~4시)을 나눠 따로 평균을 냅니다. 잰 날이 5일이 안 되면 더 모으라고 안내합니다. 한 번 잰 값은 180/120 이상이면 매우 높음(혈압 수치표의 위기 기준과 같음), 135/85 이상 높음, 90/60 미만 낮음으로 표시합니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
 <h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
-  doc('/about/', '소개 — 바디집', '바디집은 몸에 관한 숫자를 미리 계산해 표로 묶어 둔 계산 사전입니다.', `
-<p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65면 정상인가?", "치킨 한 마리는 밥 몇 공기?", "출산예정일이 언제?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록 미리 계산해 둔 사전입니다. 회원 가입도, 입력값 저장도 없습니다.</p>
-<p>모든 계산은 공개된 의학 기준과 공식(대한비만학회, Mifflin-St Jeor, 미 해군 체지방 공식, Compendium of Physical Activities, 식약처 영양성분 DB, 질병관리청 예방접종 일정)으로만 하며 <a href="/method/">계산 기준</a>에 출처를 적어 두었습니다. 기준이 바뀌면 갱신합니다.</p>
-<p>바디집은 <a href="${SISTERS.donpyo}/">돈표</a>(돈 계산 사전)와 <a href="${SISTERS.saju}/">사주첩</a>을 만든 팀이 운영합니다.</p>
-<h2>문의</h2><p>오류 제보와 기준 갱신 요청은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요.</p>`);
+  doc('/about/', '바디집 소개 — 계산 근거와 검증, 갱신 방식', '바디집이 BMI·칼로리·검진 수치·아이 성장을 무엇을 근거로 계산하고 어떻게 검증·갱신하는지, 한계와 개인정보, 문의 방법을 정리했습니다.', `
+<p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65kg이면 정상인가?", "치킨 한 마리는 밥 몇 공기인가?", "공복혈당 110이면 괜찮은가?", "우리 아이 키는 또래 몇 번째인가?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록, 공개된 기준으로 미리 계산해 표와 계산기로 묶었습니다. 회원 가입도, 입력값 저장도 없습니다.</p>
+<h2>무엇을 근거로 계산하나요</h2>
+<ul>
+<li><b>체중과 대사</b> — BMI 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준, 기초대사량은 Mifflin-St Jeor 식, 체지방률은 미 해군 공식, 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」입니다.</li>
+<li><b>먹고 움직이기</b> — 음식 칼로리는 식품의약품안전처 식품영양성분 DB를 1인분으로 환산한 값, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값, 카페인 권고량은 식약처 기준입니다.</li>
+<li><b>건강검진 수치</b> — 혈압은 대한고혈압학회 「2022 고혈압 진료지침」, 혈당은 대한당뇨병학회 「2023 당뇨병 진료지침」, 콜레스테롤·중성지방은 한국지질동맥경화학회 「2022 이상지질혈증 진료지침」으로 판정합니다.</li>
+<li><b>임신과 아이</b> — 출산예정일은 네겔레 법칙, 예방접종은 질병관리청 표준 예방접종 일정, 성장 백분위는 WHO 성장 표준과 질병관리청 「2017 소아청소년 성장도표」, 분유량은 미국소아과학회(AAP)와 미국 질병통제예방센터(CDC) 안내, 임신 중 체중 증가는 미국 국립의학원(IOM) 2009 권고입니다.</li>
+<li><b>반려동물</b> — 나이 환산은 미국수의사회(AVMA) 지침, 사료량은 휴식 에너지 요구량(RER) 공식과 세계소동물수의사회(WSAVA) 계수입니다.</li>
+</ul>
+<p>공식과 기준의 원문 이름, 반영하지 않은 예외는 <a href="/method/">계산 기준과 출처</a>에 모두 적어 두었습니다.</p>
+<h2>어떻게 검증하나요</h2>
+<p>표와 계산기는 같은 계산 엔진에서 나옵니다. 배포할 때마다 자동 테스트를 돌려 공식이 기준 사례와 같은 값을 내는지, 페이지끼리 숫자가 어긋나지 않는지 확인합니다. 성장도표 LMS 값은 국민건강보험공단 공공데이터(영유아 성장도표 LMS 기준)와 겹치는 개월을 하나씩 대조했고, 음식 칼로리는 1인분 무게와 100g당 열량이 맞는지 검사하면서 식약처 식품영양성분 검색값과 대조해 고쳐 왔습니다. 분유 수유량과 임신 중 체중 증가는 미국소아과학회·CDC·IOM 원문을 직접 확인해 옮겼습니다.</p>
+<h2>언제 바뀌나요</h2>
+<p>학회 진료지침이나 공공 기준이 개정되면 공식을 고치고 모든 페이지를 다시 계산합니다. 날짜가 들어가는 표(오늘 몇 주, 아기 개월수, 접종 날짜)는 매일 새로 만들어 오늘 기준으로 맞춥니다. 페이지 아래에 갱신일을 적어 둡니다.</p>
+<h2>한계</h2>
+<p>바디집의 숫자는 참고용입니다. BMI는 근육량을 모르고, 칼로리는 조리법과 양에 따라 달라지며, 검진 수치는 한 번의 결과로 진단하지 않습니다. 임신·아기·아이 성장에 관한 판단은 산부인과와 소아청소년과가, 반려동물은 수의사가 우선입니다. 혈중알코올농도 계산은 운전해도 된다는 보증이 아닙니다.</p>
+<h2>개인정보와 광고</h2>
+<p>계산기에 넣은 숫자는 서버로 보내지 않고 브라우저 안에서만 계산합니다. 체중·혈압 기록과 오늘 먹은 음식은 이 기기의 브라우저 저장소에만 남습니다. 방문 통계를 위해 Google 애널리틱스를, 운영비를 위해 Google 애드센스 광고를 씁니다. 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 있습니다.</p>
+<h2>만드는 곳</h2>
+<p>바디집은 돈 계산 사전 <a href="${SISTERS.donpyo}/">돈표</a>와 사주 풀이 사이트 <a href="${SISTERS.saju}/">사주첩</a>을 만드는 팀이 운영합니다.</p>
+<h2>고친 기록</h2>
+<ul>
+<li>2026년 9월 8일 — BMI·기초대사량·체지방·칼로리·운동·물·출산예정일·배란일·아기 개월수로 문을 열고, 임신 주차·아기 발달·걸음 수·수면·아이 키 예측·예방접종 캘린더·아기 성장 백분위·반려동물을 더했습니다.</li>
+<li>2026년 9월 9일 — bodyzip.com 주소를 열고 블로그 위젯, 건강검진 수치 해석, 서재 글을 더했습니다.</li>
+<li>2026년 9월 10일 — 아이 키 백분위(만 3~18세), 분유 수유량, 임신 중 체중 증가, 혈압 기록을 더했습니다.</li>
+<li>2026년 9월 11일 — 추석 음식 칼로리를 더하고 명절 음식 값을 식약처 검색값에 맞췄습니다.</li>
+<li>2026년 9월 13일 — 서재 글을 보강하고 소개와 계산 기준 안내를 정리했습니다.</li>
+</ul>
+<h2>문의</h2>
+<p>오류 제보와 기준 갱신 요청은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 보내 주세요. 계산 오류는 페이지 주소와 함께 알려 주시면 확인한 뒤 바로 고치고 이 기록에 남깁니다.</p>`);
   doc('/terms/', '이용약관 — 바디집', '바디집 이용약관.', `
 <p>바디집(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
 <p>사이트의 모든 계산 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단, 치료, 처방을 대신하지 않습니다. 건강·임신·육아에 관한 결정은 반드시 의료인과 상의하세요. 이용자는 계산 결과를 근거로 한 결정에 대해 스스로 책임지며, 사이트는 결과의 정확성·완전성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
@@ -769,7 +807,8 @@ fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
 docs();
-const indexable = urls.filter((u) => !['/terms/', '/privacy/'].includes(u));
+/* noindex 페이지(위젯·약관·조합·날짜별 부가 페이지)는 사이트맵에서 뺀다 */
+const indexable = urls.filter((u) => !NOINDEX.has(u) && !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
 const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
 const smFiles = [];
