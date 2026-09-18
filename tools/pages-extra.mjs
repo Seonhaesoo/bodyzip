@@ -289,7 +289,7 @@ ${section('이어서', null, list([{ href: '/guide/child-height/', title: '우�
   for (const k of DRINK_PAGES) for (const c of DRINK_COUNTS) {
     const d = DR[k], url = alUrl(k, c), g = X.alcoholGrams(d.ml * c, d.abv), m70 = X.bac(g, 70, 'm'), f55 = X.bac(g, 55, 'f');
     const name = alName(k, c);
-    const title = `${name} 마시면 혈중알코올농도 — 70kg 남 ${m70.peak}% · 55kg 여 ${f55.peak}%, 0.03% 아래로 ${m70.driveHours}~${f55.driveHours}시간`;
+    const title = `${name} 마시면 혈중알코올농도는? 70kg 남 ${m70.peak}% · 55kg 여 ${f55.peak}% — 운전은 ${m70.driveHours}~${f55.driveHours}시간 뒤`;
     const desc = `${name}(알코올 약 ${Math.round(g)}g)을 마시면 위드마크 공식으로 70kg 남성은 최고 ${m70.peak}%(${X.bacLevel(m70.peak)}), 55kg 여성은 ${f55.peak}%입니다. 마지막 잔부터 0.03% 아래로 내려오는 데 ${m70.driveHours}~${f55.driveHours}시간, 완전 분해까지 ${m70.soberHours}~${f55.soberHours}시간.`;
     const body = `
 ${crumb([['/alcohol/', '혈중알코올농도'], [null, name]])}
