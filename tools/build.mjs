@@ -77,7 +77,8 @@ ${GA}${ADS}<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="${esc(o.desc)}">
 ${VERIFY.join('\n')}
 <link rel="canonical" href="${SITE}${o.url}">
-${o.noindex ? '<meta name="robots" content="noindex">\n' : '<meta name="robots" content="max-image-preview:large">\n'}<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+${o.noindex ? '<meta name="robots" content="noindex">\n' : '<meta name="robots" content="max-image-preview:large">\n'}<link rel="alternate" type="application/rss+xml" title="새 글" href="/rss.xml">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -824,3 +825,6 @@ console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · ')
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'bodyzip.com\n');
 console.log(`바디집 빌드 완료: 페이지 ${urls.length}장, ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+
+/* RSS 피드 — 네이버 서치어드바이저에 한 번 등록하면 새 글을 알아서 가져간다 (tools/feeds.mjs) */
+await import('./feeds.mjs');
