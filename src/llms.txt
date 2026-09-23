@@ -1,0 +1,28 @@
+# 바디집 (bodyzip.com)
+
+> 한국 기준의 몸 계산 사전. BMI·정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·아기 개월수·예방접종 일정, 아이 키 백분위, 반려동물 나이·사료량, 건강검진 수치 해석 등을 숫자별로 미리 계산해 표로 정리해 둔 정적 사이트다. 기준은 대한비만학회, 질병관리청 성장도표·예방접종 일정, 식품의약품안전처 식품영양성분 DB, 국민건강보험공단 검진 기준 등 공개 자료이며 페이지마다 출처와 기준을 적어 둔다.
+
+## 인용할 때
+- 판정 기준(한국 BMI 23·25 경계, 혈압·혈당·콜레스테롤 학회 기준 등)은 각 페이지 `meta` 줄과 맨 아래 `note`에 있다.
+- 계산 방법 전체: https://bodyzip.com/method/
+- 건강 정보는 참고용이며 진단·치료를 대신하지 않는다.
+
+## 자주 찾는 페이지
+- 2026-2027 독감 예방접종 무료 대상·시작일: https://bodyzip.com/flu/
+- 2026년 국가건강검진 대상자·항목·과태료: https://bodyzip.com/checkup/2026/
+- 건강검진 결과 해석(혈압·혈당·콜레스테롤·간수치): https://bodyzip.com/checkup/
+- BMI·정상 체중(키별): https://bodyzip.com/bmi/
+- 기초대사량·하루 칼로리: https://bodyzip.com/bmr/
+- 음식 칼로리 사전: https://bodyzip.com/food/ · 추석 음식: https://bodyzip.com/food/chuseok/
+- 운동 소모 칼로리: https://bodyzip.com/exercise/
+- 출산예정일·임신 주수: https://bodyzip.com/due-date/
+- 아기 개월수·예방접종·검진 일정: https://bodyzip.com/baby/
+- 아이 키·몸무게 백분위(학년별 평균 키): https://bodyzip.com/kids/
+- 강아지·고양이 나이 환산, 사료량, 예방접종: https://bodyzip.com/pet/
+- 혈중알코올농도: https://bodyzip.com/alcohol/
+- 서재(설명 글 41편): https://bodyzip.com/guide/
+- 사이트맵: https://bodyzip.com/sitemap.xml · 새 글 RSS: https://bodyzip.com/rss.xml
+
+## 운영
+- 운영: 바디집 (문의는 사이트 소개 페이지 https://bodyzip.com/about/)
+- 자매 사이트: 사주첩 https://sajucheop.com, 돈표 https://donpyo.com

@@ -77,7 +77,8 @@ ${NOTE('')}` }));
     const r = C.bloodPressure(s, d);
     const title = `혈압 ${s}/${d} — ${r.label}${r.key === 'crisis' ? ' (즉시 진료)' : r.high ? ' (진료 필요 구간)' : ''}, 어떻게 봐야 할까`;
     const desc = `수축기 ${s}mmHg, 이완기 ${d}mmHg는 대한고혈압학회 기준으로 ${r.label}입니다. ${r.note} 맥압 ${r.pulse}mmHg.`;
-    write(bpUrl(s, d), shell({ url: bpUrl(s, d), og: 'checkup', title, desc, nav: 'checkup', scripts: ['/js/engine.js', '/js/live.js'], body: `
+    /* 색인은 10 단위 흔한 조합(수축기 100~180 × 이완기 60~110)만 — 나머지 조합은 noindex(사이트맵에서 빠짐). 새 도메인에 비슷한 페이지가 수백 장이라 구글이 색인을 미뤘다(2026-09-23 URL 검사) */
+    write(bpUrl(s, d), shell({ url: bpUrl(s, d), og: 'checkup', title, desc, nav: 'checkup', noindex: !(s % 10 === 0 && d % 10 === 0 && s >= 100 && d >= 60), scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/checkup/', '건강검진 해석'], ['/bp/', '혈압'], [null, `${s}/${d}`]])}
 <h1 class="title">혈압 ${s}/${d}</h1>
 <p class="meta">대한고혈압학회 2022 기준 · 안정 상태에서 5분 쉰 뒤 잰 값</p>
@@ -167,9 +168,12 @@ ${NOTE('가정혈압은 135/85, 진료실 혈압은 140/90이 고혈압 기준�
 <p><b>급격한 체중 감량도 요산을 올립니다.</b> 단식보다 천천히 빼는 편이 안전합니다.</p>`,
       links: [{ href: '/water/', title: '하루 물 섭취량', sub: '배출에 도움' }, { href: '/food/beer/', title: '맥주 칼로리', sub: '요산의 주범' }, { href: '/checkup/', title: '검진 결과 전체 해석', sub: '' }] },
   ];
+  /* 색인은 흔히 검색하는 값만: 10 단위(혈당은 99·100·125·126 경계 포함), 중성지방 50 단위와 150, 요산 정수. 나머지 값은 noindex */
+  const CORE = { '/glucose/': (v) => v % 10 === 0 || [99, 100, 125, 126].includes(v), '/cholesterol/': (v) => v % 10 === 0, '/ldl/': (v) => v % 10 === 0, '/hdl/': (v) => v % 10 === 0, '/triglyceride/': (v) => v % 50 === 0 || v === 150, '/uric/': (v) => Number.isInteger(v) };
   for (const it of single) {
     for (const v of it.arr) {
       const r = it.fn(v), url = `${it.dir}${v}/`;
+      const core = CORE[it.dir] ? CORE[it.dir](v) : true;
       const rf = it.bySex ? C.uric(v, 'f') : null;
       const title = it.bySex
         ? `요산 ${v} — 남성 ${r.label} · 여성 ${rf.label} (정상 남 7.0 · 여 6.0 이하)`
@@ -177,7 +181,7 @@ ${NOTE('가정혈압은 135/85, 진료실 혈압은 140/90이 고혈압 기준�
       const desc = it.bySex
         ? `요산 ${v}mg/dL는 남성 기준 ${r.label}, 여성 기준 ${rf.label}입니다. ${r.key === 'ok' && rf.key === 'ok' ? '두 기준 모두 정상 범위입니다.' : r.note} 구간표와 요산을 낮추는 방법.`
         : `${it.name} ${v}${it.unit}는 ${r.label} 구간입니다. ${r.note} 정상 기준과 구간표${r.key === 'ok' || r.key === 'near' || r.key === 'good' ? '.' : `, ${it.action}.`}`;
-      write(url, shell({ url, og: 'checkup', title, desc, nav: 'checkup', scripts: ['/js/engine.js', '/js/live.js'], body: `
+      write(url, shell({ url, og: 'checkup', title, desc, nav: 'checkup', noindex: !core, scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/checkup/', '건강검진 해석'], [it.dir, it.name], [null, String(v)]])}
 <h1 class="title">${it.name} ${v}</h1>
 <p class="meta">${it.meta}</p>
@@ -214,7 +218,7 @@ ${NOTE('')}` }));
     const r = C.liver(0, a), url = liverUrl(a);
     const title = `간수치 ALT ${a} — ${r.label}, 정상 범위와 원인 (AST·ALT·감마지티피)`;
     const desc = `ALT ${a} IU/L는 ${r.label} 구간입니다. ${r.note} 정상은 40 이하이며 지방간·음주·약물이 흔한 원인입니다.`;
-    write(url, shell({ url, og: 'checkup', title, desc, nav: 'checkup', scripts: ['/js/engine.js', '/js/live.js'], body: `
+    write(url, shell({ url, og: 'checkup', title, desc, nav: 'checkup', noindex: !((a % 10 === 0 && a <= 100) || [150, 200, 300, 400].includes(a)), scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/checkup/', '건강검진 해석'], ['/liver/', '간수치'], [null, `ALT ${a}`]])}
 <h1 class="title">간수치 ALT ${a}</h1>
 <p class="meta">AST·ALT 정상 40 IU/L 이하 · 감마지티피 남 11~63 · 여 8~35</p>
