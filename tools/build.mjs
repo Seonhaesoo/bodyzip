@@ -24,6 +24,7 @@ import { buildPregWeight } from './pages-pregweight.mjs';
 import * as PW from '../engine/pregweight.mjs';
 import { buildBpLog } from './pages-bplog.mjs';
 import { buildChuseok, CHUSEOK_SLUGS } from './pages-chuseok.mjs';
+import { buildSeason, FLU, CHK } from './pages-season.mjs';
 import * as KD from '../engine/kids.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
@@ -585,6 +586,8 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 — 카톡·인스타용 이미지</span></a>
 </div>`)}
 ${section('건강검진 결과', null, `<div class="dict">
+<a href="/checkup/${CHK.year}/"><b>${CHK.year}년 건강검진 대상자</b><span>${CHK.parity}년생 + 비사무직 · 태어난 해 넣으면 <span class="num">내 나이 항목</span> · 12월 31일까지</span></a>
+<a href="/flu/"><b>2026-2027 독감 예방접종</b><span>어린이·임신부 <span class="num">9/21</span> · 65세 이상 10/12부터 · 생년월일로 무료 시작일</span></a>
 <a href="/checkup/"><b>검진 결과 해석</b><span>혈압·혈당·콜레스테롤·간수치를 넣으면 <span class="num">한 번에</span> 판정</span></a>
 <a href="/bp/120-80/"><b>혈압</b><span>정상 <span class="num">120/80</span> 미만 · 고혈압 140/90 이상</span></a>
 <a href="/bp/log/"><b>혈압 기록</b><span>집에서 잰 혈압 7일 평균이 <span class="num">135/85</span>를 넘는지 · 기기에만 저장</span></a>
@@ -803,7 +806,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
@@ -811,7 +814,7 @@ docs();
 /* noindex 페이지(위젯·약관·조합·날짜별 부가 페이지)는 사이트맵에서 뺀다 */
 const indexable = urls.filter((u) => !NOINDEX.has(u) && !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
-const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight|flu)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
 const smFiles = [];
 for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));
