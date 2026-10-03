@@ -139,7 +139,7 @@ ${crumb([['/quit-smoking/', '금연'], [null, `${d}일`]])}
 <h1 class="title">금연 ${d}일째</h1>
 <p class="meta">하루 한 갑(20개비) · 4,500원 기준 · 개비당 20분(UCL 2024)</p>
 ${tiles([{ label: '안 피운 담배', value: `${num(q.cigs)}개비` }, { label: '모은 돈', value: `${num(q.money)}원` }, { label: '되찾은 시간', value: q.lifeText }])}
-${lead(`끊은 지 <b>${d}일</b>이면 하루 한 갑 기준 ${num(q.cigs)}개비를 안 피웠고 <b>${num(q.money)}원</b>을 아꼈습니다. 담배 한 개비가 수명을 약 20분 줄인다는 계산으로는 ${q.lifeText}을 되찾았습니다. 지금 몸에서는 <b>${st.label}</b> — ${st.text}`)}
+${lead(`끊은 지 <b>${d}일</b>이면 하루 한 갑 기준 ${num(q.cigs)}개비를 안 피웠고 <b>${num(q.money)}원</b>을 아꼈습니다. 담배 한 개비가 수명을 약 20분 줄인다는 계산으로는 ${q.lifeText}을 되찾았습니다. 지금 몸은 금연 <b>${st.label}</b> 단계입니다. ${st.text}`)}
 ${quitForm(d)}
 ${section('몸의 변화', '금연 뒤 시간 순', table(['시점', '변화'], X.QUIT_STAGES.map((s) => ({ cells: [s.label, s.text], cls: s === st ? 'on' : '' }))))}
 ${ad()}

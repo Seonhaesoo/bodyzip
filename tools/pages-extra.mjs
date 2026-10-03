@@ -51,7 +51,7 @@ ${section('다른 글', null, list(others.map((o) => ({ href: `/guide/${o.slug}/
   write('/guide/', shell({ url: '/guide/', title: '서재 — 검진 수치·다이어트·운동·임신·육아·반려동물을 풀어 쓴 글', desc: `건강검진 결과지와 혈압·혈당·당화혈색소·중성지방 읽는 법, BMI 한국 기준과 허리둘레, 기초대사량과 근육, 걸음 수와 운동 강도, 카페인·나트륨, 출산예정일·배란일, 성장 백분위와 사춘기, 반려동물 체형까지 ${GUIDES.length}편.`, nav: 'guide', body: `
 ${crumb([['/', '홈'], [null, '서재']])}
 <h1 class="title">서재</h1>
-<p class="meta">계산기 뒤에 있는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편 · ${Object.values(GUIDE_CATS).join(' · ')}</p>
+<p class="meta">계산기가 쓰는 기준과 공식을 풀어 쓴 글 · ${GUIDES.length}편 · ${Object.values(GUIDE_CATS).join(' · ')}</p>
 ${lead('"검진 결과지의 이 숫자는 무슨 뜻인가", "왜 한국은 BMI 23부터 과체중인가", "기초대사량보다 적게 먹으면 왜 안 빠지나" 같은, 숫자만 봐서는 풀리지 않는 질문을 하나씩 정리했습니다. 학회와 공공기관이 공개한 기준을 바탕으로 쓰고, 각 글 끝에 관련 계산기를 연결해 두었습니다.')}
 ${Object.entries(GUIDE_CATS).map(([k, label]) => { const gs = GUIDES.filter((g) => g.cat === k); return gs.length ? section(label, `${gs.length}편`, list(gs.map(guideItem))) : ''; }).join('\n')}
 ${ad()}` }));
@@ -112,7 +112,7 @@ ${crumb([['/due-date/', '임신'], [null, '디데이 카드']])}
 <div class="btn-row"><button type="button" class="btn" data-act="save">이미지 저장</button><button type="button" class="btn btn-share" data-act="share">바로 공유</button></div>
 <p class="cal-how">저장이 안 되면 카드를 길게 눌러 "이미지 저장"을 고르세요. 바로 공유는 휴대폰에서 카카오톡·인스타그램 등 앱 목록이 열립니다.</p>
 </form>
-${lead('출산예정일만 넣으면 오늘 기준 디데이와 임신 주수, 이번 주 아기 크기가 들어간 카드가 만들어집니다. 태명을 적으면 카드 위에 올라가고, 색과 비율은 네 가지·두 가지 중에 고를 수 있습니다. 예정일을 모르면 마지막 생리일로 먼저 계산하세요.')}
+${lead('출산예정일만 넣으면 오늘 기준 디데이와 임신 주수, 이번 주 아기 크기가 들어간 카드가 만들어집니다. 태명을 적으면 카드 위에 올라가고, 색은 네 가지, 비율은 두 가지 중에서 고를 수 있습니다. 예정일을 모르면 마지막 생리일로 먼저 계산하세요.')}
 ${section('이렇게 써 보세요', null, `<div class="doc">
 <p><b>매주 한 장.</b> 주수는 오늘 날짜로 자동 계산되니 같은 설정으로 매주 들어와 저장하면 20주, 21주, 22주 카드가 이어집니다. 인스타 하이라이트나 카톡 프로필에 쌓아 두면 임신 기록이 됩니다.</p>
 <p><b>가족 단톡방에.</b> "D-140" 한 장이 말보다 빠릅니다. 예정일과 주수가 같이 적혀 있어 할머니·할아버지가 다시 묻지 않습니다.</p>
@@ -181,8 +181,8 @@ ${ad()}
 ${foods.length ? section('이만큼 태우면', `${num(r.kcal)}kcal 안팎의 음식`, list(foods.map((f) => ({ href: `/food/${f.slug}/`, title: f.name, sub: f.serving, value: `${num(f.kcal)}kcal` })))) : ''}
 ${section('걸음 수별', null, wrapChips(STEPS.map((t) => ({ label: t < 10000 ? `${t / 1000}천보` : t % 10000 === 0 ? `${t / 10000}만보` : `${(t / 10000).toFixed(1)}만보`, href: stepUrl(t), on: t === s }))))}
 ${section('알아두면 좋은 것', null, `<div class="doc">
-<p><b>만보는 마케팅에서 나온 숫자입니다.</b> 1960년대 일본 만보계 이름에서 시작됐고, 최근 연구는 하루 7,000~8,000보부터 사망률 감소 효과가 뚜렷하고 그 이상은 완만하다고 봅니다. 목표는 지금보다 2,000보 늘리는 것부터.</p>
-<p><b>스마트폰·워치 숫자와 다를 수 있습니다.</b> 기기는 보폭을 키로 추정하거나 GPS로 재고, 칼로리는 심박수로 추정합니다. 여기 숫자는 MET 3.0(보통 걷기) 공식이며 ±20%는 보통입니다.</p>
+<p><b>만보는 마케팅에서 나온 숫자입니다.</b> 1960년대 일본 만보계 이름에서 시작됐고, 최근 연구는 하루 7,000~8,000보부터 사망률 감소 효과가 뚜렷하고 그 이상은 완만하다고 봅니다. 목표는 지금보다 2,000보 늘리는 것부터 잡으세요.</p>
+<p><b>스마트폰·워치 숫자와 다를 수 있습니다.</b> 기기는 보폭을 키로 추정하거나 GPS로 재고, 칼로리는 심박수로 추정합니다. 여기 숫자는 MET 3.0(보통 걷기) 공식으로 계산한 값이라 ±20% 차이는 흔합니다.</p>
 <p><b>빠르게 걸으면 같은 시간에 칼로리 1.4배.</b> 시속 5.6km(MET 4.3)로 걸으면 같은 시간에 더 많이 쓰고, 같은 거리라면 시간은 30% 줄고 칼로리는 거의 같습니다.</p>
 </div>`)}
 ${section('이어서', null, list([{ href: '/exercise/walking/', title: '걷기 소모 칼로리', sub: '시간별·몸무게별' }, { href: '/exercise/brisk-walking/', title: '빠르게 걷기', sub: '시속 5.6km' }, { href: '/diet/', title: '다이어트 기간 계산', sub: '목표 체중까지 몇 주' }]))}
@@ -198,7 +198,7 @@ ${stepsForm(10000)}
 ${lead(`만보는 키 170cm 기준 약 ${r.km}km, ${r.minutes}분이고 60kg 성인은 ${num(r.kcal)}kcal을 씁니다. 걸음 수를 누르면 몸무게·키별 표와 그만큼의 음식이 나옵니다.`)}
 ${section('걸음 수별', '60kg · 170cm', table(['걸음', '거리', '시간', '칼로리'], STEPS.map((s) => { const q = X.steps(s, 60, 170); return { cells: [`<a href="${stepUrl(s)}">${num(s)}보</a>`, `${q.km}km`, `${q.minutes}분`, `${num(q.kcal)}kcal`], cls: s === 10000 ? 'on' : '' }; })))}
 ${ad()}
-${section('이어서', null, list([{ href: '/exercise/', title: '운동별 소모 칼로리표', sub: '걷기·달리기·자전거·수영' }, { href: '/guide/calorie-burn/', title: 'MET로 계산하기', sub: '서재 — 치킨 한 마리를 태우려면' }]))}` })); }
+${section('이어서', null, list([{ href: '/exercise/', title: '운동별 소모 칼로리표', sub: '걷기·달리기·자전거·수영' }, { href: '/guide/calorie-burn/', title: 'MET로 계산하기', sub: '서재 · 치킨 한 마리를 태우려면' }]))}` })); }
 
   /* ---------- 수면 ---------- */
   const sleepUrl = (min) => `/sleep/${slot(min)}/`;
@@ -219,10 +219,10 @@ ${ad()}
 ${section('기상 시각별', null, wrapChips(WAKES.map((t) => ({ label: hhmm(t), href: sleepUrl(t), on: t === wake }))))}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>성인 권장 수면은 7~9시간</b>(5~6주기)입니다. 4주기(6시간)는 며칠은 버틸 수 있지만 이어지면 집중력·식욕 조절이 무너집니다. 3주기(4.5시간)는 비상용입니다.</p>
-<p><b>주기는 사람마다 70~120분.</b> 계산 시각이 안 맞으면 15분씩 당기거나 늦춰 보며 자기 리듬을 찾으세요. 매일 같은 시각에 일어나는 것이 가장 강력한 방법입니다.</p>
+<p><b>주기는 사람마다 70~120분.</b> 계산 시각이 안 맞으면 15분씩 당기거나 늦춰 보며 자기 리듬을 찾으세요. 매일 같은 시각에 일어나는 것이 가장 확실한 방법입니다.</p>
 <p><b>낮잠은 20분 또는 90분.</b> 30~60분은 깊은 잠 도중 깨어 오히려 멍합니다.</p>
 </div>`)}
-${section('이어서', null, list([{ href: '/guide/sleep-cycle/', title: '90분 수면 주기 계산', sub: '서재 — 몇 시에 자야 개운할까' }, { href: '/bmr/', title: '기초대사량', sub: '수면 부족은 대사에도 영향' }]))}
+${section('이어서', null, list([{ href: '/guide/sleep-cycle/', title: '90분 수면 주기 계산', sub: '서재 · 몇 시에 자야 개운할까' }, { href: '/bmr/', title: '기초대사량', sub: '수면 부족은 대사에도 영향' }]))}
 <p class="note">수면 주기 90분은 평균값이며, 계산은 참고용입니다. 만성 불면·코골이·주간 졸림은 수면클리닉 상담을 권합니다.</p>`;
     write(url, shell({ og: 'sleep', url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
@@ -303,7 +303,7 @@ ${ad()}
 ${section('같은 술 다른 양', null, wrapChips(DRINK_COUNTS.map((x) => ({ label: alName(k, x), href: alUrl(k, x), on: x === c }))))}
 ${section('다른 술', `${c}${k === 'wine' ? '잔' : '병'} 기준`, wrapChips(DRINK_PAGES.filter((x) => x !== k).map((x) => ({ label: alName(x, c), href: alUrl(x, c) }))))}
 ${section('단속 기준', '도로교통법', table(['농도', '처분'], [{ cells: ['0.03% 이상', '면허 정지 · 1년 이하 징역 또는 500만원 이하 벌금'] }, { cells: ['0.08% 이상', '면허 취소 · 1~2년 징역 또는 500~1,000만원 벌금'] }, { cells: ['0.2% 이상', '면허 취소 · 2~5년 징역 또는 1,000~2,000만원 벌금'] }]))}
-${section('이어서', null, list([{ href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재 — 위드마크 공식' }, { href: `/food/${k === 'wine' ? 'wine' : k === 'beer' ? 'beer' : k}/`, title: `${DR[k].label.split(' ')[0]} 칼로리`, sub: '음식 칼로리 사전' }]))}
+${section('이어서', null, list([{ href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재 · 위드마크 공식' }, { href: `/food/${k === 'wine' ? 'wine' : k === 'beer' ? 'beer' : k}/`, title: `${DR[k].label.split(' ')[0]} 칼로리`, sub: '음식 칼로리 사전' }]))}
 <p class="note">위드마크 공식(흡수율 90%, 남 0.68·여 0.55, 마지막 잔 뒤 흡수 1.5시간, 시간당 0.015%p 분해)의 평균값이며 공복·음주 속도·체지방에 따라 실제 농도는 더 높을 수 있습니다. 실제 단속은 호흡측정기로 하며, 이 계산은 음주운전 가능 여부를 보증하지 않습니다. 술을 마셨다면 운전하지 마세요.</p>`;
     write(url, shell({ og: 'alcohol', url, title, desc, body, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
@@ -337,7 +337,7 @@ ${crumb([['/alcohol/', '혈중알코올농도'], [null, '회식 음주 표']])}
 ${lead('회식 자리에서 한 사람씩 넣으면 누가 언제부터 운전할 수 있는지 한 장으로 나옵니다. 0.03% 아래 시각은 마지막 잔을 마신 때부터 흡수 시간 1.5시간을 더한 값이고, 그 시각이 되어도 술이 남은 느낌이면 운전하지 마세요.')}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>같은 양이라도 몸무게가 가볍고 여성이면 농도가 높습니다.</b> 체수분 비율 차이 때문이며, 표에서 55kg 여성이 70kg 남성보다 1.5배 가까이 높게 나오는 이유입니다.</p>
-<p><b>자고 일어나도 남아 있습니다.</b> 소주 2병을 자정에 끝냈다면 0.03% 아래는 다음 날 낮이 되어야 합니다. 아침 출근길 운전이 가장 흔한 숙취 운전 단속입니다.</p>
+<p><b>자고 일어나도 남아 있습니다.</b> 소주 2병을 자정에 끝냈다면 0.03% 아래는 다음 날 낮이 되어야 합니다. 숙취 운전은 아침 출근길에 가장 많이 단속됩니다.</p>
 <p><b>대리·택시 비용은 벌금의 100분의 1도 안 됩니다.</b> 0.03% 이상은 면허 정지에 500만원 이하 벌금, 0.08% 이상은 면허 취소입니다.</p>
 </div>`)}
 ${ad()}
@@ -367,7 +367,7 @@ ${section('500kcal은 이만큼', '60kg 기준', tiles([{ label: '걷기', value
 ${section('500kcal 안팎 음식', '이 중 하나를 빼면 하루 결손', list(foods.map((f) => ({ href: `/food/${f.slug}/`, title: f.name, sub: f.serving, value: `${num(f.kcal)}kcal` }))))}
 ${section('감량 kg별', null, wrapChips(DIET_KG.map((x) => ({ label: `${x}kg`, href: dietUrl(x), on: x === kg }))))}
 ${section('알아두면 좋은 것', null, `<div class="doc">
-<p><b>처음 1~2주는 더 빨리 빠집니다.</b> 탄수화물을 줄이면 글리코겐과 함께 물이 1~2kg 빠지는데, 이것은 체지방이 아니라서 곧 멈춥니다. 표의 기간은 그 뒤의 속도입니다.</p>
+<p><b>처음 1~2주는 더 빨리 빠집니다.</b> 탄수화물을 줄이면 글리코겐과 함께 물이 1~2kg 빠지는데, 체지방이 아니라서 곧 멈춥니다. 표의 기간은 그 뒤의 속도입니다.</p>
 <p><b>하루 1,000kcal 결손은 의사와 상의할 수준입니다.</b> 근육 손실·담석·생리 불순 위험이 커집니다. 기초대사량 아래로는 먹지 마세요.</p>
 <p><b>정체기는 정상입니다.</b> 몸무게가 줄면 하루 필요 칼로리도 줄어 같은 식사로 결손이 작아집니다. 3~4주마다 기초대사량을 다시 계산하세요.</p>
 </div>`)}
@@ -396,7 +396,7 @@ ${section('나이·성별', 'kcal/일', table(['나이', '남', '여'], X.KCAL_N
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>임신·수유부는 더 필요합니다.</b> 임신 2분기 +340kcal, 3분기 +450kcal, 수유 중 +340kcal(한국인 영양소 섭취기준).</p>
-<p><b>65세 이상은 줄어들지만 단백질은 유지.</b> 근육 손실을 막기 위해 몸무게 1kg당 1~1.2g의 단백질이 권장됩니다.</p>
+<p><b>65세 이상은 줄어들지만 단백질은 유지.</b> 근육 손실을 막으려면 몸무게 1kg당 단백질 1~1.2g을 권합니다.</p>
 <p><b>청소년 남자 15~18세가 가장 많이 먹어야 하는 시기</b>(2,700kcal)입니다. 다이어트를 한다면 이 시기는 피하세요.</p>
 </div>`)}
 ${section('이어서', null, list([{ href: '/bmr/', title: '기초대사량 계산기', sub: '내 키·몸무게·활동량으로' }, { href: '/water/', title: '물 · 단백질 권장량', sub: '몸무게별' }, { href: '/food/', title: '음식 칼로리 사전', sub: '하루 섭취량을 채우는 음식' }]))}

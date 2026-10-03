@@ -32,7 +32,7 @@
     function Y(v) { return P + (hi - v) / (hi - lo) * (H - P * 2); }
     function line(k) { return pts.map(function (r, i) { return (i ? 'L' : 'M') + X(r.t).toFixed(1) + ' ' + Y(r[k]).toFixed(1); }).join(' '); }
     function ref(v, label) { var y = Y(v).toFixed(1); return '<line x1="' + P + '" y1="' + y + '" x2="' + (W - P) + '" y2="' + y + '" stroke="#C96B3F" stroke-width="1.2" stroke-dasharray="5 4"></line><text x="' + (W - P) + '" y="' + (Y(v) - 5).toFixed(1) + '" text-anchor="end" font-size="11" fill="#C96B3F">' + label + '</text>'; }
-    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="혈압 변화 그래프 — 위 선이 수축기, 아래 선이 이완기">' +
+    el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="혈압 변화 그래프. 위 선이 수축기, 아래 선이 이완기">' +
       ref(135, '가정혈압 기준 135') + ref(85, '85') +
       '<path d="' + line('s') + '" fill="none" stroke="#1F6F6B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>' +
       '<path d="' + line('d') + '" fill="none" stroke="#6FA8A4" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>' +

@@ -33,7 +33,7 @@
           : ' 해마다 1회이며 ' + md(FLU.kidsOne) + '부터입니다.';
       } else if (b > FLU.kidsTo) {
         res = { free: false, who: '생후 6개월 미만' };
-        extra = ' 생후 6개월이 되기 전에는 독감 백신을 맞을 수 없습니다. 임신 중이거나 함께 사는 어른이 맞으면 아기를 지켜 줍니다. 6개월이 지나면 이번 절기(' + md(FLU.end) + '까지) 안에 무료로 맞을 수 있습니다.';
+        extra = ' 생후 6개월이 되기 전에는 독감 백신을 맞을 수 없습니다. 그동안은 엄마가 임신 중에 맞거나 함께 사는 어른들이 맞으면 아기를 지킬 수 있습니다. 6개월이 지나면 이번 절기(' + md(FLU.end) + '까지) 안에 무료로 맞을 수 있습니다.';
       } else {
         for (var i = 0; i < FLU.senior.length; i++) {
           var g = FLU.senior[i];
@@ -49,7 +49,7 @@
       out(box, 'free', res.free ? '무료' : '비급여');
       out(box, 'date', res.date ? md(res.date) : '—');
       out(box, 'now', res.free ? (today >= res.date ? (today <= FLU.end ? '지금 가능' : '절기 끝') : '아직') : (res.date === undefined && res.who === '생후 6개월 미만' ? '나중에' : '언제든'));
-      out(box, 'msg', '<b>' + res.who + '</b> — ' + (res.free ? md(res.date) + '부터 ' + dot(FLU.end) + '까지 전국 위탁의료기관·보건소에서 무료.' : '') + extra);
+      out(box, 'msg', '<b>' + res.who + '</b>: ' + (res.free ? md(res.date) + '부터 ' + dot(FLU.end) + '까지 전국 위탁의료기관·보건소에서 무료.' : '') + extra);
     });
   });
 
@@ -70,26 +70,26 @@
       if (sex === 'f' && (age === 54 || age === 60 || age === 66)) items.push('골밀도');
       if (age >= 66 && (age - 66) % 2 === 0) items.push('인지기능장애');
       if (age >= 20 && age <= 34 && (age - 20) % 2 === 0) items.push('정신건강검사 (우울증)');
-      else if (age >= 35) items.push('정신건강검사 (우울증) — 나이대에 한 번, 해당 여부는 공단 조회');
+      else if (age >= 35) items.push('정신건강검사 (우울증 · 나이대에 한 번, 해당 여부는 공단 조회)');
       if (age === 66) items.push('생애전환기 검사 (노인 신체기능)');
       var cancer = [];
       if (age >= 40) cancer.push('위암 (2년마다)');
       if (age >= 50) cancer.push('대장암 (매년 분변잠혈)');
-      if (age >= 40) cancer.push('간암 — B·C형 간염 보유자 등 고위험군만 (6개월마다)');
+      if (age >= 40) cancer.push('간암 (B·C형 간염 보유자 등 고위험군만, 6개월마다)');
       if (sex === 'f' && age >= 40) cancer.push('유방암 (2년마다)');
       if (sex === 'f' && age >= 20) cancer.push('자궁경부암 (2년마다)');
-      if (age >= 54 && age <= 74) cancer.push('폐암 — 30갑년 이상 흡연자만 (2년마다)');
+      if (age >= 54 && age <= 74) cancer.push('폐암 (30갑년 이상 흡연자만, 2년마다)');
       out(box, 'yes', target ? '대상' : '아님');
       out(box, 'age', age + '세');
       out(box, 'cancer', cancer.length ? cancer.length + '종' : '없음');
-      var msg = '<b>' + by + '년생 · 검진 나이 ' + age + '세</b> — ' + why + '.';
+      var msg = '<b>' + by + '년생 · 검진 나이 ' + age + '세</b>: ' + why + '.';
       if (target) msg += ' ' + Y + '년 12월 31일까지 받으면 됩니다.' + (type === 'office' || type === 'field' ? ' 직장가입자는 안 받으면 과태료가 있습니다.' : '');
       else if (!even && type !== 'field') msg += ' 올해는 일반검진 차례가 아니지만, 작년에 못 받았다면 공단에 전년도 미수검자 추가 신청을 할 수 있습니다.';
       out(box, 'msg', msg);
       var html;
       if (age < 20) html = '<p>일반건강검진은 20세부터입니다(직장가입자는 나이와 무관). 영유아·학생 검진은 따로 있습니다.</p>';
-      else if (target) html = '<p><b>올해 받는 검사</b> — ' + items.join(' · ') + '</p>' + (cancer.length ? '<p><b>암검진</b> — ' + cancer.join(' · ') + '</p>' : '');
-      else html = '<p>' + (Y + 1) + '년에 받는 검사 — ' + items.join(' · ') + (cancer.length ? '. 암검진: ' + cancer.join(' · ') : '') + ' (내년 나이 기준으로 조금 달라질 수 있음)</p>';
+      else if (target) html = '<p><b>올해 받는 검사</b>: ' + items.join(' · ') + '</p>' + (cancer.length ? '<p><b>암검진</b>: ' + cancer.join(' · ') + '</p>' : '');
+      else html = '<p>' + (Y + 1) + '년에 받는 검사: ' + items.join(' · ') + (cancer.length ? '. 암검진: ' + cancer.join(' · ') : '') + ' (내년 나이 기준으로 조금 달라질 수 있음)</p>';
       out(box, 'items', html);
     });
   });

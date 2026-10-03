@@ -29,11 +29,11 @@ export function cdf(z) {
   return 0.5 * (1 + s * y);
 }
 export function band(pct) {
-  if (pct < 3) return { key: 'low2', label: '3백분위 미만 — 소아과 상담 권장' };
+  if (pct < 3) return { key: 'low2', label: '3백분위 미만 (소아과 상담 권장)' };
   if (pct < 15) return { key: 'low', label: '작은 편 (3~15백분위)' };
   if (pct <= 85) return { key: 'mid', label: '보통 (15~85백분위)' };
   if (pct <= 97) return { key: 'high', label: '큰 편 (85~97백분위)' };
-  return { key: 'high2', label: '97백분위 초과 — 소아과 상담 권장' };
+  return { key: 'high2', label: '97백분위 초과 (소아과 상담 권장)' };
 }
 export function growthCheck(measure, sex, month, value) {
   const z = zscore(measure, sex, month, value);

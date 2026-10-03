@@ -19,7 +19,7 @@ export const monthLabel = (m) => m === 0 ? '출생 직후' : m >= 48 ? `만 ${Ma
 export function babyEvents(birth, opt = {}) {
   const ev = [];
   const byM = new Map();
-  for (const v of VACCINES) for (const [m, label] of v.doses) { if (!byM.has(m)) byM.set(m, []); byM.get(m).push(`${v.name} — ${label}`); }
+  for (const v of VACCINES) for (const [m, label] of v.doses) { if (!byM.has(m)) byM.set(m, []); byM.get(m).push(`${v.name}: ${label}`); }
   for (const [m, items] of [...byM.entries()].sort((a, b) => a[0] - b[0])) {
     ev.push({ uid: `v${m}`, kind: 'vaccine', date: addMonths(birth, m), summary: `💉 예방접종 ${monthLabel(m)} (${items.length}가지)`, desc: `${items.map((s) => `· ${s}`).join('\n')}\n\n국가예방접종 표준 일정(질병관리청)의 시작 시기입니다. 실제 접종일은 소아과와 상의하세요.` });
   }

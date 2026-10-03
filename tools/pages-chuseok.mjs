@@ -94,16 +94,16 @@ ${lead(`송편 5개 <b>${num(F('songpyeon').kcal)}kcal</b>, 모둠전 한 접시
 ${section('추석 음식 칼로리표', `1인분 · 높은 순 · 걷기는 60kg 기준`, table(['음식', '양', 'kcal', '걷기'], sorted.map((it) => ({ cells: [`<a href="/food/${it.slug}/">${it.name}</a>`, it.serving, num(it.kcal), walk60(it.kcal)] }))))}
 ${ad()}
 ${section('한 상으로 보면', '접시 위 버튼과 같은 예시', `<div class="doc">
-<p><b>${morning.label}</b> — 밥·토란국에 전 한 접시, 갈비찜, 나물 세 가지, 조기구이를 곁들이면 약 <b>${num(morning.sum)}kcal</b>입니다. 60kg인 사람이 걸어서 태우려면 ${walk60(morning.sum)}이 걸립니다.</p>
+<p><b>${morning.label}</b>: 밥·토란국에 전 한 접시, 갈비찜, 나물 세 가지, 조기구이를 곁들이면 약 <b>${num(morning.sum)}kcal</b>입니다. 60kg인 사람이 걸어서 태우려면 ${walk60(morning.sum)}이 걸립니다.</p>
 ${presetTable(morning)}
-<p style="margin-top:14px"><b>${snack.label}</b> — 송편 다섯 개에 식혜 한 잔, 배 한 조각, 밤 몇 알이면 약 <b>${num(snack.sum)}kcal</b>로 밥 한 공기를 훌쩍 넘습니다.</p>
+<p style="margin-top:14px"><b>${snack.label}</b>: 송편 다섯 개에 식혜 한 잔, 배 한 조각, 밤 몇 알이면 약 <b>${num(snack.sum)}kcal</b>로 밥 한 공기를 훌쩍 넘습니다.</p>
 ${presetTable(snack)}
-<p style="margin-top:14px"><b>${dinner.label}</b> — 전과 잡채, 양념 소갈비에 막걸리 한 병을 곁들이면 약 <b>${num(dinner.sum)}kcal</b>입니다. 술이 들어가면 안주가 빨리 비어 실제로는 더 늘기 쉽습니다.</p>
+<p style="margin-top:14px"><b>${dinner.label}</b>: 전과 잡채, 양념 소갈비에 막걸리 한 병을 곁들이면 약 <b>${num(dinner.sum)}kcal</b>입니다. 술이 들어가면 안주가 빨리 비어 실제로는 더 늘기 쉽습니다.</p>
 ${presetTable(dinner)}
 </div>`)}
 ${section('명절 뒤 몸무게, 얼마나 늘까', null, `<div class="doc">
 <p>지방 1kg은 약 7,700kcal입니다. 연휴 사흘 동안 하루 1,000kcal씩 더 먹으면 ${num(extra3)}kcal, 지방으로는 <b>약 ${fatKg}kg</b>입니다.</p>
-<p>명절 뒤 체중계가 1~2kg 더 가리키는 건 짠 음식과 떡·전의 탄수화물이 붙잡은 수분, 아직 소화 중인 음식이 상당 부분입니다. 평소 식사로 돌아가면 며칠 사이 일부가 빠지니, 연휴가 끝나고 사나흘 뒤 몸무게로 판단하세요. <a href="/weight/">체중 기록</a>에 연휴 전후를 적어 두면 한눈에 보입니다.</p>
+<p>명절 뒤 체중계 숫자가 1~2kg 늘었다면 상당 부분은 짠 음식과 떡·전의 탄수화물이 붙잡은 수분, 아직 소화 중인 음식입니다. 평소 식사로 돌아가면 며칠 사이 일부가 빠지니, 연휴가 끝나고 사나흘 뒤 몸무게로 판단하세요. <a href="/weight/">체중 기록</a>에 연휴 전후를 적어 두면 한눈에 보입니다.</p>
 </div>`)}
 ${section('덜 먹는 요령', null, `<div class="doc">
 <p><b>전은 한 번에 덜어 먹기.</b> 모둠전 한 접시(150g)가 ${num(F('jeon-assorted').kcal)}kcal로 밥 ${K.bowls(F('jeon-assorted').kcal)}공기 분량입니다. 부친 뒤 키친타월에 한 번 올려 기름을 빼고, 먹을 만큼만 개인 접시에 덜면 손이 덜 갑니다.</p>

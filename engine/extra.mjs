@@ -102,9 +102,9 @@ export const QUIT_STAGES = [
   { days: 7, label: '1주', text: '금단 증상이 가라앉기 시작하고 입맛과 냄새가 또렷해집니다.' },
   { days: 14, label: '2주~12주', text: '혈액순환이 좋아지고 폐 기능이 올라갑니다.' },
   { days: 30, label: '1~9개월', text: '기침·숨참이 줄고 폐 섬모가 회복돼 감염이 줄어듭니다.' },
-  { days: 365, label: '1년', text: '관상동맥질환 위험이 흡연자의 절반으로.' },
+  { days: 365, label: '1년', text: '관상동맥질환 위험이 흡연자의 절반으로 줄어듭니다.' },
   { days: 1825, label: '5년', text: '뇌졸중 위험이 비흡연자 수준에 가까워집니다(5~15년).' },
-  { days: 3650, label: '10년', text: '폐암 사망 위험이 흡연자의 절반으로, 구강·식도암 위험도 감소.' },
+  { days: 3650, label: '10년', text: '폐암 사망 위험이 흡연자의 절반으로 줄고, 구강·식도암 위험도 줄어듭니다.' },
   { days: 5475, label: '15년', text: '관상동맥질환 위험이 비흡연자와 같아집니다.' },
 ];
 export function quitStage(days) { let st = QUIT_STAGES[0]; for (const s of QUIT_STAGES) if (days >= s.days) st = s; return st; }

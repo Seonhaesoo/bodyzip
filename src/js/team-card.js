@@ -40,7 +40,7 @@
       c.strokeStyle = '#EEE6D6'; c.beginPath(); c.moveTo(120, y + rowH / 2); c.lineTo(W - 120, y + rowH / 2); c.stroke();
     });
     c.textAlign = 'center'; c.font = '400 28px "Noto Sans KR", sans-serif'; c.fillStyle = '#8A948E';
-    c.fillText('위드마크 공식 · 흡수 1.5시간 + 시간당 0.015%p 분해 · 참고용, 운전 가능을 보증하지 않음', W / 2, H - 150);
+    c.fillText('위드마크 공식 · 흡수 1.5시간 + 시간당 0.015%p 분해 · 참고용, 운전해도 된다는 뜻은 아님', W / 2, H - 150);
     c.fillText('bodyzip.com/alcohol/team/', W / 2, H - 96);
     img.src = canvas.toDataURL('image/png');
   }

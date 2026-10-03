@@ -156,11 +156,11 @@ function bmiPage(h, w) {
   const body = `
 ${crumb([['/bmi/', 'BMI'], [bmiUrl(h), `${h}cm`], [null, `${w}kg`]])}
 <h1 class="title">키 ${h}cm · 몸무게 ${w}kg</h1>
-<p class="meta">BMI ${b.bmi} — ${b.label} · 대한비만학회 기준 · 남녀 공통</p>
+<p class="meta">BMI ${b.bmi} · ${b.label} · 대한비만학회 기준 · 남녀 공통</p>
 ${lead(`키 ${h}cm에 몸무게 ${w}kg이면 체질량지수(BMI)는 ${b.bmi}로 <b>${b.label}</b>에 해당합니다. 이 키의 정상 체중 범위는 ${r.min}~${r.max}kg이고, 표준체중은 남성 ${swM}kg·여성 ${swF}kg입니다. ${tn.dir === 'ok' ? `정상 범위 안이라 지금 몸무게를 유지하면 됩니다. ${up < 0.5 ? '다만 범위의 위쪽 끝이라 조금만 늘어도 비만 전단계입니다.' : down < 0.5 ? '다만 범위의 아래쪽 끝이라 조금만 줄어도 저체중입니다.' : `위로 ${up}kg, 아래로 ${down}kg 여유가 있습니다.`}` : tn.dir === 'lose' ? `정상 범위에 들어가려면 ${tn.kg}kg을 빼야 하고, 하루 500kcal씩 줄이면 약 ${dur(tn.kg)} 걸립니다.` : `정상 범위에 들어가려면 ${tn.kg}kg을 늘려야 하고, 하루 500kcal씩 더 먹으면 약 ${dur(tn.kg)} 걸립니다.`}`)}
 ${hero({ label: '체질량지수 (BMI)', value: b.bmi, unit: '', sub: `${b.label} · 정상 18.5~22.9 · 몸무게 ÷ 키(m)² = ${w} ÷ ${(h / 100).toFixed(2)}²`, bars: [Math.min(1, b.bmi / 40)], legendL: '0', legendR: '40' })}
 ${tiles([{ label: '정상 체중 범위', value: `${r.min}~${r.max}kg` }, { label: '표준체중 (남)', value: `${swM}kg` }, { label: '표준체중 (여)', value: `${swF}kg` }])}
-${tn.dir === 'ok' ? section('정상 범위 안', null, `<div class="callout">지금 몸무게는 정상 범위 안입니다. <b>${up < 0.5 ? '0.5kg 미만' : up + 'kg'}</b> 더 늘면 비만 전단계, <b>${down < 0.5 ? '0.5kg 미만' : down + 'kg'}</b> 줄면 저체중이 됩니다. 체중보다 허리둘레(남 90cm·여 85cm 미만)와 근육량을 챙기는 것이 건강에는 더 중요합니다.</div>`) : section(tn.dir === 'lose' ? `정상 범위까지 ${tn.kg}kg 감량` : `정상 범위까지 ${tn.kg}kg 증량`, '체지방 1kg ≈ 7,700kcal · 하루 결손(또는 잉여)량으로 나눈 기간', table(['방법', '걸리는 기간', '1주에'], planRows) + `<div class="callout">${tn.dir === 'lose' ? '한 주에 1kg 넘게 빼면 근육이 함께 빠지고 요요가 오기 쉽습니다. 0.5~1kg이 안전한 속도입니다. 하루 500kcal 줄이기 = 밥 반 공기 + 간식 하나 정도입니다.' : '근육으로 늘리려면 단백질을 몸무게 1kg당 1.2~1.6g 먹고 근력 운동을 곁들이세요.'}</div>`)}
+${tn.dir === 'ok' ? section('정상 범위 안', null, `<div class="callout">지금 몸무게는 정상 범위 안입니다. <b>${up < 0.5 ? '0.5kg 미만' : up + 'kg'}</b> 더 늘면 비만 전단계, <b>${down < 0.5 ? '0.5kg 미만' : down + 'kg'}</b> 줄면 저체중이 됩니다. 건강에는 체중보다 허리둘레(남 90cm·여 85cm 미만)와 근육량이 더 중요합니다.</div>`) : section(tn.dir === 'lose' ? `정상 범위까지 ${tn.kg}kg 감량` : `정상 범위까지 ${tn.kg}kg 증량`, '체지방 1kg ≈ 7,700kcal · 하루 결손(또는 잉여)량으로 나눈 기간', table(['방법', '걸리는 기간', '1주에'], planRows) + `<div class="callout">${tn.dir === 'lose' ? '한 주에 1kg 넘게 빼면 근육이 함께 빠지고 요요가 오기 쉽습니다. 0.5~1kg이 안전한 속도입니다. 밥 반 공기와 간식 하나를 빼면 하루 500kcal 정도가 줄어듭니다.' : '근육으로 늘리려면 단백질을 몸무게 1kg당 1.2~1.6g 먹고 근력 운동을 곁들이세요.'}</div>`)}
 ${section('기초대사량과 하루 필요 칼로리', `키 ${h}cm · ${w}kg 기준 · Mifflin-St Jeor · 하루 칼로리는 '가벼운 활동(주 1~3회 운동)' 기준`, table(['나이', '남 기초대사량', '남 하루 필요', '여 기초대사량', '여 하루 필요'], bmrRows) + list([{ href: '/bmr/', title: '활동량·목표를 바꿔 직접 계산', sub: '감량·유지·증량 섭취 칼로리' }]))}
 ${section('이 몸무게로 30분 운동하면', 'kcal · MET 기준', tiles([{ label: '걷기 (보통)', value: num(K.burn(EX.walking.met, w, 30)) }, { label: '달리기 (8km/h)', value: num(K.burn(EX['running-8'].met, w, 30)) }, { label: '자전거', value: num(K.burn(EX.cycling.met, w, 30)) }]) + list([{ href: '/exercise/', title: '운동별 소모 칼로리표', sub: `${EXERCISES.length}가지 운동 × 몸무게 × 시간` }]))}
 ${ad()}
@@ -168,7 +168,7 @@ ${section('물과 단백질', `${w}kg 기준 하루 권장`, tiles([{ label: '�
 ${section('몸무게가 바뀌면', `키 ${h}cm`, chips(neighbors(WEIGHTS, w, 3).map((x) => ({ label: `${x}kg`, value: B.bmi(h, x), href: bmiUrl(h, x), on: x === w }))))}
 ${section('키가 바뀌면', `${w}kg`, chips([-10, -5, -3, 0, 3, 5, 10].map((d) => h + d).filter((x) => HEIGHTS.includes(x)).map((x) => ({ label: `${x}cm`, value: B.bmi(x, w), href: bmiUrl(x, w), on: x === h }))))}
 ${section('알아두면 좋은 것', null, `<div class="doc">
-<p><b>BMI는 근육을 모릅니다.</b> 같은 ${w}kg이라도 근육이 많은 사람과 체지방이 많은 사람의 건강 상태는 다릅니다. BMI가 23~25인데 허리둘레가 정상이고 운동을 하는 사람은 걱정할 필요가 적습니다. <a href="/bodyfat/">체지방률</a>을 함께 보세요.</p>
+<p><b>BMI는 근육과 지방을 구분하지 못합니다.</b> 같은 ${w}kg이라도 근육이 많은 사람과 체지방이 많은 사람의 건강 상태는 다릅니다. BMI가 23~25인데 허리둘레가 정상이고 운동을 하는 사람은 걱정할 필요가 적습니다. <a href="/bodyfat/">체지방률</a>을 함께 보세요.</p>
 <p><b>한국 기준은 세계 기준보다 엄격합니다.</b> WHO는 25 이상을 과체중, 30 이상을 비만으로 보지만 아시아인은 같은 BMI에서 당뇨·고혈압 위험이 더 높아 대한비만학회는 23·25를 씁니다.</p>
 <p><b>건강검진 결과표의 판정</b>도 같은 기준입니다. "비만 전단계"는 병이 아니라 관리 구간이라는 뜻이고, 5%만 감량해도(${w}kg이면 ${k1(w * 0.05)}kg) 혈압·혈당이 눈에 띄게 좋아진다는 연구가 많습니다.</p>
 </div>`)}
@@ -273,8 +273,8 @@ ${lead('줄자 하나로 체지방률을 어림하는 방법입니다. 미 해�
 ${section('판정 기준', 'ACE(미국운동협의회) 분류', table(['구분', '남성', '여성'], [{ cells: ['필수 지방', '2~5%', '10~13%'] }, { cells: ['운동선수', '6~13%', '14~20%'] }, { cells: ['건강', '14~17%', '21~24%'] }, { cells: ['평균', '18~24%', '25~31%'] }, { cells: ['비만', '25% 이상', '32% 이상'] }]))}
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
-<p><b>재는 위치가 전부입니다.</b> 허리는 배꼽 높이에서 숨을 내쉰 뒤, 목은 후두(목젖) 바로 아래, 엉덩이는 가장 넓은 곳입니다. 같은 사람이 아침·저녁에 재면 2cm 이상 차이 나니 조건을 고정하세요.</p>
-<p><b>BMI보다 이 숫자가 건강을 더 잘 말해 줍니다.</b> 체중이 정상이어도 체지방률이 높으면(마른 비만) 대사 질환 위험이 있고, 반대로 BMI가 높아도 체지방률이 낮으면 근육형입니다.</p>
+<p><b>재는 위치가 가장 중요합니다.</b> 허리는 배꼽 높이에서 숨을 내쉰 뒤, 목은 후두(목젖) 바로 아래, 엉덩이는 가장 넓은 곳입니다. 같은 사람이 아침·저녁에 재면 2cm 이상 차이 나니 조건을 고정하세요.</p>
+<p><b>건강 상태는 BMI보다 이 숫자로 더 잘 알 수 있습니다.</b> 체중이 정상이어도 체지방률이 높으면(마른 비만) 대사 질환 위험이 있고, 반대로 BMI가 높아도 체지방률이 낮으면 근육형입니다.</p>
 <p><b>인바디와 다르면?</b> 인바디는 수분 상태에 따라 흔들리고 이 공식은 둘레 측정 오차에 흔들립니다. 절대값보다 같은 방법으로 잰 변화 추이를 보세요.</p>
 </div>`)}
 ${section('이어서 계산하기', null, list([{ href: '/bmr/', title: '기초대사량·하루 칼로리', sub: '감량 섭취량' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }, { href: '/exercise/', title: '운동 소모 칼로리', sub: '몸무게·시간별' }]))}
@@ -354,7 +354,7 @@ ${ad()}
 ${section('자주 묻는 것', null, `<div class="doc">
 <p><b>MET가 뭔가요?</b> 가만히 앉아 있을 때 쓰는 에너지를 1로 두고 그 몇 배인지 나타낸 값입니다. 걷기 3, 달리기 8~10, 줄넘기 11 정도입니다.</p>
 <p><b>살을 빼려면 운동이 먼저인가요?</b> 치킨 한 마리(1,900kcal)를 태우려면 60kg인 사람이 3시간을 넘게 뛰어야 합니다. 감량은 식사 조절이 7, 운동이 3이고, 운동은 근육을 지켜 요요를 막는 역할이 큽니다.</p>
-<p><b>스마트워치 숫자와 다른데요?</b> 기기는 심박수로 추정하고 여기는 평균 MET로 계산해 ±30% 차이는 정상입니다. 어느 쪽이든 추세를 보는 용도로 쓰세요.</p>
+<p><b>스마트워치 숫자와 다른데요?</b> 기기는 심박수로 추정하고 바디집은 평균 MET로 계산하므로 ±30%쯤 차이 나는 게 보통입니다. 어느 쪽이든 추세를 보는 용도로 쓰세요.</p>
 </div>`)}`;
   write('/exercise/', shell({ url: '/exercise/', title: `운동별 소모 칼로리표 — 걷기·달리기·자전거·수영·헬스 30분·1시간 (${YEAR})`, desc: `걷기·달리기·자전거·수영·등산·줄넘기·헬스 등 ${EXERCISES.length}가지 운동의 소모 칼로리를 MET 기준으로 몸무게·시간별로 정리했습니다.`, body, nav: 'exercise' }));
 }
@@ -421,8 +421,8 @@ ${section('주수별 일정', `${recent.getUTCFullYear()}년 ${m}월 ${d}일 시
 </div>
 ${ad()}
 ${section('알아두면 좋은 것', null, `<div class="doc">
-<p><b>예정일은 예정일입니다.</b> 실제로 예정일 당일에 태어나는 아기는 5% 정도이고, 대부분 예정일 앞뒤 2주(38~42주) 안에 태어납니다. 초기 초음파(8~12주)에서 아기 크기로 예정일을 다시 잡는 경우도 흔합니다.</p>
-<p><b>생리주기가 28일이 아니면.</b> 주기가 길면 배란이 늦어 예정일도 뒤로 밉니다. 주기 35일이면 약 7일 뒤로, 21일이면 7일 앞으로 조정합니다. 정확한 값은 초음파 기준입니다.</p>
+<p><b>예정일은 어디까지나 예정일입니다.</b> 실제로 예정일 당일에 태어나는 아기는 5% 정도이고, 대부분 예정일 앞뒤 2주(38~42주) 안에 태어납니다. 초기 초음파(8~12주)에서 아기 크기로 예정일을 다시 잡는 경우도 흔합니다.</p>
+<p><b>생리주기가 28일이 아니면.</b> 주기가 길면 배란이 늦어 예정일도 뒤로 밀립니다. 주기 35일이면 약 7일 뒤로, 21일이면 7일 앞으로 조정합니다. 정확한 값은 초음파 기준입니다.</p>
 <p><b>임신 주수 세는 법.</b> 수정일이 아니라 마지막 생리 시작일을 0주 0일로 셉니다. 그래서 "임신 4주"에 실제 아기는 2주 된 셈입니다.</p>
 </div>`)}
 ${section('날짜가 바뀌면', '출산예정일', chips([-2, -1, 0, 1, 2].map((k) => { const dt = D.addDays(D.utc(2024, m, d), k); const mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate(); const pp = D.pregnancy(lmpYears(mm, dd).recent); return { label: `${mm}/${dd}`, value: `${pp.due.getUTCMonth() + 1}/${pp.due.getUTCDate()}`, href: dueUrl(mm, dd), on: k === 0 }; })))}
@@ -558,7 +558,7 @@ function home() {
   <h1>키 170에 몸무게 65면<br>어디쯤일까</h1>
   <p>BMI·기초대사량·칼로리·출산예정일·아기 개월수를 숫자별로 미리 계산해 표로 묶어 두었습니다. 숫자만 넣으면 바로 나옵니다.</p>
 </div>
-<form class="quick quick-smart" data-quick="smart"><label for="q-home">숫자로 바로 찾기 — 키·몸무게·음식·날짜 무엇이든</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">추석 음식 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">임신 20주 몸무게</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">혈압 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
+<form class="quick quick-smart" data-quick="smart"><label for="q-home">키·몸무게·음식·날짜, 무엇이든 숫자로 바로 찾기</label><div class="quick-row"><div class="quick-in"><input id="q-home" type="text" placeholder="키 170 몸무게 65 / 치킨 칼로리 / 출산예정일 3월 5일" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint aria-live="polite">예시를 누르거나 직접 적어 보세요</div><div class="quick-ex"><button type="button">키 170 몸무게 65</button><button type="button">키 160 몸무게 55</button><button type="button">치킨 칼로리</button><button type="button">라면 칼로리</button><button type="button">추석 음식 칼로리</button><button type="button">달리기 칼로리</button><button type="button">출산예정일 3월 5일</button><button type="button">배란일 9월 1일</button><button type="button">아기 2025-06-15</button><button type="button">디데이 카드</button><button type="button">강아지 5살</button><button type="button">아기 몸무게 백분위</button><button type="button">초3 평균 키</button><button type="button">10살 키 140</button><button type="button">2개월 분유량</button><button type="button">임신 20주 몸무게</button><button type="button">혈압 130 85</button><button type="button">공복혈당 110</button><button type="button">오늘 먹은 것</button><button type="button">체중 기록</button><button type="button">혈압 기록</button><button type="button">만보 칼로리</button><button type="button">임신 20주</button><button type="button">소주 1병</button><button type="button">5kg 빼기</button></div><div class="quick-links"><a href="/bmi/">BMI표</a><a href="/food/">칼로리 사전</a><a href="/exercise/">운동표</a><a href="/due-date/">출산예정일</a></div></form>
 ${grid()}
 ${section('몸', null, `<div class="dict">
 <a href="/bmi/"><b>BMI · 정상 체중</b><span>170cm 65kg → BMI <span class="num">${b.bmi}</span> ${b.label} · 정상 범위 ${r.min}~${r.max}kg</span></a>
@@ -573,7 +573,7 @@ ${section('먹고 태우기', null, `<div class="dict">
 </div>`)}
 ${section('임신과 아기', null, `<div class="dict">
 <a href="/due-date/"><b>출산예정일</b><span>마지막 생리일 + 280일 · 주수별 검사 일정 · 오늘 몇 주</span></a>
-<a href="/pregnancy/card/"><b>임신 디데이 카드</b><span>D-140 · 20주 3일 · 태명 — 카톡·인스타용 이미지로 저장·공유</span></a>
+<a href="/pregnancy/card/"><b>임신 디데이 카드</b><span>D-140 · 20주 3일 · 태명 · 카톡·인스타용 이미지로 저장·공유</span></a>
 <a href="/ovulation/"><b>배란일 · 가임기</b><span>생리 시작일과 주기로 · 다음 생리 예정일</span></a>
 <a href="/baby/"><b>아기 개월수 · 예방접종</b><span>생년월일로 오늘 몇 개월 · 100일·돌 · 접종 날짜 · <span class="num">캘린더 파일</span>로 아이폰·구글에 넣기</span></a>
 <a href="/pregnancy/week/"><b>임신 주차별 안내</b><span>1~42주 · 아기 크기 · 엄마 몸 · 검사 일정</span></a>
@@ -583,7 +583,7 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
 <a href="/kids/"><b>아이 키 백분위 (3~18세)</b><span>만 10세 남자 140cm → 또래 <span class="num">${KD.kidsRank(KD.kidsCheck('height', 'm', 126, 140).pct)}</span> · 나이별·학년별 평균 키</span></a>
 <a href="/baby/formula/"><b>분유 수유량</b><span>2개월 5.6kg → 1회 <span class="num">${FM.formulaPlan(76, 5.6).per}</span>ml × ${FM.formulaPlan(76, 5.6).feeds}회 · 하루 ${num(FM.formulaPlan(76, 5.6).daily)}ml</span></a>
-<a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 — 카톡·인스타용 이미지</span></a>
+<a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 · 카톡·인스타용 이미지</span></a>
 </div>`)}
 ${section('건강검진 결과', null, `<div class="dict">
 <a href="/checkup/${CHK.year}/"><b>${CHK.year}년 건강검진 대상자</b><span>${CHK.parity}년생 + 비사무직 · 태어난 해 넣으면 <span class="num">내 나이 항목</span> · 12월 31일까지</span></a>
@@ -619,9 +619,9 @@ ${section('바디집은 이렇게 계산해요', null, `<div class="doc">
 <p>숫자는 모두 공개된 기준과 공식으로 직접 계산합니다. BMI 판정은 대한비만학회 「비만 진료지침 2022」, 기초대사량은 Mifflin-St Jeor 식, 음식 칼로리는 식품의약품안전처 식품영양성분 DB, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값을 씁니다. 혈압·혈당·콜레스테롤은 대한고혈압학회·대한당뇨병학회·한국지질동맥경화학회 진료지침으로, 아이 성장은 질병관리청 「2017 소아청소년 성장도표」와 WHO 성장 표준으로 판정합니다.</p>
 <p>표와 계산기는 같은 계산 엔진에서 나옵니다. 배포할 때마다 자동 테스트로 공식이 기준 사례와 같은 값을 내는지 확인하고, 성장도표 값은 국민건강보험공단 공공데이터와, 명절 음식 칼로리는 식약처 식품영양성분 검색값과 대조했습니다. 기준이 개정되면 모든 페이지를 한 번에 다시 계산하고, 날짜가 들어가는 표는 매일 오늘 기준으로 새로 만듭니다.</p>
 <p>결과는 참고용입니다. 같은 BMI라도 근육량에 따라, 같은 검진 수치라도 나이와 병력에 따라 뜻이 달라집니다. 진단이나 치료가 필요한 결정은 의료진과 상의하세요.</p>
-<p><a href="/method/">계산 기준과 출처</a> · <a href="/guide/">서재 — 숫자 뒤의 기준</a> · <a href="/about/">바디집 소개</a></p>
+<p><a href="/method/">계산 기준과 출처</a> · <a href="/guide/">서재: 기준을 풀어 쓴 글</a> · <a href="/about/">바디집 소개</a></p>
 </div>`)}
-${section('처음이라면 읽어 볼 글', '숫자 뒤의 기준을 풀어 쓴 서재 글', list(['bmi-korea', 'waist-belly', 'checkup-read', 'bmr-diet', 'growth-percentile', 'due-date-change'].map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 60 ? g.desc.slice(0, 60) + '…' : g.desc }))) + `<p class="sub" style="margin-top:8px"><a href="/guide/">서재 전체 보기 →</a></p>`)}`;
+${section('처음이라면 읽어 볼 글', '숫자가 나온 기준을 풀어 쓴 서재 글', list(['bmi-korea', 'waist-belly', 'checkup-read', 'bmr-diet', 'growth-percentile', 'due-date-change'].map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 60 ? g.desc.slice(0, 60) + '…' : g.desc }))) + `<p class="sub" style="margin-top:8px"><a href="/guide/">서재 전체 보기 →</a></p>`)}`;
   write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
 }
 
@@ -682,7 +682,7 @@ ${section('재는 법', null, `<div class="doc">
 <p><b>주 0.5~1kg이 안전한 속도입니다.</b> 그보다 빠르면 근육이 함께 빠집니다.</p>
 </div>`)}
 ${ad()}
-${section('이어서', null, list([{ href: '/today/', title: '오늘 먹은 칼로리 담기', sub: '섭취를 세면 더 빨리 보입니다' }, { href: '/diet/', title: '다이어트 기간 계산', sub: '목표까지 몇 주' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '내 키의 정상 범위' }, { href: '/bp/log/', title: '혈압 기록', sub: '집에서 잰 혈압 7일 평균' }]))}
+${section('이어서', null, list([{ href: '/today/', title: '오늘 먹은 칼로리 담기', sub: '먹은 양을 세면 변화가 더 빨리 보입니다' }, { href: '/diet/', title: '다이어트 기간 계산', sub: '목표까지 몇 주' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '내 키의 정상 범위' }, { href: '/bp/log/', title: '혈압 기록', sub: '집에서 잰 혈압 7일 평균' }]))}
 <p class="note">체중 변화는 수분·식사·배변에 크게 좌우됩니다. 급격한 체중 변화가 이유 없이 이어지면 진료를 받으세요.</p>`;
   write('/weight/', shell({ url: '/weight/', og: 'diet', title: '체중 기록 그래프 — 매일 재서 목표까지 며칠 남았는지 (기기에만 저장)', desc: '몸무게를 날짜별로 기록하면 그래프와 추세, 목표 도달 예상일이 나옵니다. 회원 가입 없이 이 기기에만 저장되고 서버로 전송하지 않습니다.', body: weightBody, nav: 'bmr', scripts: ['/js/engine.js', '/js/weight.js'] }));
 }
@@ -715,9 +715,9 @@ ${section('출산예정일 위젯', '마지막 생리 시작일을 넣으면 예
 <textarea class="copybox" id="em-code-due" rows="3" readonly onclick="this.select()">${snip('due', 270, '출산예정일')}</textarea><div class="btn-row"><button class="btn btn-share" type="button" data-copy="#em-code-due">코드 복사</button></div>`)}
 ${ad()}
 ${section('붙이는 방법', null, `<div class="doc">
-<p><b>티스토리·워드프레스·자체 사이트</b> — 글 편집기를 HTML 모드로 바꾸고 원하는 자리에 위 코드를 붙여 넣으면 끝입니다. 폭은 글 영역에 맞춰 늘어나고, 높이가 잘리면 <code>height</code> 값을 키우세요.</p>
-<p><b>네이버 블로그·카페, 브런치</b> — iframe을 허용하지 않아 붙일 수 없습니다. 대신 결과 페이지 링크(예: <a href="/bmi/170/65/">bodyzip.com/bmi/170/65/</a>)를 넣어 주세요.</p>
-<p><b>조건</b> — 위젯 안의 '바디집' 표시와 링크는 지우지 말아 주세요. 위젯 안에는 광고가 나오지 않고, 입력값은 방문자의 브라우저 안에서만 처리됩니다. 기준이 바뀌면 위젯도 함께 갱신됩니다.</p>
+<p><b>티스토리·워드프레스·자체 사이트</b>: 글 편집기를 HTML 모드로 바꾸고 원하는 자리에 위 코드를 붙여 넣으면 끝입니다. 폭은 글 영역에 맞춰 늘어나고, 높이가 잘리면 <code>height</code> 값을 키우세요.</p>
+<p><b>네이버 블로그·카페, 브런치</b>: iframe을 허용하지 않아 붙일 수 없습니다. 대신 결과 페이지 링크(예: <a href="/bmi/170/65/">bodyzip.com/bmi/170/65/</a>)를 넣어 주세요.</p>
+<p><b>조건</b>: 위젯 안의 '바디집' 표시와 링크는 지우지 말아 주세요. 위젯 안에는 광고가 나오지 않고, 입력값은 방문자의 브라우저 안에서만 처리됩니다. 기준이 바뀌면 위젯도 함께 갱신됩니다.</p>
 </div>`)}
 ${section('이어서', null, list([{ href: '/bmi/', title: 'BMI 계산표', sub: '키·몸무게별 전체 표' }, { href: '/due-date/', title: '출산예정일 계산기', sub: '주수별 검사 일정·캘린더' }, { href: '/method/', title: '계산 기준', sub: '공식과 출처' }]))}
 <p class="note">위젯은 방문자의 브라우저 안에서만 계산하며 입력값을 서버로 보내지 않습니다. 결과는 참고용이며 진단을 대신하지 않습니다.</p>`;
@@ -752,11 +752,11 @@ function docs() {
 <p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65kg이면 정상인가?", "치킨 한 마리는 밥 몇 공기인가?", "공복혈당 110이면 괜찮은가?", "우리 아이 키는 또래 몇 번째인가?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록, 공개된 기준으로 미리 계산해 표와 계산기로 묶었습니다. 회원 가입도, 입력값 저장도 없습니다.</p>
 <h2>무엇을 근거로 계산하나요</h2>
 <ul>
-<li><b>체중과 대사</b> — BMI 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준, 기초대사량은 Mifflin-St Jeor 식, 체지방률은 미 해군 공식, 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」입니다.</li>
-<li><b>먹고 움직이기</b> — 음식 칼로리는 식품의약품안전처 식품영양성분 DB를 1인분으로 환산한 값, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값, 카페인 권고량은 식약처 기준입니다.</li>
-<li><b>건강검진 수치</b> — 혈압은 대한고혈압학회 「2022 고혈압 진료지침」, 혈당은 대한당뇨병학회 「2023 당뇨병 진료지침」, 콜레스테롤·중성지방은 한국지질동맥경화학회 「2022 이상지질혈증 진료지침」으로 판정합니다.</li>
-<li><b>임신과 아이</b> — 출산예정일은 네겔레 법칙, 예방접종은 질병관리청 표준 예방접종 일정, 성장 백분위는 WHO 성장 표준과 질병관리청 「2017 소아청소년 성장도표」, 분유량은 미국소아과학회(AAP)와 미국 질병통제예방센터(CDC) 안내, 임신 중 체중 증가는 미국 국립의학원(IOM) 2009 권고입니다.</li>
-<li><b>반려동물</b> — 나이 환산은 미국수의사회(AVMA) 지침, 사료량은 휴식 에너지 요구량(RER) 공식과 세계소동물수의사회(WSAVA) 계수입니다.</li>
+<li><b>체중과 대사</b>: BMI 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준, 기초대사량은 Mifflin-St Jeor 식, 체지방률은 미 해군 공식, 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」입니다.</li>
+<li><b>먹고 움직이기</b>: 음식 칼로리는 식품의약품안전처 식품영양성분 DB를 1인분으로 환산한 값, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값, 카페인 권고량은 식약처 기준입니다.</li>
+<li><b>건강검진 수치</b>: 혈압은 대한고혈압학회 「2022 고혈압 진료지침」, 혈당은 대한당뇨병학회 「2023 당뇨병 진료지침」, 콜레스테롤·중성지방은 한국지질동맥경화학회 「2022 이상지질혈증 진료지침」으로 판정합니다.</li>
+<li><b>임신과 아이</b>: 출산예정일은 네겔레 법칙, 예방접종은 질병관리청 표준 예방접종 일정, 성장 백분위는 WHO 성장 표준과 질병관리청 「2017 소아청소년 성장도표」, 분유량은 미국소아과학회(AAP)와 미국 질병통제예방센터(CDC) 안내, 임신 중 체중 증가는 미국 국립의학원(IOM) 2009 권고입니다.</li>
+<li><b>반려동물</b>: 나이 환산은 미국수의사회(AVMA) 지침, 사료량은 휴식 에너지 요구량(RER) 공식과 세계소동물수의사회(WSAVA) 계수입니다.</li>
 </ul>
 <p>공식과 기준의 원문 이름, 반영하지 않은 예외는 <a href="/method/">계산 기준과 출처</a>에 모두 적어 두었습니다.</p>
 <h2>어떻게 검증하나요</h2>
@@ -764,18 +764,18 @@ function docs() {
 <h2>언제 바뀌나요</h2>
 <p>학회 진료지침이나 공공 기준이 개정되면 공식을 고치고 모든 페이지를 다시 계산합니다. 날짜가 들어가는 표(오늘 몇 주, 아기 개월수, 접종 날짜)는 매일 새로 만들어 오늘 기준으로 맞춥니다. 페이지 아래에 갱신일을 적어 둡니다.</p>
 <h2>한계</h2>
-<p>바디집의 숫자는 참고용입니다. BMI는 근육량을 모르고, 칼로리는 조리법과 양에 따라 달라지며, 검진 수치는 한 번의 결과로 진단하지 않습니다. 임신·아기·아이 성장에 관한 판단은 산부인과와 소아청소년과가, 반려동물은 수의사가 우선입니다. 혈중알코올농도 계산은 운전해도 된다는 보증이 아닙니다.</p>
+<p>바디집의 숫자는 참고용입니다. BMI는 근육량을 반영하지 못하고, 칼로리는 조리법과 양에 따라 달라지며, 검진 수치는 한 번의 결과로 진단하지 않습니다. 임신·아기·아이 성장은 산부인과와 소아청소년과의 판단이, 반려동물은 수의사의 판단이 우선입니다. 혈중알코올농도 계산은 운전해도 된다는 보증이 아닙니다.</p>
 <h2>개인정보와 광고</h2>
 <p>계산기에 넣은 숫자는 서버로 보내지 않고 브라우저 안에서만 계산합니다. 체중·혈압 기록과 오늘 먹은 음식은 이 기기의 브라우저 저장소에만 남습니다. 방문 통계를 위해 Google 애널리틱스를, 운영비를 위해 Google 애드센스 광고를 씁니다. 자세한 내용은 <a href="/privacy/">개인정보처리방침</a>에 있습니다.</p>
 <h2>만드는 곳</h2>
 <p>바디집은 돈 계산 사전 <a href="${SISTERS.donpyo}/">돈표</a>와 사주 풀이 사이트 <a href="${SISTERS.saju}/">사주첩</a>을 만드는 팀이 운영합니다.</p>
 <h2>고친 기록</h2>
 <ul>
-<li>2026년 9월 8일 — BMI·기초대사량·체지방·칼로리·운동·물·출산예정일·배란일·아기 개월수로 문을 열고, 임신 주차·아기 발달·걸음 수·수면·아이 키 예측·예방접종 캘린더·아기 성장 백분위·반려동물을 더했습니다.</li>
-<li>2026년 9월 9일 — bodyzip.com 주소를 열고 블로그 위젯, 건강검진 수치 해석, 서재 글을 더했습니다.</li>
-<li>2026년 9월 10일 — 아이 키 백분위(만 3~18세), 분유 수유량, 임신 중 체중 증가, 혈압 기록을 더했습니다.</li>
-<li>2026년 9월 11일 — 추석 음식 칼로리를 더하고 명절 음식 값을 식약처 검색값에 맞췄습니다.</li>
-<li>2026년 9월 13일 — 서재 글을 보강하고 소개와 계산 기준 안내를 정리했습니다.</li>
+<li>2026년 9월 8일: BMI·기초대사량·체지방·칼로리·운동·물·출산예정일·배란일·아기 개월수로 문을 열고, 임신 주차·아기 발달·걸음 수·수면·아이 키 예측·예방접종 캘린더·아기 성장 백분위·반려동물을 더했습니다.</li>
+<li>2026년 9월 9일: bodyzip.com 주소를 열고 블로그 위젯, 건강검진 수치 해석, 서재 글을 더했습니다.</li>
+<li>2026년 9월 10일: 아이 키 백분위(만 3~18세), 분유 수유량, 임신 중 체중 증가, 혈압 기록을 더했습니다.</li>
+<li>2026년 9월 11일: 추석 음식 칼로리를 더하고 명절 음식 값을 식약처 검색값에 맞췄습니다.</li>
+<li>2026년 9월 13일: 서재 글을 보강하고 소개와 계산 기준 안내를 정리했습니다.</li>
 </ul>
 <h2>문의</h2>
 <p>오류 제보와 기준 갱신 요청은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 보내 주세요. 계산 오류는 페이지 주소와 함께 알려 주시면 확인한 뒤 바로 고치고 이 기록에 남깁니다.</p>`);

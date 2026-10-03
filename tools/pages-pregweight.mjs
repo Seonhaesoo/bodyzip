@@ -8,9 +8,9 @@ const rg = ([a, b]) => `${a}~${b}kg`;
 const r1 = (x) => Math.round(x * 10) / 10;
 const EX_BMI = { under: 17.5, normal: 21.5, over: 27, obese: 32 };          /* BMI별 페이지의 예시 몸무게 */
 const LEAD = {
-  under: '임신 전에 마른 편이었다면 정상보다 조금 더 늘리는 것이 권장됩니다.',
+  under: '임신 전에 마른 편이었다면 정상보다 조금 더 늘리기를 권합니다.',
   normal: '임신 전 BMI가 정상이면 이 범위가 기준입니다.',
-  over: '임신 전에 과체중이었다면 정상보다 덜 늘리는 것이 권장됩니다.',
+  over: '임신 전에 과체중이었다면 정상보다 덜 늘리기를 권합니다.',
   obese: '임신 전에 비만이었다면 가장 적게 늘립니다. 임신 중에 살을 빼라는 뜻은 아니며, 식사량은 담당 의사와 정하세요.',
 };
 
@@ -38,7 +38,7 @@ ${crumb([['/due-date/', '임신'], ['/pregnancy/weight/', '체중 증가'], [nul
 <h1 class="title">임신 ${w}주 체중 증가</h1>
 <p class="meta">${t}분기 · 임신 전 몸무게와 비교 · 미국 IOM 2009</p>
 ${tiles([{ label: '정상 BMI', value: rg(n) }, { label: t === 1 ? '1분기 합계' : '2·3분기 한 주', value: t === 1 ? '0.5~2kg' : '0.35~0.5kg' }, { label: '출산까지 총', value: '11.5~16kg' }])}
-${lead(`임신 ${w}주에는 임신 전보다 <b>${rg(n)}</b> 늘어난 정도가 알맞습니다(임신 전 BMI 정상 기준). 임신 전에 마른 편이었다면 조금 더(${rg(PW.gainRange('under', w))}), 과체중이었다면 덜(${rg(PW.gainRange('over', w))}) 늘리는 것이 권장됩니다. 키와 임신 전 몸무게를 넣으면 내 기준으로 계산합니다.`)}
+${lead(`임신 ${w}주에는 임신 전보다 <b>${rg(n)}</b> 늘어난 정도가 알맞습니다(임신 전 BMI 정상 기준). 임신 전에 마른 편이었다면 조금 더(${rg(PW.gainRange('under', w))}), 과체중이었다면 덜(${rg(PW.gainRange('over', w))}) 늘리기를 권합니다. 키와 임신 전 몸무게를 넣으면 내 기준으로 계산합니다.`)}
 ${form(w)}
 ${section('임신 전 BMI별', `${w}주까지 늘어난 몸무게`, table(['임신 전 BMI', `${w}주까지`, '출산까지 총', '2·3분기 한 주'], catRows(w)))}
 ${KNOTE}
@@ -58,7 +58,7 @@ ${NOTE}`;
     const ex = [155, 160, 165, 170].map((h) => { const pre = Math.round(EX_BMI[c.key] * Math.pow(h / 100, 2)); return { h, pre, t: [r1(pre + c.total[0]), r1(pre + c.total[1])] }; });
     const e160 = ex[1];
     const title = `임신 전 ${c.label}(${c.range}) 임신 체중 증가 — 출산까지 ${rg(c.total)}, 2·3분기 한 주 ${c.weekly[0]}~${c.weekly[1]}kg`;
-    const desc = `임신 전 BMI ${bmiTxt}(${c.label})이면 출산까지 ${rg(c.total)} 늘리는 것이 권장됩니다(미국 IOM 2009). 주차별 권장 범위 표, 키별 출산 무렵 몸무게 예시, 쌍둥이 기준 ${c.twins ? rg(c.twins) : '없음'}.`;
+    const desc = `임신 전 BMI ${bmiTxt}(${c.label})이면 출산까지 ${rg(c.total)} 늘리기를 권합니다(미국 IOM 2009). 주차별 권장 범위 표, 키별 출산 무렵 몸무게 예시, 쌍둥이 기준 ${c.twins ? rg(c.twins) : '없음'}.`;
     const body = `
 ${crumb([['/due-date/', '임신'], ['/pregnancy/weight/', '체중 증가'], [null, `임신 전 ${c.label}`]])}
 <h1 class="title">임신 전 ${c.label} — 체중 증가</h1>

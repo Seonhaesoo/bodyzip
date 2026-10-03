@@ -34,11 +34,11 @@ export function kidsBand(measure, pct, value) {
     return { key: 'mid', label: '정상 (5~85백분위)' };
   }
   const small = measure === 'weight' ? '가벼운 편' : '작은 편', big = measure === 'weight' ? '무거운 편' : '큰 편';
-  if (pct < 3) return { key: 'low2', label: measure === 'height' ? '3백분위 미만 — 성장 평가 권장' : '3백분위 미만 — 소아청소년과 상담 권장' };
+  if (pct < 3) return { key: 'low2', label: measure === 'height' ? '3백분위 미만 (성장 평가 권장)' : '3백분위 미만 (소아청소년과 상담 권장)' };
   if (pct < 15) return { key: 'low', label: `${small} (3~15백분위)` };
   if (pct <= 85) return { key: 'mid', label: '보통 (15~85백분위)' };
   if (pct <= 97) return { key: 'high', label: `${big} (85~97백분위)` };
-  return { key: 'high2', label: '97백분위 초과 — 소아청소년과 상담 권장' };
+  return { key: 'high2', label: '97백분위 초과 (소아청소년과 상담 권장)' };
 }
 export function kidsCheck(measure, sex, months, value) {
   const z = kidsZ(measure, sex, months, value);

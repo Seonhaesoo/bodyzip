@@ -204,7 +204,7 @@
       if (p.stage === 'week1') { out(box, 'per', '30~60ml'); out(box, 'feeds', '8~12회'); out(box, 'daily', '—'); out(box, 'interval', '2~3시간'); out(box, 'note', '태어나서 1주까지는 1회 30~60ml로 시작해 배고파할 때마다 먹입니다(미국 CDC·소아과학회). 몸무게로 계산하는 하루 총량은 1주가 지난 뒤부터 봅니다.'); }
       else if (p.stage === 'weight') {
         if (!kg) { ['per', 'feeds', 'daily', 'interval'].forEach(function (k) { out(box, k, '—'); }); out(box, 'note', '몸무게를 넣으면 하루 총량과 1회량이 나옵니다.'); }
-        else { out(box, 'per', p.per + 'ml'); out(box, 'feeds', p.feeds + '회'); out(box, 'daily', num(p.daily) + 'ml'); out(box, 'interval', '평균 ' + p.hours + '시간'); out(box, 'note', (p.capped ? '몸무게로는 ' + num(p.raw) + 'ml지만 하루 960ml를 넘기지 않게 잡았습니다. ' : '') + (kg < 2.5 ? '2.5kg 미만이면 병원에서 정한 양을 먼저 따르세요. ' : '') + '1kg당 하루 165ml 기준입니다. 아기가 덜 먹거나 더 원하면 신호를 따르세요.'); }
+        else { out(box, 'per', p.per + 'ml'); out(box, 'feeds', p.feeds + '회'); out(box, 'daily', num(p.daily) + 'ml'); out(box, 'interval', '평균 ' + p.hours + '시간'); out(box, 'note', (p.capped ? '몸무게로는 ' + num(p.raw) + 'ml지만 하루 960ml를 넘기지 않게 잡았습니다. ' : '') + (kg < 2.5 ? '2.5kg 미만이면 병원에서 정한 양을 먼저 따르세요. ' : '') + '1kg당 하루 165ml 기준입니다. 아기가 덜 먹거나 더 찾으면 아기에게 맞춰 주세요.'); }
       } else if (p.stage === 'solids') { out(box, 'per', '180~240ml'); out(box, 'feeds', p.feeds[0] === p.feeds[1] ? p.feeds[0] + '회' : p.feeds[0] + '~' + p.feeds[1] + '회'); out(box, 'daily', num(p.daily[0]) + '~' + num(p.daily[1]) + 'ml'); out(box, 'interval', '이유식 사이'); out(box, 'note', p.solids + '와 함께 먹는 시기입니다. 이유식을 잘 먹을수록 분유는 줄어듭니다.'); }
       else { out(box, 'per', '—'); out(box, 'feeds', '—'); out(box, 'daily', '우유 ' + p.milk[0] + '~' + p.milk[1] + 'ml'); out(box, 'interval', '끼니 사이'); out(box, 'note', '돌이 지나면 분유 대신 생우유와 밥(하루 3끼 + 간식 2회)으로 바꿉니다.'); }
       if (link) { link.href = '/baby/formula/' + mm + '/'; link.textContent = mm === 12 ? '돌 아기 우유량 →' : (mm ? '생후 ' + mm + '개월' : '신생아') + ' 분유량 표 →'; }
@@ -284,7 +284,7 @@
       var d0 = dateOf(box, 'date'); if (!d0) return;
       var days = M.diffDays(d0, today()); if (days < 0) { out(box, 'days', '아직 시작 전'); return; }
       var per = val(box, 'per') || 20, price = val(box, 'price') || 4500, r = M.quitStats(days, per, price), st = M.quitStage(days), y = M.quitStats(365, per, price);
-      out(box, 'days', days + '일'); out(box, 'cigs', num(r.cigs) + '개비'); out(box, 'money', num(r.money) + '원'); out(box, 'life', r.lifeText); out(box, 'stage', st.label + ' — ' + st.text); out(box, 'year', num(y.money) + '원');
+      out(box, 'days', days + '일'); out(box, 'cigs', num(r.cigs) + '개비'); out(box, 'money', num(r.money) + '원'); out(box, 'life', r.lifeText); out(box, 'stage', st.label + ': ' + st.text); out(box, 'year', num(y.money) + '원');
     });
   });
 

@@ -22,7 +22,7 @@ export function weeksOn(lmp, date) {
   return { days: d, weeks: Math.floor(d / 7), rem: ((d % 7) + 7) % 7, trimester: d < 14 * 7 ? 1 : d < 28 * 7 ? 2 : 3 };
 }
 export const MILESTONES = [
-  { week: 4, label: '생리 예정일 지남 — 임신 테스트기 확인 가능' },
+  { week: 4, label: '생리 예정일 지남 · 임신 테스트기 확인 가능' },
   { week: 6, label: '초음파로 아기집·심장 박동 확인' },
   { week: 8, label: '입덧이 심해지는 시기 · 산모수첩 발급' },
   { week: 11, label: '1차 기형아 검사(목덜미 투명대, 11~13주)' },
@@ -33,7 +33,7 @@ export const MILESTONES = [
   { week: 28, label: '3분기 시작 · 2주 간격 진료' },
   { week: 32, label: '태아 위치 확인 · 출산 준비물 정리' },
   { week: 35, label: 'GBS(B군 연쇄상구균) 검사(35~37주)' },
-  { week: 37, label: '만삭 — 37~41주는 정상 만삭 범위' },
+  { week: 37, label: '만삭 · 37~41주는 정상 만삭 범위' },
   { week: 40, label: '출산예정일' },
 ];
 
@@ -91,15 +91,15 @@ export function vaccineDates(birth) {
   return VACCINES.map((v) => ({ name: v.name, doses: v.doses.map(([m, label]) => ({ label, date: addMonths(birth, m) })) }));
 }
 export const GROWTH = [
-  [0, '신생아 — 하루 16~18시간 잠, 2~3시간마다 수유. 배꼽 관리와 황달 관찰.'],
+  [0, '신생아: 하루 16~18시간 잠, 2~3시간마다 수유. 배꼽 관리와 황달 관찰.'],
   [1, '목을 잠깐 가누고 소리에 반응. 100일 전후로 밤잠이 길어지기 시작.'],
   [3, '뒤집기 시도, 손을 입에 가져감. 이유식은 4~6개월 사이에 시작.'],
   [6, '앉기 시작, 이유식 본격. 낯가림이 시작되는 시기.'],
   [9, '기어 다니고 잡고 서기. 손가락으로 집기, 옹알이가 말에 가까워짐.'],
   [12, '첫 걸음·첫 단어. 돌 이후 생우유·일반식 전환.'],
   [18, '뛰고 계단 오르기, 두 단어 말. 자기 주장이 세지는 시기.'],
-  [24, '두 돌 — 문장으로 말하기 시작, 배변 훈련 준비.'],
-  [36, '세 돌 — 어린이집·유치원 적응, 또래 놀이.'],
+  [24, '두 돌: 문장으로 말하기 시작, 배변 훈련 준비.'],
+  [36, '세 돌: 어린이집·유치원 적응, 또래 놀이.'],
 ];
 export function growthText(months) {
   let t = GROWTH[0][1];
