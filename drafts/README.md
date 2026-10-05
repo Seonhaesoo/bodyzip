@@ -2,6 +2,7 @@
 
 매주 월요일 아침 자동으로 한 편씩 생깁니다. 파일을 열어 네이버 블로그에 붙여 넣고 제목·첫 문단만 다듬으세요.
 
+- [2026-10-05-bmi-normal-weight](2026-10-05-bmi-normal-weight.md)
 - [2026-09-28-child-height](2026-09-28-child-height.md)
 - [2026-09-21-quit-smoking-money](2026-09-21-quit-smoking-money.md)
 - [2026-09-14-caffeine-limit](2026-09-14-caffeine-limit.md)
