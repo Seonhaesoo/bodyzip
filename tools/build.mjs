@@ -1,6 +1,7 @@
 /* 바디집 정적 사이트 생성기 — node tools/build.mjs → dist/
  * BMI(키×몸무게)·정상 체중·기초대사량·체지방·음식 칼로리·운동 소모 칼로리·출산예정일·배란일·아기 개월수/예방접종·물 섭취량 */
 import fs from 'node:fs';
+import { coupangFor, DISCLOSURE } from '../data/coupang.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as B from '../engine/body.mjs';
@@ -54,7 +55,7 @@ const CONTENT_DATE = '2026-10-08';
 const PRIVACY_DATE = '2026-09-10';
 /* 업데이트 기록 — 이용자에게 보이는 변경만, 최근 것부터. 글·기준을 고칠 때 맨 위에 한 줄 더한다 */
 const UPDATES = [
-  { date: '2026-10-08', text: '업데이트 기록 페이지를 열고, 키·나이·수치별 표 가운데 찾는 사람이 거의 없던 페이지는 검색 결과에서 빼고 사이트 안 표로만 남겼습니다.' },
+  { date: '2026-10-08', text: '업데이트 기록 페이지를 열고, 키·나이·수치별 표 가운데 찾는 사람이 거의 없던 페이지는 검색 결과에서 빼고 사이트 안 표로만 남겼습니다. 혈압·혈당·체중·체지방·아이 키·분유·반려동물·걸음 수·물·카페인 페이지에 관련 물건을 볼 수 있는 쿠팡 파트너스 링크와 대가성 안내 문구를 달았습니다.' },
   { date: '2026-10-03', text: '서재와 계산기 안내 문장을 읽기 쉽게 다듬었습니다(약 200곳).' },
   { date: '2026-09-23', text: '2026-2027 독감 예방접종 무료 대상과 일정, 2026년 국가건강검진 대상자 페이지를 더했습니다.' },
   { date: '2026-09-19', text: '강아지·고양이 나이 계산기에 환산법, 노령 기준, 자주 묻는 질문을 더하고 새 글을 받아 볼 수 있는 RSS 피드를 열었습니다.' },
@@ -82,6 +83,13 @@ function write(url, html) {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'index.html'), html);
   urls.push(url);
+}
+
+/* 쿠팡 파트너스 상자 — data/coupang.mjs 의 규칙에 맞는 페이지에만, 대가성 문구와 함께 */
+function coupangBox(url) {
+  const items = coupangFor(url);
+  if (!items.length) return '';
+  return `<aside class="cp-box"><p class="cp-h">쿠팡에서 함께 보기</p><ul>${items.map((x) => `<li><a href="${x.href}" target="_blank" rel="sponsored noopener">${esc(x.label)} 보러 가기</a><small>${esc(x.note)}</small></li>`).join('')}</ul><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
 }
 
 function shell(o) {
@@ -124,7 +132,7 @@ ${o.bare ? o.body : `<div class="app">
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
-<footer class="foot">
+${coupangBox(o.url)}<footer class="foot">
   <div class="frow"><span>© 바디집 · 갱신 ${CONTENT_DATE}</span><nav><a href="/guide/">서재</a><a href="/updates/">업데이트 기록</a><a href="/embed/">위젯</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
@@ -816,7 +824,7 @@ ${UPDATES.map((x) => `<li><b>${x.date}</b> ${x.text}</li>`).join('\n')}
 <p>사이트의 글과 표는 저작권법의 보호를 받습니다. 출처(바디집, bodyzip.com)를 밝힌 인용과 링크는 자유롭게 할 수 있으나 전체 복제·재배포는 금합니다.</p>`);
   doc('/privacy/', '개인정보처리방침 — 바디집', '바디집 개인정보처리방침.', `
 <h2>1. 수집하는 정보</h2><p>바디집은 회원 가입이나 개인정보 입력을 요구하지 않습니다. 계산기에 넣는 키·몸무게·날짜는 이용자의 브라우저 안에서만 처리되며 서버로 전송·저장되지 않습니다.</p>
-<h2>2. 쿠키와 분석</h2><p>Google Analytics로 방문 통계(페이지 조회, 기기 종류, 유입 경로)를 수집하고 Google AdSense 광고가 게재될 수 있습니다. 이들 서비스는 쿠키를 사용할 수 있으며, 브라우저 설정에서 쿠키를 거부할 수 있습니다. 광고 개인 최적화는 <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google 광고 설정</a>에서 관리할 수 있습니다.</p>
+<h2>2. 쿠키와 분석</h2><p>Google Analytics로 방문 통계(페이지 조회, 기기 종류, 유입 경로)를 수집하고 Google AdSense 광고가 게재될 수 있습니다. 일부 페이지의 쿠팡 링크(쿠팡 파트너스)를 누르면 쿠팡으로 이동하며, 그 뒤 구매가 생기면 바디집이 일정액의 수수료를 받을 수 있습니다. 이 과정의 쿠키는 쿠팡이 관리합니다. 이들 서비스는 쿠키를 사용할 수 있으며, 브라우저 설정에서 쿠키를 거부할 수 있습니다. 광고 개인 최적화는 <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google 광고 설정</a>에서 관리할 수 있습니다.</p>
 <h2>3. 제3자 제공</h2><p>수집한 정보를 제3자에게 판매·제공하지 않습니다.</p>
 <h2>4. 문의</h2><p>개인정보 관련 문의는 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요. 시행일 ${PRIVACY_DATE}.</p>`);
   fs.writeFileSync(path.join(OUT, '404.html'), shell({ url: '/404.html', title: '페이지를 찾을 수 없어요 — 바디집', desc: '없는 페이지', noindex: true, body: `<h1 class="title" style="margin-top:40px">페이지를 찾을 수 없어요</h1><p class="lead">주소가 바뀌었거나 없는 페이지입니다. <a href="/">홈에서 키·몸무게를 넣어 보세요</a>.</p>` }));
