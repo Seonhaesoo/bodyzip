@@ -49,6 +49,27 @@ const BUILD_ISO = D.iso(TODAY);
 const t0 = Date.now();
 const urls = [];
 const NOINDEX = new Set();   /* shell({ noindex }) 로 쓴 주소 — 사이트맵에서 뺀다 */
+/* 본문을 마지막으로 고친 날 — 사이트맵 lastmod·푸터. 매일 다시 빌드하므로 빌드 날짜를 쓰면 날마다 '새 글'처럼 보인다. 글·기준을 고칠 때만 바꾼다 */
+const CONTENT_DATE = '2026-10-08';
+const PRIVACY_DATE = '2026-09-10';
+/* 업데이트 기록 — 이용자에게 보이는 변경만, 최근 것부터. 글·기준을 고칠 때 맨 위에 한 줄 더한다 */
+const UPDATES = [
+  { date: '2026-10-08', text: '업데이트 기록 페이지를 열고, 키·나이·수치별 표 가운데 찾는 사람이 거의 없던 페이지는 검색 결과에서 빼고 사이트 안 표로만 남겼습니다.' },
+  { date: '2026-10-03', text: '서재와 계산기 안내 문장을 읽기 쉽게 다듬었습니다(약 200곳).' },
+  { date: '2026-09-23', text: '2026-2027 독감 예방접종 무료 대상과 일정, 2026년 국가건강검진 대상자 페이지를 더했습니다.' },
+  { date: '2026-09-19', text: '강아지·고양이 나이 계산기에 환산법, 노령 기준, 자주 묻는 질문을 더하고 새 글을 받아 볼 수 있는 RSS 피드를 열었습니다.' },
+  { date: '2026-09-13', text: '서재 글 15편을 더하고 소개와 계산 기준 안내를 정리했습니다.' },
+  { date: '2026-09-11', text: '추석 음식 칼로리를 더하고 명절 음식 값을 식약처 검색값에 맞췄습니다.' },
+  { date: '2026-09-10', text: '아이 키 백분위(만 3~18세), 분유 수유량, 임신 중 체중 증가, 집에서 잰 혈압 기록을 더했습니다.' },
+  { date: '2026-09-09', text: 'bodyzip.com 주소를 열고 건강검진 수치 해석(혈압·혈당·콜레스테롤·간수치·요산), 블로그 위젯, 서재 글을 더했습니다. 고혈압 위기 응급 안내와 LDL 목표치를 검토해 고쳤습니다.' },
+  { date: '2026-09-08', text: 'BMI·기초대사량·체지방·칼로리·운동·물·출산예정일·배란일·아기 개월수로 문을 열고, 임신 주차, 아기 발달, 걸음 수, 수면, 아이 키 예측, 예방접종 캘린더, 아기 성장 백분위, 반려동물 계산을 더했습니다.' },
+];   /* 개인정보처리방침 시행일 — GA4·광고 안내를 넣고 bodyzip.com 을 연 날. 방침 내용을 고칠 때만 바꾼다 */
+/* 색인 정리(2026-10-08, 애드센스 신청 전): 마지막 주소 칸이 숫자만인 페이지(키·나이·주수·수치·시각별)는 실제 수요가 있던 주소
+ * (data/index-keep.json: 2026-09-06~10-08 GA4 방문 또는 구글 노출 10회 이상)만 색인하고 나머지는 noindex — 페이지·링크·계산은 그대로.
+ * 허브·서재·음식·운동처럼 항목이 다른 페이지와 철 페이지(/checkup/2026/)는 늘 색인 */
+const INDEX_KEEP = new Set(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'index-keep.json'), 'utf8')).keep);
+const NUM_LEAF = /^([\d.]+|\d+-(boy|girl)|[ehm]\d-(boy|girl)|\d{4}-\d{2}-\d{2}|\d+-\d+)$/;
+const thinPage = (u) => { const p = u.split('/').filter(Boolean); return p.length >= 2 && NUM_LEAF.test(p[p.length - 1]) && !INDEX_KEEP.has(u) && !/^\/checkup\/\d{4}\/$/.test(u); };
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const n = (v, unit = '') => `<span class="num">${typeof v === 'number' ? num(v) : v}${unit}</span>`;
@@ -64,6 +85,7 @@ function write(url, html) {
 }
 
 function shell(o) {
+  if (!o.noindex && o.url && thinPage(o.url)) o.noindex = true;
   if (o.noindex) NOINDEX.add(o.url);
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
@@ -103,7 +125,7 @@ ${o.bare ? o.body : `<div class="app">
 </header>
 ${o.body}
 <footer class="foot">
-  <div class="frow"><span>© 바디집 · 갱신 ${BUILD_ISO}</span><nav><a href="/guide/">서재</a><a href="/embed/">위젯</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
+  <div class="frow"><span>© 바디집 · 갱신 ${CONTENT_DATE}</span><nav><a href="/guide/">서재</a><a href="/updates/">업데이트 기록</a><a href="/embed/">위젯</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
 </div>`}
@@ -771,14 +793,23 @@ function docs() {
 <p>바디집은 돈 계산 사전 <a href="${SISTERS.donpyo}/">돈표</a>와 사주 풀이 사이트 <a href="${SISTERS.saju}/">사주첩</a>을 만드는 팀이 운영합니다.</p>
 <h2>고친 기록</h2>
 <ul>
-<li>2026년 9월 8일: BMI·기초대사량·체지방·칼로리·운동·물·출산예정일·배란일·아기 개월수로 문을 열고, 임신 주차·아기 발달·걸음 수·수면·아이 키 예측·예방접종 캘린더·아기 성장 백분위·반려동물을 더했습니다.</li>
-<li>2026년 9월 9일: bodyzip.com 주소를 열고 블로그 위젯, 건강검진 수치 해석, 서재 글을 더했습니다.</li>
-<li>2026년 9월 10일: 아이 키 백분위(만 3~18세), 분유 수유량, 임신 중 체중 증가, 혈압 기록을 더했습니다.</li>
-<li>2026년 9월 11일: 추석 음식 칼로리를 더하고 명절 음식 값을 식약처 검색값에 맞췄습니다.</li>
-<li>2026년 9월 13일: 서재 글을 보강하고 소개와 계산 기준 안내를 정리했습니다.</li>
+${UPDATES.slice(0, 4).map((x) => `<li>${x.date.replace(/^(\d+)-0?(\d+)-0?(\d+)$/, '$1년 $2월 $3일')}: ${x.text}</li>`).join('')}
 </ul>
+<p><a href="/updates/">전체 업데이트 기록 보기</a></p>
 <h2>문의</h2>
 <p>오류 제보와 기준 갱신 요청은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 보내 주세요. 계산 오류는 페이지 주소와 함께 알려 주시면 확인한 뒤 바로 고치고 이 기록에 남깁니다.</p>`);
+  doc('/updates/', '업데이트 기록 — 바디집', '바디집이 언제 어떤 계산기와 글을 더하고 기준을 고쳤는지 날짜순으로 정리한 기록입니다.', `
+<p class="meta">최근 갱신 ${UPDATES[0].date}</p>
+<p>바디집의 계산은 대한비만학회·대한고혈압학회·질병관리청·식품의약품안전처·WHO 같은 기관의 기준을 따릅니다. 기준이 개정되거나 오류 제보가 오면 같은 계산 엔진을 쓰는 모든 표와 글에 함께 반영하고, 아래에 날짜와 함께 남깁니다.</p>
+<ul>
+${UPDATES.map((x) => `<li><b>${x.date}</b> ${x.text}</li>`).join('\n')}
+</ul>
+<h2>다음 갱신 예정</h2>
+<ul>
+<li>2027년 국가건강검진 대상(짝수·홀수 해 출생) — 2027년 1월</li>
+<li>2027-2028 독감 예방접종 무료 대상과 일정 — 질병관리청 발표 뒤(보통 9월)</li>
+</ul>
+<p>틀린 값을 발견하면 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 알려 주세요.</p>`);
   doc('/terms/', '이용약관 — 바디집', '바디집 이용약관.', `
 <p>바디집(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
 <p>사이트의 모든 계산 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단, 치료, 처방을 대신하지 않습니다. 건강·임신·육아에 관한 결정은 반드시 의료인과 상의하세요. 이용자는 계산 결과를 근거로 한 결정에 대해 스스로 책임지며, 사이트는 결과의 정확성·완전성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
@@ -787,7 +818,7 @@ function docs() {
 <h2>1. 수집하는 정보</h2><p>바디집은 회원 가입이나 개인정보 입력을 요구하지 않습니다. 계산기에 넣는 키·몸무게·날짜는 이용자의 브라우저 안에서만 처리되며 서버로 전송·저장되지 않습니다.</p>
 <h2>2. 쿠키와 분석</h2><p>Google Analytics로 방문 통계(페이지 조회, 기기 종류, 유입 경로)를 수집하고 Google AdSense 광고가 게재될 수 있습니다. 이들 서비스는 쿠키를 사용할 수 있으며, 브라우저 설정에서 쿠키를 거부할 수 있습니다. 광고 개인 최적화는 <a href="https://adssettings.google.com/" target="_blank" rel="noopener">Google 광고 설정</a>에서 관리할 수 있습니다.</p>
 <h2>3. 제3자 제공</h2><p>수집한 정보를 제3자에게 판매·제공하지 않습니다.</p>
-<h2>4. 문의</h2><p>개인정보 관련 문의는 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요. 시행일 ${BUILD_ISO}.</p>`);
+<h2>4. 문의</h2><p>개인정보 관련 문의는 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 메시지로 보내 주세요. 시행일 ${PRIVACY_DATE}.</p>`);
   fs.writeFileSync(path.join(OUT, '404.html'), shell({ url: '/404.html', title: '페이지를 찾을 수 없어요 — 바디집', desc: '없는 페이지', noindex: true, body: `<h1 class="title" style="margin-top:40px">페이지를 찾을 수 없어요</h1><p class="lead">주소가 바뀌었거나 없는 페이지입니다. <a href="/">홈에서 키·몸무게를 넣어 보세요</a>.</p>` }));
 }
 
@@ -820,10 +851,10 @@ for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));
   if (!list.length) continue;
   const file = `sitemap-${key}.xml`;
-  fs.writeFileSync(path.join(OUT, file), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${BUILD_ISO}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+  fs.writeFileSync(path.join(OUT, file), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${u === '/' || u === '/today/' ? BUILD_ISO : CONTENT_DATE}</lastmod></url>`).join('\n')}\n</urlset>\n`);
   smFiles.push({ file, set: new Set(list), n: list.length });
 }
-fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${BUILD_ISO}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${CONTENT_DATE}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
 console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'bodyzip.com\n');
