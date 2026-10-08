@@ -89,7 +89,7 @@ function write(url, html) {
 function coupangBox(url) {
   const items = coupangFor(url);
   if (!items.length) return '';
-  return `<aside class="cp-box"><p class="cp-h">쿠팡에서 함께 보기</p><ul>${items.map((x) => `<li><a href="${x.href}" target="_blank" rel="sponsored noopener">${esc(x.label)} 보러 가기</a><small>${esc(x.note)}</small></li>`).join('')}</ul><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
+  return `<aside class="cp-box"><p class="cp-h">함께 쓰면 좋은 물건</p><div class="cp-list">${items.map((x) => `<a class="cp-item" href="${x.href}" target="_blank" rel="sponsored noopener">${x.img ? `<img class="cp-img" src="${x.img}" alt="" width="80" height="80" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}<span class="cp-t"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span><span class="cp-go">쿠팡에서 보기</span></a>`).join('')}</div><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
 }
 
 function shell(o) {
