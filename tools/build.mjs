@@ -132,8 +132,10 @@ ${o.bare ? o.body : `<div class="app">
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
-${coupangBox(o.url)}<footer class="foot">
-  <div class="frow"><span>© 바디집 · 갱신 ${CONTENT_DATE}</span><nav><a href="/guide/">서재</a><a href="/updates/">업데이트 기록</a><a href="/embed/">위젯</a><a href="/method/">계산 기준</a><a href="/about/">소개</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav></div>
+${coupangBox(o.url)}<footer class="foot foot2">
+  <p class="flabel">계산 찾아보기</p>
+  <nav class="fgrid" aria-label="계산 찾아보기"><a href="/bmi/">BMI·정상 체중</a><a href="/bmr/">기초대사량</a><a href="/food/">음식 칼로리</a><a href="/exercise/">운동 칼로리</a><a href="/due-date/">출산예정일</a><a href="/baby/">아기 개월수</a><a href="/checkup/">건강검진</a><a href="/pet/">반려동물 나이</a><a href="/guide/">서재</a></nav>
+  <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
 </div>`}
@@ -645,12 +647,7 @@ ${section('생활', null, `<div class="dict">
 </div>`)}
 ${section('많이 보는 표', null, list([170, 175, 160, 165, 180].map((h) => { const rr = B.normalRange(h); return { href: bmiUrl(h), title: `키 ${h}cm 정상 체중`, sub: `표준체중 남 ${B.standardWeight(h, 'm')} · 여 ${B.standardWeight(h, 'f')}kg`, value: `${rr.min}~${rr.max}kg` }; })))}
 ${ad()}
-${section('바디집은 이렇게 계산해요', null, `<div class="doc">
-<p>숫자는 모두 공개된 기준과 공식으로 직접 계산합니다. BMI 판정은 대한비만학회 「비만 진료지침 2022」, 기초대사량은 Mifflin-St Jeor 식, 음식 칼로리는 식품의약품안전처 식품영양성분 DB, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값을 씁니다. 혈압·혈당·콜레스테롤은 대한고혈압학회·대한당뇨병학회·한국지질동맥경화학회 진료지침으로, 아이 성장은 질병관리청 「2017 소아청소년 성장도표」와 WHO 성장 표준으로 판정합니다.</p>
-<p>표와 계산기는 같은 계산 엔진에서 나옵니다. 배포할 때마다 자동 테스트로 공식이 기준 사례와 같은 값을 내는지 확인하고, 성장도표 값은 국민건강보험공단 공공데이터와, 명절 음식 칼로리는 식약처 식품영양성분 검색값과 대조했습니다. 기준이 개정되면 모든 페이지를 한 번에 다시 계산하고, 날짜가 들어가는 표는 매일 오늘 기준으로 새로 만듭니다.</p>
-<p>결과는 참고용입니다. 같은 BMI라도 근육량에 따라, 같은 검진 수치라도 나이와 병력에 따라 뜻이 달라집니다. 진단이나 치료가 필요한 결정은 의료진과 상의하세요.</p>
-<p><a href="/method/">계산 기준과 출처</a> · <a href="/guide/">서재: 기준을 풀어 쓴 글</a> · <a href="/about/">바디집 소개</a></p>
-</div>`)}
+<section class="section intro"><p class="intro-label">바디집 이야기</p><h2>바디집은 이렇게 계산해요</h2><ol class="steps"><li><i aria-hidden="true">1</i><div><b>공개된 기준과 공식으로 계산합니다</b><p>BMI 판정은 대한비만학회 「비만 진료지침 2022」, 기초대사량은 Mifflin-St Jeor 식, 음식 칼로리는 식품의약품안전처 식품영양성분 DB, 운동 소모 칼로리는 Compendium of Physical Activities의 MET 값을 씁니다. 혈압·혈당·콜레스테롤은 대한고혈압학회·대한당뇨병학회·한국지질동맥경화학회 진료지침으로, 아이 성장은 질병관리청 「2017 소아청소년 성장도표」와 WHO 성장 표준으로 판정합니다.</p></div></li><li><i aria-hidden="true">2</i><div><b>배포할 때마다 값을 대조합니다</b><p>표와 계산기는 같은 계산 엔진에서 나옵니다. 자동 테스트로 공식이 기준 사례와 같은 값을 내는지 확인하고, 성장도표 값은 국민건강보험공단 공공데이터와, 명절 음식 칼로리는 식약처 식품영양성분 검색값과 대조했습니다. 기준이 개정되면 모든 페이지를 한 번에 다시 계산하고, 날짜가 들어가는 표는 매일 오늘 기준으로 새로 만듭니다.</p></div></li><li><i aria-hidden="true">3</i><div><b>결과는 참고용입니다</b><p>같은 BMI라도 근육량에 따라, 같은 검진 수치라도 나이와 병력에 따라 뜻이 달라집니다. 진단이나 치료가 필요한 결정은 의료진과 상의하세요.</p></div></li></ol><div class="intro-links"><a href="/method/">계산 기준과 출처</a><a href="/guide/">서재: 기준을 풀어 쓴 글</a><a href="/about/">바디집 소개</a></div></section>
 ${section('처음이라면 읽어 볼 글', '숫자가 나온 기준을 풀어 쓴 서재 글', list(['bmi-korea', 'waist-belly', 'checkup-read', 'bmr-diet', 'growth-percentile', 'due-date-change'].map((s) => GUIDES.find((g) => g.slug === s)).filter(Boolean).map((g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 60 ? g.desc.slice(0, 60) + '…' : g.desc }))) + `<p class="sub" style="margin-top:8px"><a href="/guide/">서재 전체 보기 →</a></p>`)}`;
   write('/', shell({ url: '/', title: `바디집 — BMI·기초대사량·칼로리·출산예정일·아기 개월수 계산 사전 (${YEAR})`, desc: '키·몸무게별 BMI와 정상 체중, 기초대사량과 하루 칼로리, 음식·운동 칼로리, 출산예정일·배란일, 아기 개월수와 예방접종 일정을 숫자별로 미리 계산한 몸 계산 사전.', body }));
 }
