@@ -103,8 +103,15 @@ ${crumb([['/pet/', '반려동물'], [null, `${kindName(kind)} 사료량`]])}
 ${foodForm(kind, kind === 'dog' ? 5 : 4)}
 ${lead(`몸무게를 누르면 상태별 하루 사료량 표가 나옵니다. 기본값은 사료 100g당 ${P.KCAL_PER_100G}kcal(건사료 평균)이며 봉지의 열량으로 바꿔 넣으면 정확해집니다.`)}
 ${section('몸무게별 (중성화 성체)', 'kcal · g', table(['몸무게', '하루 열량', '사료'], KGS.map((k) => { const x = P.petFood(kind, k, 'neutered'); return { cells: [`<a href="${foodUrl(kind, k)}">${k}kg</a>`, `${num(x.der)}kcal`, `${x.grams}g`] }; })))}
+${(() => { const kg0 = kind === 'dog' ? 5 : 4, F = kind === 'cat' ? P.CAT_FACTORS : P.DOG_FACTORS; return section('상태에 따라 달라지는 양', `${kg0}kg 기준 · 같은 몸무게라도 중성화·나이·활동량에 따라 필요한 열량이 다릅니다`, table(['상태', '계수', '하루 열량', '사료'], F.map((f) => { const x = P.petFood(kind, kg0, f.key); return { cells: [f.label, `×${f.f}`, `${num(x.der)}kcal`, `${x.grams}g`] }; }))); })()}
 ${ad()}
-${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindName(kind)} 나이 환산`, sub: '' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '' }]))}` }));
+${section('자주 묻는 것', null, `<div class="doc">
+<p><b>사료 봉지의 급여표보다 적게 나와요.</b> 봉지 급여표는 활동량이 많은 기준으로 넉넉하게 잡는 경우가 많습니다. 실내에서 지내고 중성화했다면 이 계산이 더 가깝습니다. 2~3주 먹이며 몸무게를 재고 10%씩 늘리거나 줄이세요.</p>
+<p><b>간식은 얼마나 줘도 되나요?</b> 하루 열량의 10% 안쪽이 흔히 쓰는 기준입니다. 간식을 준 날은 그만큼 사료를 덜어 주세요.</p>
+<p><b>하루 몇 번에 나눠 주나요?</b> ${kind === 'dog' ? '성견은 하루 2번이 보통이고, 어린 강아지는 3~4번으로 나눠 줍니다.' : '고양이는 조금씩 여러 번 먹는 습성이 있어 하루 양을 정해 두고 2~4번에 나눠 주면 좋습니다.'} 위의 '한 끼' 칸에서 바로 볼 수 있습니다.</p>
+<p><b>살이 쪘는지 어떻게 아나요?</b> 손으로 옆구리를 쓸었을 때 갈비뼈가 살짝 만져지고, 위에서 봤을 때 허리가 잘록하면 알맞은 체형입니다. 갈비뼈가 잘 안 만져지면 양을 줄일 때입니다.</p>
+</div>`)}
+${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindName(kind)} 나이 환산`, sub: '사람 나이로' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '생일로 날짜 · 캘린더 파일' }]))}` }));
   }
 
   /* ---------- 예방접종 (생일별, 최근 1년) ---------- */
