@@ -23,6 +23,7 @@ const hhmm = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String
 const slot = (min) => hhmm(min).replace(':', '-');
 const EX = Object.fromEntries(EXERCISES.map((e) => [e.slug, e]));
 const wk = (w) => w <= 13 ? 1 : w <= 27 ? 2 : 3;
+const GUIDE_EDITED = '2026-10-03';   /* 서재 문장 다듬기(약 200곳) — 업데이트 기록 2026-10-03 */
 
 export function buildExtra(ctx) {
   const { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, babyMin } = ctx;
@@ -36,16 +37,18 @@ export function buildExtra(ctx) {
     /* 같은 갈래 글을 먼저, 모자라면 다른 갈래로 */
     const others = GUIDES.filter((x) => x.slug !== g.slug && x.cat === g.cat).concat(GUIDES.filter((x) => x.cat !== g.cat)).slice(0, 4);
     const chars = g.body.replace(/<[^>]+>/g, '').length;
+    /* 고친 날 — 글마다 g.updated 가 있으면 그 날, 없으면 처음 쓴 날과 서재 문장을 다듬은 날(2026-10-03) 가운데 늦은 날. 빌드하는 날짜를 찍지 않는다 */
+    const mod = g.updated || (g.published > GUIDE_EDITED ? g.published : GUIDE_EDITED);
     const body = `
 ${crumb([['/guide/', '서재'], [null, g.title.split(' — ')[0]]])}
 <h1 class="title">${g.title}</h1>
-<p class="meta">${GUIDE_CATS[g.cat]} · 읽는 시간 약 ${Math.max(1, Math.round(chars / 500))}분 · 갱신 ${D.iso(TODAY)}</p>
+<p class="meta">${GUIDE_CATS[g.cat]} · 읽는 시간 약 ${Math.max(1, Math.round(chars / 500))}분 · 처음 쓴 날 ${g.published}${mod !== g.published ? ` · 고친 날 ${mod}` : ''}</p>
 <div class="doc">${g.body}</div>
 ${g.links && g.links.length ? section('계산해 보기', null, list(g.links.map((k) => ({ href: k.href, title: k.title })))) : ''}
 ${ad()}
 ${section('다른 글', null, list(others.map((o) => ({ href: `/guide/${o.slug}/`, title: o.title.split(' — ')[0], sub: o.desc.length > 60 ? o.desc.slice(0, 60) + '…' : o.desc }))))}
-<p class="note">이 글은 공개된 학회 기준과 공식을 풀어 쓴 일반 정보이며, 개인의 상태에 따라 맞지 않을 수 있습니다. 의학적 진단·치료·처방을 대신하지 않으므로 증상이 있거나 결과가 걱정되면 의료기관에서 상담하세요. 반려동물에 관한 내용은 수의사의 판단이 우선합니다.</p>`;
-    write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', datePublished: g.published, dateModified: D.iso(TODAY), author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
+<p class="note">이 글은 공개된 학회 기준과 공식을 풀어 쓴 일반 정보이며, 개인의 상태에 따라 맞지 않을 수 있습니다. 의학적 진단·치료·처방을 대신하지 않으므로 증상이 있거나 결과가 걱정되면 의료기관에서 상담하세요. 반려동물에 관한 내용은 수의사의 판단이 우선합니다. 바디집은 1인 운영 사이트이며, 글에 쓴 기준은 <a href="/method/">계산 기준과 출처</a>, 만드는 방식은 <a href="/editorial/">편집 원칙</a>에 있습니다. 틀린 곳은 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a>으로 알려 주세요.</p>`;
+    write(url, shell({ url, title: `${g.title} — 바디집 서재`, desc: g.desc, body, nav: 'guide', ld: { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.desc, inLanguage: 'ko', datePublished: g.published, dateModified: mod, author: { '@type': 'Organization', name: '바디집' }, publisher: { '@type': 'Organization', name: '바디집' }, mainEntityOfPage: `https://bodyzip.com${url}` } }));
   }
   const guideItem = (g) => ({ href: `/guide/${g.slug}/`, title: g.title.split(' — ')[0], sub: g.desc.length > 70 ? g.desc.slice(0, 70) + '…' : g.desc });
   write('/guide/', shell({ url: '/guide/', title: '서재 — 검진 수치·다이어트·운동·임신·육아·반려동물을 풀어 쓴 글', desc: `건강검진 결과지와 혈압·혈당·당화혈색소·중성지방 읽는 법, BMI 한국 기준과 허리둘레, 기초대사량과 근육, 걸음 수와 운동 강도, 카페인·나트륨, 출산예정일·배란일, 성장 백분위와 사춘기, 반려동물 체형까지 ${GUIDES.length}편.`, nav: 'guide', body: `
