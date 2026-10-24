@@ -268,7 +268,7 @@ ${section('유전 말고 키를 좌우하는 것', null, `<div class="doc">
 ${section('이어서', null, list([{ href: '/guide/child-height/', title: '우리 아이 키 예측 — 공식과 한계', sub: '서재' }, { href: '/baby/month/', title: '아기 개월별 평균 키·몸무게', sub: '0~36개월' }, { href: '/bmi/', title: '부모 BMI', sub: '키·몸무게별' }]))}
 <p class="note">Tanner 중간 부모 키 공식(1970)입니다. 예측값은 통계적 평균이며 실제 키는 영양·수면·질병·사춘기 시기에 따라 달라집니다. 정확한 예측은 손목 X선 뼈 나이 검사로 합니다.</p>`;
     /* 아빠×엄마 806 조합은 허브의 조합표와 겹쳐 검색에서 뺀다(2026-09-13) — 허브 /child-height/ 는 색인 */
-    write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', noindex: true, scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
+    write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', noindex: 'google', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
   }
   write('/child-height/', shell({ og: 'child', url: '/child-height/', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나오고 결과 카드로 저장·공유할 수 있습니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'], body: `
 ${crumb([['/', '홈'], [null, '아이 키 예측']])}

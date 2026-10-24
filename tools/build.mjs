@@ -50,6 +50,7 @@ const BUILD_ISO = D.iso(TODAY);
 const t0 = Date.now();
 const urls = [];
 const NOINDEX = new Set();   /* shell({ noindex }) 로 쓴 주소 — 사이트맵에서 뺀다 */
+const GOOGLE_ONLY = new Set();   /* 그중 구글에만 뺀 주소 — 네이버용 사이트맵(sitemap-naver.xml)에는 넣는다 */
 /* 본문을 마지막으로 고친 날 — 사이트맵 lastmod·푸터. 매일 다시 빌드하므로 빌드 날짜를 쓰면 날마다 '새 글'처럼 보인다. 글·기준을 고칠 때만 바꾼다 */
 const CONTENT_DATE = '2026-10-15';
 const PRIVACY_DATE = '2026-09-10';
@@ -94,8 +95,11 @@ function coupangBox(url) {
 }
 
 function shell(o) {
-  if (!o.noindex && o.url && thinPage(o.url)) o.noindex = true;
+  /* 숫자 조합 페이지는 구글에만 뺀다('google' → googlebot noindex). robots noindex(모든 검색엔진)로 두면 주 유입인 네이버에서도 빠진다
+   * (2026-10-24 감사). noindex: true 는 날짜별 부가 페이지·위젯·약관처럼 어디서도 뺄 것 */
+  if (!o.noindex && o.url && thinPage(o.url)) o.noindex = 'google';
   if (o.noindex) NOINDEX.add(o.url);
+  if (o.noindex === 'google') GOOGLE_ONLY.add(o.url);
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'&&!navigator.webdriver&&!/bot|crawl|spider|slurp|yeti|daumoa|bingpreview|headless|lighthouse|scrap|facebookexternalhit|compatible;|mediapartners|adsbot/i.test(navigator.userAgent)){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
   const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
@@ -109,7 +113,7 @@ ${GA}${ADS}<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="${esc(o.desc)}">
 ${VERIFY.join('\n')}
 <link rel="canonical" href="${SITE}${o.url}">
-${o.noindex ? '<meta name="robots" content="noindex">\n' : '<meta name="robots" content="max-image-preview:large">\n'}<link rel="alternate" type="application/rss+xml" title="새 글" href="/rss.xml">
+${o.noindex === 'google' ? '<meta name="robots" content="max-image-preview:large">\n<meta name="googlebot" content="noindex">\n' : o.noindex ? '<meta name="robots" content="noindex">\n' : '<meta name="robots" content="max-image-preview:large">\n'}<link rel="alternate" type="application/rss+xml" title="새 글" href="/rss.xml">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,7 +140,7 @@ ${o.body}
 ${coupangBox(o.url)}<footer class="foot foot2">
   <p class="flabel">계산 찾아보기</p>
   <nav class="fgrid" aria-label="계산 찾아보기"><a href="/bmi/">BMI·정상 체중</a><a href="/bmr/">기초대사량</a><a href="/food/">음식 칼로리</a><a href="/exercise/">운동 칼로리</a><a href="/due-date/">출산예정일</a><a href="/baby/">아기 개월수</a><a href="/checkup/">건강검진</a><a href="/pet/">반려동물 나이</a><a href="/guide/">서재</a></nav>
-  <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/editorial/">편집 원칙</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a><a href="${SISTERS.donpyo}/">돈표</a><a href="${SISTERS.saju}/">사주첩</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>
+  <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/editorial/">편집 원칙</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>
   <p class="fnote">계산 결과는 참고용입니다. 건강 상태와 체성분에 따라 실제와 다를 수 있으며, 진단이나 치료를 대신하지 않습니다.</p>
 </footer>
 </div>`}
@@ -207,7 +211,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 </div>`)}
 ${NOTE_BMI}`;
   /* 키×몸무게 조합 4,941장은 키별 페이지의 몸무게별 표와 겹쳐 검색에서 뺀다(애드센스 '가치가 별로 없는 콘텐츠' 대비, 2026-09-13) — 키별 /bmi/{h}/ 는 색인 */
-  write(url, shell({ url, title, desc, body, nav: 'bmi', noindex: true }));
+  write(url, shell({ url, title, desc, body, nav: 'bmi', noindex: 'google' }));
 }
 
 function heightPage(h) {
@@ -414,7 +418,7 @@ ${hero({ label: '하루 물', value: num(wt.ml), unit: 'ml', sub: `200ml 컵 ${w
 ${tiles([{ label: '단백질 (일반)', value: `${pr.base}g` }, { label: '단백질 (운동)', value: `${pr.active}g` }, { label: '닭가슴살로', value: `${Math.round(pr.active / 23 * 100)}g` }])}
 ${section('몸무게가 바뀌면', 'ml', chips(neighbors(WATER_KG, kg, 3).map((x) => ({ label: `${x}kg`, value: num(B.water(x).ml), href: `/water/${x}/`, on: x === kg }))))}
 ${ad()}
-<p class="note">물 30~35ml/kg은 임상에서 널리 쓰는 어림 기준으로, 유럽식품안전청(EFSA)·미국 의학한림원의 하루 총 수분 권장량(여 2.0~2.7L·남 2.5~3.7L)과 비슷한 수준입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 권장 0.8g/kg은 한국인 영양소 섭취기준(2020)입니다.</p>`;
+<p class="note">물 30~35ml/kg은 임상에서 널리 쓰는 어림 기준으로, 유럽식품안전청(EFSA)·미국 의학한림원의 하루 총 수분 권장량(여 2.0~2.7L·남 2.5~3.7L)과 비슷한 수준입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 0.8g/kg은 세계보건기구(WHO)·미국 권장량 기준이며, 한국인 영양소 섭취기준(2020)의 성인 권장섭취량은 0.91g/kg입니다.</p>`;
   write(url, shell({ url, title: `${kg}kg 하루 물 섭취량 ${num(wt.ml)}ml (${wt.cups}잔) · 단백질 ${pr.base}~${pr.active}g`, desc: `몸무게 ${kg}kg의 하루 물 권장량은 약 ${num(wt.ml)}ml, 단백질은 ${pr.base}~${pr.active}g입니다. 컵·생수병 환산과 닭가슴살 환산.`, body, nav: 'bmr' }));
 }
 function waterIndex() {
@@ -434,7 +438,7 @@ ${section('자주 묻는 것', null, `<div class="doc">
 <p><b>음식으로도 물을 먹나요?</b> 네. 국·과일·채소 같은 음식으로 하루 수분의 20~30%를 채웁니다. 표의 양은 음료로 마시는 물을 기준으로 잡은 넉넉한 값입니다.</p>
 <p><b>소변 색으로 알 수 있나요?</b> 옅은 노란색이면 충분히 마시고 있는 것이고, 진한 노란색이면 더 마셔야 한다는 신호입니다. 비타민 B를 먹은 날은 색이 진해질 수 있습니다.</p>
 </div>`)}
-<p class="note">물 30~35ml/kg은 임상에서 널리 쓰는 어림 기준으로, 유럽식품안전청(EFSA)·미국 의학한림원의 하루 총 수분 권장량(여 2.0~2.7L·남 2.5~3.7L)과 비슷한 수준입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 권장 0.8g/kg은 한국인 영양소 섭취기준(2020)입니다.</p>`;
+<p class="note">물 30~35ml/kg은 임상에서 널리 쓰는 어림 기준으로, 유럽식품안전청(EFSA)·미국 의학한림원의 하루 총 수분 권장량(여 2.0~2.7L·남 2.5~3.7L)과 비슷한 수준입니다. 신장·심장 질환이 있으면 의사 지시를 따르세요. 단백질 0.8g/kg은 세계보건기구(WHO)·미국 권장량 기준이며, 한국인 영양소 섭취기준(2020)의 성인 권장섭취량은 0.91g/kg입니다.</p>`;
   write('/water/', shell({ og: 'water', url: '/water/', title: '몸무게별 하루 물 섭취량·단백질 권장량표', desc: '몸무게 40~120kg별 하루 물 권장량(ml·컵)과 단백질 권장량을 정리했습니다.', body, nav: 'bmr' }));
 }
 
@@ -779,7 +783,7 @@ function docs() {
   const doc = (url, title, desc, inner) => write(url, shell({ url, title, desc, body: `${crumb([['/', '홈'], [null, title.split(' — ')[0]]])}<h1 class="title">${title.split(' — ')[0]}</h1><div class="doc">${inner}</div>`, noindex: url === '/terms/' || url === '/privacy/' }));
   doc('/method/', '계산 기준과 출처 — 바디집', '바디집의 BMI·기초대사량·체지방률·칼로리·출산예정일·예방접종 계산 방식과 출처.', `
 <h2>BMI와 정상 체중</h2><p>BMI = 몸무게(kg) ÷ 키(m)². 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준(18.5 미만 저체중, 18.5~22.9 정상, 23~24.9 비만 전단계, 25~29.9 1단계, 30~34.9 2단계, 35 이상 3단계 비만)을 씁니다. 정상 체중 범위는 BMI 18.5~22.9, 표준체중은 키(m)² × 22(남)·21(여), 브로카 변법은 (키 − 100) × 0.9입니다. 감량 기간은 체지방 1kg ≈ 7,700kcal로 계산합니다.</p>
-<h2>기초대사량과 하루 필요 칼로리</h2><p>Mifflin-St Jeor(1990): 남 10 × 몸무게 + 6.25 × 키 − 5 × 나이 + 5, 여 −161. 비교용 Harris-Benedict는 1984년 개정식. 하루 필요 칼로리는 기초대사량 × 활동 계수(1.2 · 1.375 · 1.55 · 1.725 · 1.9). 단백질 권장량은 한국인 영양소 섭취기준(2020) 0.8g/kg과 운동 시 1.4g/kg 안팎.</p>
+<h2>기초대사량과 하루 필요 칼로리</h2><p>Mifflin-St Jeor(1990): 남 10 × 몸무게 + 6.25 × 키 − 5 × 나이 + 5, 여 −161. 비교용 Harris-Benedict는 1984년 개정식. 하루 필요 칼로리는 기초대사량 × 활동 계수(1.2 · 1.375 · 1.55 · 1.725 · 1.9). 단백질 권장량은 WHO·미국 기준 0.8g/kg(한국인 영양소 섭취기준 2020은 0.91g/kg)과 운동 시 1.4g/kg 안팎.</p>
 <h2>체지방률</h2><p>미 해군 공식(Hodgdon & Beckett 1984), cm 단위. 남 495 ÷ (1.0324 − 0.19077·log(허리 − 목) + 0.15456·log(키)) − 450, 여 495 ÷ (1.29579 − 0.35004·log(허리 + 엉덩이 − 목) + 0.22100·log(키)) − 450. 판정은 ACE 분류.</p>
 <h2>칼로리</h2><p>음식 칼로리는 식품의약품안전처 식품영양성분 DB와 외식 영양성분 자료를 1인분 기준으로 반올림한 대략값입니다. 운동 소모 칼로리 = MET × 3.5 × 몸무게(kg) ÷ 200 × 분, MET는 Compendium of Physical Activities(2011)의 보통 강도 값. 물 섭취량은 몸무게 × 33ml(임상 어림 기준 30~35ml/kg).</p>
 <h2>출산예정일·배란일</h2><p>출산예정일 = 마지막 생리 시작일 + 280일(네겔레 법칙, 주기 28일 가정). 임신 주수는 마지막 생리 시작일을 0주 0일로 셉니다. 배란일 = 다음 생리 예정일 − 14일, 가임기 = 배란 5일 전 ~ 1일 뒤. 모두 평균값이며 초음파·검사 결과가 우선합니다.</p>
@@ -901,6 +905,10 @@ for (const [key, re] of SM_GROUPS) {
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${CONTENT_DATE}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
 console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
+/* 네이버용 전체 목록 — 구글에만 뺀 숫자 조합 페이지까지. robots.txt 에는 적지 않고(구글이 보지 않게) 네이버 서치어드바이저에 직접 제출한다 */
+const naverList = urls.filter((u) => (!NOINDEX.has(u) || GOOGLE_ONLY.has(u)) && !['/terms/', '/privacy/'].includes(u));
+fs.writeFileSync(path.join(OUT, 'sitemap-naver.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${naverList.map((u) => `<url><loc>${SITE}${u}</loc></url>`).join('\n')}\n</urlset>\n`);
+console.log('네이버용 사이트맵:', naverList.length);
 if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'bodyzip.com\n');
 console.log(`바디집 빌드 완료: 페이지 ${urls.length}장, ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
