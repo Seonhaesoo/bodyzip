@@ -88,11 +88,14 @@ function write(url, html) {
 }
 
 /* 쿠팡 파트너스 상자 — data/coupang.mjs 의 규칙에 맞는 페이지에만, 대가성 문구와 함께 */
-function coupangBox(url) {
-  const items = coupangFor(url);
+function coupangBox(url, max = 99) {
+  const items = coupangFor(url).slice(0, max);
   if (!items.length) return '';
   return `<aside class="cp-box"><p class="cp-h">함께 쓰면 좋은 물건</p><div class="cp-list">${items.map((x) => `<a class="cp-item" href="${x.href}" target="_blank" rel="sponsored noopener">${x.img ? `<img class="cp-img" src="${x.img}" alt="" width="80" height="80" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}<span class="cp-t"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span><span class="cp-go">쿠팡에서 보기</span></a>`).join('')}</div><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
 }
+/* 많이 들어오는 계산 페이지(GA4 2026-10 상위)는 상자를 맨 끝 대신 계산기 바로 아래에, 물건 1개만 둔다.
+ * 휴대폰 방문자가 끝까지 내려가지 않아 클릭이 거의 없었다(10월 클릭 11·구매 0). 나머지 페이지는 그대로 맨 끝 */
+const CP_TOP = new Set(['/bmi/', '/bmi/165/', '/bmi/170/', '/bmi/175/', '/bmr/', '/kcal-need/', '/baby/formula/', '/pet/dog-food/', '/water/', '/exercise/']);
 
 function shell(o) {
   /* 숫자 조합 페이지는 구글에만 뺀다('google' → googlebot noindex). robots noindex(모든 검색엔진)로 두면 주 유입인 네이버에서도 빠진다
@@ -100,6 +103,10 @@ function shell(o) {
   if (!o.noindex && o.url && thinPage(o.url)) o.noindex = 'google';
   if (o.noindex) NOINDEX.add(o.url);
   if (o.noindex === 'google') GOOGLE_ONLY.add(o.url);
+  if (CP_TOP.has(o.url) && typeof o.body === 'string' && o.body.includes('</form>')) {
+    o.body = o.body.replace('</form>', '</form>\n' + coupangBox(o.url, 1));
+    o.cpTop = true;
+  }
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'&&!navigator.webdriver&&!/bot|crawl|spider|slurp|yeti|daumoa|bingpreview|headless|lighthouse|scrap|facebookexternalhit|compatible;|mediapartners|adsbot/i.test(navigator.userAgent)){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
   const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
@@ -137,7 +144,7 @@ ${o.bare ? o.body : `<div class="app">
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
-${coupangBox(o.url)}<footer class="foot foot2">
+${o.cpTop ? '' : coupangBox(o.url)}<footer class="foot foot2">
   <p class="flabel">계산 찾아보기</p>
   <nav class="fgrid" aria-label="계산 찾아보기"><a href="/bmi/">BMI·정상 체중</a><a href="/bmr/">기초대사량</a><a href="/food/">음식 칼로리</a><a href="/exercise/">운동 칼로리</a><a href="/due-date/">출산예정일</a><a href="/baby/">아기 개월수</a><a href="/checkup/">건강검진</a><a href="/pet/">반려동물 나이</a><a href="/guide/">서재</a></nav>
   <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/editorial/">편집 원칙</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>
