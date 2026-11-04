@@ -373,3 +373,6 @@ body.bare { background: transparent; }
   .app:has(> .home-hero) > .foot.foot2 { margin: 48px -40px -40px; padding-left: 40px; padding-right: 40px; }
   .app:has(> .home-hero) .fgrid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
+/* 계산기 안 안내문 — 결손 하한선·느린 분해 시각처럼 결과 아래 붙는 설명. warn 은 하한선에 걸렸거나 큰 감량일 때 */
+.live .sub { margin-top: 8px; font-size: 12.5px; line-height: 1.65; color: var(--muted); }
+.live .sub.warn { color: var(--gold); font-weight: 500; }

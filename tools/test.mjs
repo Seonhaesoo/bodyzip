@@ -71,6 +71,18 @@ ok(X.childHeight(180, 165).boy === 179 && X.childHeight(180, 165).girl === 166, 
 { const g = X.alcoholGrams(360, 0.165); ok(near(g, 46.9, 0.2), '소주 1병 알코올 ≈ 47g', g); const r = X.bac(g, 70, 'm'); ok(r.peak === 0.089 && r.driveHours === 5.4 && r.soberHours === 7.4, '70kg 남 소주 1병 0.089% · 5.4h · 7.4h (흡수 1.5h 포함)', JSON.stringify(r)); const f = X.bac(g, 55, 'f'); ok(f.peak > r.peak, '여성이 같은 양에 농도 높음', f.peak); ok(X.bac(g, 70, 'm', 8).now === 0 && X.bac(g, 70, 'm', 1).now === 0.089 && X.bac(g, 70, 'm', 2.5).now === 0.074, '분해는 흡수 1.5h 뒤부터');
 ok(X.bacLevel(0.45).startsWith('생명이 위험') && X.bac(X.alcoholGrams(50, 0.165), 90, 'm').driveHours === 0, '만취 표시 · 한 잔은 기준 미만'); }
 ok(X.bacLevel(0.02).startsWith('단속 기준 미만') && X.bacLevel(0.05).startsWith('면허 정지') && X.bacLevel(0.1).startsWith('면허 취소'), '농도 판정');
+/* 느린 분해(0.010%p/h) — 언제쯤 술이 깰까 */
+{ const r = X.bac(X.alcoholGrams(360, 0.165), 70, 'm'); ok(r.driveHoursSlow === 7.4 && r.soberHoursSlow === 10.4 && r.driveHoursSlow > r.driveHours && r.soberHoursSlow > r.soberHours, '70kg 남 소주 1병 느린 분해 0.03% 아래 7.4h · 0까지 10.4h', JSON.stringify(r));
+  ok(X.bac(X.alcoholGrams(360, 0.165), 70, 'm', 4).nowSlow === 0.064 && X.bac(X.alcoholGrams(360, 0.165), 70, 'm', 4).now === 0.051, '4시간 뒤 농도 빠른 0.051 · 느린 0.064');
+  ok(X.bac(X.alcoholGrams(50, 0.165), 90, 'm').driveHoursSlow === 0, '기준 미만이면 느린 쪽도 0');
+  const c = X.bacClock(23 * 60, 7.4); ok(c.time === '06:24' && c.nextDay === true && X.bacClock(14 * 60, 5.4).time === '19:24' && X.bacClock(14 * 60, 5.4).nextDay === false, '마지막 잔 23:00 + 7.4h = 다음 날 06:24', JSON.stringify(c)); }
+/* 목표 체중까지 — 하한선 */
+{ const p = X.goalPlan('f', 162, 65, 30, 58, 500, 'light'); ok(p.bmr === 1352 && p.tdee === 1859 && p.floor === 1352 && p.deficit === 500 && p.intake === 1359 && p.weeks === 15.4 && p.days === 108 && !p.capped && !p.unsafe && p.big === true, '여 30세 162/65→58 500kcal → 1,359kcal · 15.4주 · 10% 초과 안내', JSON.stringify(p));
+  const q = X.goalPlan('f', 155, 52, 50, 47, 700, 'light'); ok(q.tdee === 1482 && q.floor === 1200 && q.capped && q.deficit === 282 && q.intake === 1200 && q.weeks === 19.5, '하한선 1,200kcal에 걸리면 결손 282로 제한', JSON.stringify(q));
+  const m = X.goalPlan('m', 165, 60, 60, 55, 500, 'light'); ok(m.bmr === 1336 && m.floor === 1500 && m.tdee === 1837 && m.capped && m.deficit === 337 && m.intake === 1500, '남 하한선은 기초대사량(1,336)과 1,500 중 큰 값 → 결손 337', JSON.stringify(m));
+  ok(X.goalPlan('m', 175, 85, 35, 75, 300, 'sedentary').floor === 1774, '기초대사량이 1,500보다 크면 기초대사량이 하한');
+  const u = X.goalPlan('f', 150, 42, 25, 40, 500, 'sedentary'); ok(u.unsafe && u.weeks === null && u.intake === 1200, '필요 칼로리가 하한선에 붙으면 기간 안 냄', JSON.stringify(u));
+  ok(X.goalPlan('f', 162, 65, 30, 65).dir === 'same' && X.goalPlan('f', 162, 65, 30, 70).dir === 'gain' && X.goalPlan('f', 162, 65, 30, 70).weeks === 0, '목표가 같거나 크면 감량 계산 안 함'); }
 { const p = X.dietPlan(75, 66, 500); ok(p.diff === 9 && p.weeks === 19.8 && p.days === 139 && p.perWeek === 0.45, '9kg 감량 500kcal → 19.8주·139일', JSON.stringify(p)); }
 ok(X.dietPlan(5, 0, 1000).days === 39 && X.dietPlan(5, 0, 300).days === 129, '5kg 1000/300kcal 39·129일');
 ok(X.KCAL_NEED.length === 11 && X.KCAL_NEED[6][1] === 2600 && X.KCAL_NEED[6][2] === 2000, '권장 칼로리 19~29세 2,600/2,000');

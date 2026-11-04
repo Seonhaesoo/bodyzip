@@ -53,9 +53,13 @@ const NOINDEX = new Set();   /* shell({ noindex }) 로 쓴 주소 — 사이트�
 const GOOGLE_ONLY = new Set();   /* 그중 구글에만 뺀 주소 — 네이버용 사이트맵(sitemap-naver.xml)에는 넣는다 */
 /* 본문을 마지막으로 고친 날 — 사이트맵 lastmod·푸터. 매일 다시 빌드하므로 빌드 날짜를 쓰면 날마다 '새 글'처럼 보인다. 글·기준을 고칠 때만 바꾼다 */
 const CONTENT_DATE = '2026-10-15';
+/* 페이지별 갱신일 — shell({ modified }) 로 적은 주소만. 사이트맵 lastmod 와 JSON-LD dateModified 에 그 날짜를 쓰고, 나머지는 CONTENT_DATE 그대로
+ * (본문이 바뀐 페이지만 '새로 고쳤다'고 알린다) */
+const MODIFIED = new Map();
 const PRIVACY_DATE = '2026-09-10';
 /* 업데이트 기록 — 이용자에게 보이는 변경만, 최근 것부터. 글·기준을 고칠 때 맨 위에 한 줄 더한다 */
 const UPDATES = [
+  { date: '2026-11-05', text: '혈중알코올농도 계산기에 "언제쯤 술이 깰까" 칸을 더했습니다. 마지막 잔 시각을 넣으면 분해가 느린 사람(시간당 0.010%p) 기준으로 0.03% 아래가 되는 시각까지 함께 보여 줍니다. 나이별 권장 칼로리 페이지에 목표 체중까지 걸리는 기간 계산기를 더했습니다. 기초대사량과 하루 1,200·1,500kcal 아래로 내려가는 식단은 권하지 않도록 하한선을 두었습니다.' },
   { date: '2026-10-15', text: 'BMI 계산표에 한국·세계 기준 비교, 물 섭취량과 강아지·고양이 사료량에 설명과 자주 묻는 질문을 더했습니다. 편집 원칙 페이지를 열고, 서재 글마다 처음 쓴 날과 실제로 고친 날을 따로 적었습니다.' },
   { date: '2026-10-08', text: '업데이트 기록 페이지를 열고, 키·나이·수치별 표 가운데 찾는 사람이 거의 없던 페이지는 검색 결과에서 빼고 사이트 안 표로만 남겼습니다. 혈압·혈당·체중·체지방·아이 키·분유·반려동물·걸음 수·물·카페인 페이지에 관련 물건을 볼 수 있는 쿠팡 파트너스 링크와 대가성 안내 문구를 달았습니다.' },
   { date: '2026-10-03', text: '서재와 계산기 안내 문장을 읽기 쉽게 다듬었습니다(약 200곳).' },
@@ -110,6 +114,7 @@ function shell(o) {
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'&&!navigator.webdriver&&!/bot|crawl|spider|slurp|yeti|daumoa|bingpreview|headless|lighthouse|scrap|facebookexternalhit|compatible;|mediapartners|adsbot/i.test(navigator.userAgent)){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';
   const ld = o.ld || { '@context': 'https://schema.org', '@type': 'WebPage', name: o.title, description: o.desc, url: SITE + o.url, inLanguage: 'ko', isPartOf: { '@type': 'WebSite', name: '바디집', url: SITE } };
+  if (o.modified) { ld.dateModified = o.modified; MODIFIED.set(o.url, o.modified); }
   const on = (k) => o.nav === k ? ' class="on"' : '';
   return `<!doctype html>
 <html lang="ko">
@@ -671,8 +676,8 @@ ${section('생활', null, `<div class="dict">
 <a href="/steps/10000/"><b>만보 걸으면</b><span>60kg → <span class="num">${num(X.steps(10000, 60, 170).kcal)}</span>kcal · ${X.steps(10000, 60, 170).km}km · ${X.steps(10000, 60, 170).minutes}분</span></a>
 <a href="/sleep/"><b>몇 시에 자야 할까</b><span>7시 기상 → <span class="num">${X.bedtimes(7)[1].time}</span> 취침 (90분 주기 5번)</span></a>
 <a href="/diet/"><b>다이어트 기간</b><span>5kg → 하루 500kcal 줄이면 <span class="num">${X.dietPlan(5, 0).weeks}</span>주</span></a>
-<a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 마지막 잔 뒤 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}시간이면 0.03% 아래</span></a>
-<a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal</span></a>
+<a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 0.03% 아래까지 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}~${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHoursSlow}시간 · 언제쯤 깰까</span></a>
+<a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal · 목표 체중까지 몇 주</span></a>
 <a href="/caffeine/"><b>카페인</b><span>아메리카노 2잔 <span class="num">300</span>mg · 성인 400 · 임신 300mg</span></a>
 <a href="/today/"><b>오늘 먹은 것 담기</b><span>음식을 담으면 하루 칼로리와 <span class="num">남은 양</span>이 바로</span></a>
 <a href="/weight/"><b>체중 기록</b><span>매일 재서 그래프로 · 목표까지 <span class="num">며칠</span> 남았는지</span></a>
@@ -787,7 +792,7 @@ ${section('이어서', null, list([{ href: '/bmi/', title: 'BMI 계산표', sub:
 
 /* ---------- 문서 ---------- */
 function docs() {
-  const doc = (url, title, desc, inner) => write(url, shell({ url, title, desc, body: `${crumb([['/', '홈'], [null, title.split(' — ')[0]]])}<h1 class="title">${title.split(' — ')[0]}</h1><div class="doc">${inner}</div>`, noindex: url === '/terms/' || url === '/privacy/' }));
+  const doc = (url, title, desc, inner, modified) => write(url, shell({ url, title, desc, modified, body: `${crumb([['/', '홈'], [null, title.split(' — ')[0]]])}<h1 class="title">${title.split(' — ')[0]}</h1><div class="doc">${inner}</div>`, noindex: url === '/terms/' || url === '/privacy/' }));
   doc('/method/', '계산 기준과 출처 — 바디집', '바디집의 BMI·기초대사량·체지방률·칼로리·출산예정일·예방접종 계산 방식과 출처.', `
 <h2>BMI와 정상 체중</h2><p>BMI = 몸무게(kg) ÷ 키(m)². 판정은 대한비만학회 「비만 진료지침 2022」의 한국인 기준(18.5 미만 저체중, 18.5~22.9 정상, 23~24.9 비만 전단계, 25~29.9 1단계, 30~34.9 2단계, 35 이상 3단계 비만)을 씁니다. 정상 체중 범위는 BMI 18.5~22.9, 표준체중은 키(m)² × 22(남)·21(여), 브로카 변법은 (키 − 100) × 0.9입니다. 감량 기간은 체지방 1kg ≈ 7,700kcal로 계산합니다.</p>
 <h2>기초대사량과 하루 필요 칼로리</h2><p>Mifflin-St Jeor(1990): 남 10 × 몸무게 + 6.25 × 키 − 5 × 나이 + 5, 여 −161. 비교용 Harris-Benedict는 1984년 개정식. 하루 필요 칼로리는 기초대사량 × 활동 계수(1.2 · 1.375 · 1.55 · 1.725 · 1.9). 단백질 권장량은 WHO·미국 기준 0.8g/kg(한국인 영양소 섭취기준 2020은 0.91g/kg)과 운동 시 1.4g/kg 안팎.</p>
@@ -795,9 +800,9 @@ function docs() {
 <h2>칼로리</h2><p>음식 칼로리는 식품의약품안전처 식품영양성분 DB와 외식 영양성분 자료를 1인분 기준으로 반올림한 대략값입니다. 운동 소모 칼로리 = MET × 3.5 × 몸무게(kg) ÷ 200 × 분, MET는 Compendium of Physical Activities(2011)의 보통 강도 값. 물 섭취량은 몸무게 × 33ml(임상 어림 기준 30~35ml/kg).</p>
 <h2>출산예정일·배란일</h2><p>출산예정일 = 마지막 생리 시작일 + 280일(네겔레 법칙, 주기 28일 가정). 임신 주수는 마지막 생리 시작일을 0주 0일로 셉니다. 배란일 = 다음 생리 예정일 − 14일, 가임기 = 배란 5일 전 ~ 1일 뒤. 모두 평균값이며 초음파·검사 결과가 우선합니다.</p>
 <h2>아기 개월수·예방접종</h2><p>개월수는 달력 기준(같은 날짜가 될 때 1개월). 예방접종 일정은 질병관리청 「표준 예방접종 일정표」의 국가예방접종 항목을 생년월일에 더해 계산했으며, 실제 접종은 소아과의 판단에 따릅니다. 초등학교 입학 연도 = 출생연도 + 7.</p>
-<h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal. 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량.</p>
+<h2>걸음 수·수면·다이어트 기간</h2><p>보폭 = 키(cm) × 0.415, 시속 4km(MET 3.0) 가정. 수면 주기는 90분, 잠드는 시간 15분. 다이어트 기간 = 감량 kg × 7,700 ÷ 하루 결손 kcal(1kg ≈ 7,700kcal 은 근사치). 나이별 권장 칼로리는 「2020 한국인 영양소 섭취기준」 에너지 필요추정량. 목표 체중까지 걸리는 기간은 Mifflin-St Jeor 기초대사량 × 활동계수로 하루 필요 칼로리를 구한 뒤, 섭취가 기초대사량과 하루 1,200(여)·1,500(남)kcal 중 큰 값 아래로 내려가지 않는 범위에서만 결손을 적용합니다.</p>
 <h2>아이 예상 키</h2><p>Tanner 중간 부모 키: 아들 (아버지 + 어머니 + 13) ÷ 2, 딸 (아버지 + 어머니 − 13) ÷ 2, 95% 범위 ±8.5cm.</p>
-<h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 단속 기준은 도로교통법(0.03% 정지, 0.08% 취소).</p>
+<h2>혈중알코올농도</h2><p>위드마크(Widmark) 공식: 알코올(g) = 양(ml) × 도수 × 0.7894. 농도(%) = 알코올(g) × 0.9(흡수율) ÷ (몸무게 × r × 10), r = 남 0.68 · 여 0.55. 마지막 잔을 마신 뒤 흡수 1.5시간이 지나면 0.015%p/시간으로 분해. 분해 속도는 사람마다 시간당 0.010~0.015%p 범위이므로 「언제쯤 술이 깰까」 칸은 느린 쪽 0.010%p/시간으로 셈한 더 늦은 시각을 함께 보입니다. 단속 기준은 도로교통법 제44조·제148조의2(0.03% 이상 면허 정지, 0.08% 이상 취소).</p>
 <h2>건강검진 수치</h2><p>혈압은 대한고혈압학회 「2022 고혈압 진료지침」(정상 120/80 미만, 주의 수축기 120~129이면서 이완기 80 미만, 고혈압 전단계 130~139 또는 80~89, 1기 140~159 또는 90~99, 2기 160 이상 또는 100 이상, 180/120 이상 고혈압 위기), 혈당은 대한당뇨병학회 「2023 당뇨병 진료지침」(공복 100 미만 정상·100~125 공복혈당장애·126 이상 당뇨, 당화혈색소 5.7·6.5%), 지질은 한국지질동맥경화학회 「2022 이상지질혈증 진료지침」(총콜레스테롤 200·240, LDL 100·130·160·190, HDL 40·60, 중성지방 150·200·500), 간수치는 국가건강검진 일반 참고치(AST·ALT 40 IU/L 이하, 감마지티피 남 11~63·여 8~35), 요산은 남 3.4~7.0·여 2.4~6.0 mg/dL를 기준으로 판정합니다. LDL 추정은 Friedewald 식(총콜레스테롤 − HDL − 중성지방/5, 중성지방 400 미만에서만 유효)입니다. 검진 수치는 한 번의 결과로 진단하지 않으며 재검과 진료가 우선합니다.</p>
 <h2>캘린더 내보내기</h2><p>.ics 파일은 iCalendar(RFC 5545) 형식으로 접종·건강검진·기념일을 하루 종일 일정으로 담고, 하루 전 오전 9시 알림(VALARM)을 넣습니다. 영유아 건강검진은 2021년 개편 8차(14~35일, 4~6, 9~12, 18~24, 30~36, 42~48, 54~60, 66~71개월)와 구강검진 4회 기준입니다. 파일은 기기 안에서만 열리며 바디집 서버에 저장되지 않습니다.</p>
 <h2>아기 성장 백분위</h2><p>WHO Child Growth Standards(2006)의 LMS 값으로 z점수 = ((측정값/M)^L − 1) ÷ (L × S)를 구하고 표준정규분포로 백분위를 냅니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 이 표준을 그대로 채택했습니다. WHO 일 단위 표에서 개월 × 30.4375일 행을 뽑아 월 값으로 쓰며(공식 월 표와 최대 0.06cm·0.02kg 차이), 이웃한 달 사이는 선형 보간.</p>
@@ -808,7 +813,7 @@ function docs() {
 <h2>임신 중 체중 증가</h2><p>미국 국립의학원(IOM) 「Weight Gain During Pregnancy: Reexamining the Guidelines」(2009)의 임신 전 BMI별 권장 총 증가량(저체중 12.5~18kg · 정상 11.5~16kg · 과체중 7~11.5kg · 비만 5~9kg, 쌍둥이 잠정 권고 정상 17~25 · 과체중 14~23 · 비만 11~19kg)을 씁니다. 임신 전 BMI 구간은 세계보건기구 기준(18.5 · 25 · 30)입니다. 주차별 범위는 1분기(13주까지) 0.5~2kg을 주수에 비례해 나누고, 14주부터 40주까지는 총 증가 범위의 하한·상한으로 곧게 이었습니다. 총 증가량에 맞춰 이은 값이라 한 주 증가는 IOM의 2·3분기 주당 권고(저체중 0.44~0.58 · 정상 0.35~0.50 · 과체중 0.23~0.33 · 비만 0.17~0.27kg)와 조금 다를 수 있습니다. 정상 BMI의 하한은 한 주 약 0.41kg으로 권고(0.35kg)보다 높고, 나머지는 한 주 0.03kg 안으로 같습니다. 분기별 추가 칼로리(2분기 하루 약 340kcal · 3분기 약 450kcal)는 미국 CDC 안내입니다.</p>
 <h2>혈압 기록</h2><p>집에서 잰 혈압은 이 브라우저(localStorage)에만 저장하고 서버로 보내지 않습니다. 최근 7일 안의 측정값을 모두 산술평균해 대한고혈압학회의 가정혈압 고혈압 기준(135/85mmHg, 수축기나 이완기 중 하나라도 이상)과 비교하고, 시각으로 아침(4~12시)·저녁(18~4시)을 나눠 따로 평균을 냅니다. 잰 날이 5일이 안 되면 더 모으라고 안내합니다. 한 번 잰 값은 180/120 이상이면 매우 높음(혈압 수치표의 위기 기준과 같음), 135/85 이상 높음, 90/60 미만 낮음으로 표시합니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
-<h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`);
+<h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`, '2026-11-05');
   doc('/about/', '바디집 소개 — 계산 근거와 검증, 갱신 방식', '바디집이 BMI·칼로리·검진 수치·아이 성장을 무엇을 근거로 계산하고 어떻게 검증·갱신하는지, 한계와 개인정보, 문의 방법을 정리했습니다.', `
 <p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65kg이면 정상인가?", "치킨 한 마리는 밥 몇 공기인가?", "공복혈당 110이면 괜찮은가?", "우리 아이 키는 또래 몇 번째인가?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록, 공개된 기준으로 미리 계산해 표와 계산기로 묶었습니다. 회원 가입도, 입력값 저장도 없습니다.</p>
 <h2>무엇을 근거로 계산하나요</h2>
@@ -864,7 +869,7 @@ ${UPDATES.map((x) => `<li><b>${x.date}</b> ${x.text}</li>`).join('\n')}
 <li>2027년 국가건강검진 대상(짝수·홀수 해 출생) — 2027년 1월</li>
 <li>2027-2028 독감 예방접종 무료 대상과 일정 — 질병관리청 발표 뒤(보통 9월)</li>
 </ul>
-<p>틀린 값을 발견하면 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 알려 주세요.</p>`);
+<p>틀린 값을 발견하면 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 알려 주세요.</p>`, '2026-11-05');
   doc('/terms/', '이용약관 — 바디집', '바디집 이용약관.', `
 <p>바디집(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
 <p>사이트의 모든 계산 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단, 치료, 처방을 대신하지 않습니다. 건강·임신·육아에 관한 결정은 반드시 의료인과 상의하세요. 이용자는 계산 결과를 근거로 한 결정에 대해 스스로 책임지며, 사이트는 결과의 정확성·완전성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
@@ -906,10 +911,10 @@ for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));
   if (!list.length) continue;
   const file = `sitemap-${key}.xml`;
-  fs.writeFileSync(path.join(OUT, file), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${u === '/' || u === '/today/' ? BUILD_ISO : CONTENT_DATE}</lastmod></url>`).join('\n')}\n</urlset>\n`);
-  smFiles.push({ file, set: new Set(list), n: list.length });
+  fs.writeFileSync(path.join(OUT, file), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${list.map((u) => `<url><loc>${SITE}${u}</loc><lastmod>${u === '/' || u === '/today/' ? BUILD_ISO : MODIFIED.get(u) || CONTENT_DATE}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+  smFiles.push({ file, set: new Set(list), n: list.length, mod: list.reduce((m, u) => { const d = MODIFIED.get(u); return d && d > m ? d : m; }, CONTENT_DATE) });
 }
-fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${CONTENT_DATE}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${smFiles.map((f) => `<sitemap><loc>${SITE}/${f.file}</loc><lastmod>${f.mod}</lastmod></sitemap>`).join('\n')}\n</sitemapindex>\n`);
 console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 /* 네이버용 전체 목록 — 구글에만 뺀 숫자 조합 페이지까지. robots.txt 에는 적지 않고(구글이 보지 않게) 네이버 서치어드바이저에 직접 제출한다 */

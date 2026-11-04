@@ -129,6 +129,51 @@
       var g = M.alcoholGrams(d.ml * n, d.abv), r = M.bac(g, kg, sex, hrs);
       out(box, 'peak', r.peak + '%'); out(box, 'now', r.now + '%'); out(box, 'level', M.bacLevel(r.now).split(' (')[0]);
       out(box, 'drive', r.driveHours <= 0 ? '기준 미만' : '마지막 잔 뒤 ' + r.driveHours + '시간'); out(box, 'sober', '마지막 잔 뒤 ' + r.soberHours + '시간'); out(box, 'grams', Math.round(g) + 'g');
+      /* 느린 분해(0.010%p/h) 기준의 '더 늦은' 추정 — /alcohol/ 허브의 "언제쯤 술이 깰까" 칸 */
+      var hrsText = function (fast, slow) { return fast <= 0 ? '기준 미만' : fast + '~' + slow + '시간 뒤'; };
+      out(box, 'drive2', hrsText(r.driveHours, r.driveHoursSlow)); out(box, 'sober2', r.soberHours + '~' + r.soberHoursSlow + '시간 뒤');
+      out(box, 'nowslow', r.nowSlow + '%');
+      var clock = box.querySelector('[data-out="clock"]');
+      if (clock) {
+        var end = sel(box, 'end');
+        if (!/^\d{2}:\d{2}$/.test(end)) { clock.textContent = '마지막 잔 시각을 넣으면 느린 분해 기준으로 0.03% 아래가 되는 시각을 셈합니다.'; }
+        else if (r.peak <= 0.03) { clock.textContent = '최고 농도가 0.03%에 못 미치는 양입니다. 그래도 술을 마셨다면 운전은 하지 마세요.'; }
+        else {
+          var em = parseInt(end.slice(0, 2), 10) * 60 + parseInt(end.slice(3), 10);
+          var d1 = M.bacClock(em, r.driveHours), d2 = M.bacClock(em, r.driveHoursSlow), s2 = M.bacClock(em, r.soberHoursSlow);
+          var day = function (c) { return c.time + (c.nextDay ? ' (다음 날)' : ''); };
+          clock.textContent = '마지막 잔 ' + end + ' → 0.03% 아래는 빠르면 ' + day(d1) + ', 분해가 느린 사람은 ' + day(d2) + ' 무렵. 완전히 0이 되는 데는 ' + day(s2) + '까지도 걸립니다. 적어도 ' + d2.time + ' 전에는 핸들을 잡지 말고, 그 뒤라도 "운전해도 된다"는 뜻이 아니라 단속 기준 아래로 내려왔을 가능성이 생겼다는 뜻입니다.';
+        }
+      }
+    });
+  });
+
+  /* 목표 체중까지 — /kcal-need/ (기초대사량·하한선을 지키는 결손만) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="goal"]'), function (box) {
+    bind(box, function () {
+      var sex = sel(box, 'sex') || 'f', cm = val(box, 'h') || 162, kg = val(box, 'w') || 65, age = val(box, 'age') || 30, to = val(box, 'to') || 58, def = val(box, 'def') || 500, act = sel(box, 'act') || 'light';
+      var p = M.goalPlan(sex, cm, kg, age, to, def, act);
+      out(box, 'tdee', num(p.tdee) + 'kcal'); out(box, 'bmr', num(p.bmr) + 'kcal');
+      var hint = box.querySelector('[data-out="hint"]'); if (hint) hint.className = 'sub';
+      if (p.dir !== 'lose') {
+        out(box, 'diff', p.dir === 'same' ? '지금 몸무게 유지' : (-p.diff) + 'kg 늘리기'); out(box, 'intake', num(p.tdee) + 'kcal'); out(box, 'weeks', '—'); out(box, 'date', '—'); out(box, 'perweek', '—');
+        if (hint) hint.textContent = p.dir === 'same' ? '목표가 지금 몸무게와 같습니다. 유지하려면 하루 약 ' + num(p.tdee) + 'kcal입니다.' : '목표가 지금보다 큽니다. 체중을 늘리려면 유지 칼로리에 300kcal 정도를 더하고 근력 운동을 함께 하세요. 이 계산기는 감량 기간만 셈합니다.';
+        return;
+      }
+      out(box, 'diff', p.diff + 'kg');
+      if (p.unsafe) {
+        out(box, 'intake', num(p.floor) + 'kcal 아래로는 안 됨'); out(box, 'weeks', '계산 안 함'); out(box, 'date', '—'); out(box, 'perweek', '—');
+        if (hint) { hint.textContent = '하루 필요 칼로리(' + num(p.tdee) + 'kcal)가 섭취 하한선(' + num(p.floor) + 'kcal)과 거의 같아 식사만 줄여서는 안전한 결손을 만들 수 없습니다. 활동량을 늘리는 쪽을 먼저 생각하고, 감량이 꼭 필요하면 의사·영양사와 상의하세요.'; hint.className = 'sub warn'; }
+        return;
+      }
+      out(box, 'intake', num(p.intake) + 'kcal'); out(box, 'weeks', p.weeks + '주 (' + p.days + '일)'); out(box, 'date', M.fmt(M.addDays(today(), p.days))); out(box, 'perweek', p.perWeek);
+      if (hint) {
+        var msgs = [];
+        if (p.capped) msgs.push('하루 ' + num(def) + 'kcal을 줄이면 섭취가 하한선(' + num(p.floor) + 'kcal · 기초대사량과 ' + (sex === 'f' ? '1,200' : '1,500') + 'kcal 중 큰 값) 아래로 내려가서 ' + num(p.deficit) + 'kcal까지만 줄이는 것으로 계산했습니다.');
+        if (p.big) msgs.push('체중의 10%를 넘거나 반년 넘게 걸리는 감량입니다. 대한비만학회는 6개월에 5~10%를 먼저 권하니, 중간 목표를 두고 의사·영양사와 상의하세요.');
+        if (!msgs.length) msgs.push('한 주에 ' + p.perWeek + 'kg은 의학계가 권하는 주 0.5~1kg 안쪽입니다. 1kg ≈ 7,700kcal은 근사치라 실제 속도는 다를 수 있습니다.');
+        hint.textContent = msgs.join(' '); if (p.capped || p.big) hint.className = 'sub warn';
+      }
     });
   });
 

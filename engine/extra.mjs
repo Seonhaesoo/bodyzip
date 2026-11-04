@@ -1,6 +1,6 @@
 /* 추가 계산 — 걸음 수(만보) 칼로리, 수면 주기, 아이 예상 키(중간 부모 키), 혈중알코올농도(위드마크), 다이어트 기간, 나이별 권장 칼로리 */
 import { burn } from './kcal.mjs';
-import { weeksFor } from './body.mjs';
+import { weeksFor, bmr, tdee } from './body.mjs';
 
 /* ---------- 걸음 수 ---------- */
 export const STRIDE = (cm) => Math.round(cm * 0.415) / 100;          /* 보폭(m) ≈ 키 × 0.415 */
@@ -42,15 +42,25 @@ export const DRINKS = [
   { key: 'whisky', label: '위스키 1잔 (30ml · 40%)', ml: 30, abv: 0.40 },
 ];
 export const alcoholGrams = (ml, abv) => ml * abv * 0.7894;
-/* grams: 마신 알코올(g) · kg · sex · hours: 마지막 잔을 마신 뒤 지난 시간. 흡수 ABSORB_H 뒤부터 0.015%p/시간 분해 (경찰 역추산도 음주 종료 30~90분 뒤부터) */
-export const ABSORB_H = 1.5;
+/* grams: 마신 알코올(g) · kg · sex · hours: 마지막 잔을 마신 뒤 지난 시간. 흡수 ABSORB_H 뒤부터 ELIM_FAST(0.015%p/시간)로 분해 (경찰 역추산도 음주 종료 30~90분 뒤부터).
+ * 분해 속도는 사람마다 시간당 0.010~0.015%p 범위(위드마크 β 0.1~0.15g/L/h; 대법원·경찰 역추산도 피고인에게 유리한 0.008~0.030 중 하한을 쓴다).
+ * driveHoursSlow·soberHoursSlow 는 느린 쪽 ELIM_SLOW(0.010)로 계산한 '더 늦은' 추정 — 화면에는 이 값을 함께 보여 안전한 쪽으로 읽게 한다 */
+export const ABSORB_H = 1.5, ELIM_FAST = 0.015, ELIM_SLOW = 0.010, LIMIT_SUSPEND = 0.03, LIMIT_REVOKE = 0.08;
 export function bac(grams, kg, sex = 'm', hours = 0) {
   const r = sex === 'f' ? 0.55 : 0.68;
   const peak = grams / (kg * r * 1000) * 100 * 0.9;                      /* 흡수율 90% 가정 */
-  const now = Math.max(0, peak - 0.015 * Math.max(0, hours - ABSORB_H));
-  const soberHours = peak / 0.015 + ABSORB_H;
-  const driveHours = peak <= 0.03 ? 0 : (peak - 0.03) / 0.015 + ABSORB_H;
-  return { peak: Math.round(peak * 1000) / 1000, now: Math.round(now * 1000) / 1000, soberHours: Math.round(soberHours * 10) / 10, driveHours: Math.round(driveHours * 10) / 10 };
+  const now = Math.max(0, peak - ELIM_FAST * Math.max(0, hours - ABSORB_H));
+  const nowSlow = Math.max(0, peak - ELIM_SLOW * Math.max(0, hours - ABSORB_H));
+  const soberHours = peak / ELIM_FAST + ABSORB_H, soberHoursSlow = peak / ELIM_SLOW + ABSORB_H;
+  const driveHours = peak <= LIMIT_SUSPEND ? 0 : (peak - LIMIT_SUSPEND) / ELIM_FAST + ABSORB_H;
+  const driveHoursSlow = peak <= LIMIT_SUSPEND ? 0 : (peak - LIMIT_SUSPEND) / ELIM_SLOW + ABSORB_H;
+  const r1 = (v) => Math.round(v * 10) / 10, r3 = (v) => Math.round(v * 1000) / 1000;
+  return { peak: r3(peak), now: r3(now), nowSlow: r3(nowSlow), soberHours: r1(soberHours), driveHours: r1(driveHours), soberHoursSlow: r1(soberHoursSlow), driveHoursSlow: r1(driveHoursSlow) };
+}
+/* 마지막 잔 시각(분, 0~1439) + 걸리는 시간 → 'HH:MM' 과 날짜가 넘어갔는지 */
+export function bacClock(endMin, hours) {
+  const t = endMin + Math.round(hours * 60), m = ((t % 1440) + 1440) % 1440;
+  return { time: `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`, nextDay: t >= 1440 };
 }
 export function bacLevel(v) {
   if (v < 0.03) return '단속 기준 미만 (0.03% 미만)';
@@ -65,6 +75,23 @@ export function dietPlan(from, to, deficit = 500) {
   const diff = Math.round((from - to) * 10) / 10;
   const weeks = weeksFor(Math.abs(diff), deficit);
   return { diff, weeks, days: Math.ceil(Math.abs(diff) * 7700 / deficit), perWeek: Math.round(deficit * 7 / 7700 * 100) / 100 };
+}
+
+/* ---------- 목표 체중까지 걸리는 기간 — 내 몸(Mifflin-St Jeor 기초대사량 × 활동계수)에서 안전한 결손만 ----------
+ * 하루 섭취 하한 = max(기초대사량, 여 1,200 · 남 1,500kcal). 하한을 지키면서 만들 수 있는 결손이 고른 결손보다 작으면 거기까지만 적용(capped).
+ * 하한조차 100kcal 결손을 못 만들면(이미 적게 먹어야 하는 체격) 기간을 내지 않고 전문가 상담으로 안내(unsafe). 1kg ≈ 7,700kcal 은 근사치 */
+export const MIN_INTAKE = { m: 1500, f: 1200 }, GOAL_DEFICITS = [300, 500, 700];
+export function goalPlan(sex, cm, kg, age, target, deficit = 500, act = 'light') {
+  const b = bmr(sex, cm, kg, age), t = tdee(b, act);
+  const floor = Math.max(b, MIN_INTAKE[sex === 'f' ? 'f' : 'm']);
+  const maxDeficit = t - floor;
+  const diff = Math.round((kg - target) * 10) / 10;
+  const base = { bmr: b, tdee: t, floor, maxDeficit, diff };
+  if (diff <= 0) return { ...base, dir: diff === 0 ? 'same' : 'gain', deficit: 0, intake: t, capped: false, unsafe: false, weeks: 0, days: 0, perWeek: 0, big: false };
+  if (maxDeficit < 100) return { ...base, dir: 'lose', deficit: 0, intake: floor, capped: true, unsafe: true, weeks: null, days: null, perWeek: 0, big: diff > kg * 0.1 };
+  const eff = Math.min(deficit, maxDeficit), capped = eff < deficit;
+  const weeks = weeksFor(diff, eff), days = Math.ceil(diff * 7700 / eff);
+  return { ...base, dir: 'lose', deficit: eff, intake: t - eff, capped, unsafe: false, weeks, days, perWeek: Math.round(eff * 7 / 7700 * 100) / 100, big: diff > kg * 0.1 || weeks > 26 };
 }
 
 /* ---------- 나이별 하루 권장 칼로리 — 한국인 영양소 섭취기준(2020) 에너지 필요추정량 ---------- */
