@@ -2,6 +2,7 @@
 
 매주 월요일 아침 자동으로 한 편씩 생깁니다. 파일을 열어 네이버 블로그에 붙여 넣고 제목·첫 문단만 다듬으세요.
 
+- [2026-11-09-alcohol-driving](2026-11-09-alcohol-driving.md)
 - [2026-11-02-steps-calories](2026-11-02-steps-calories.md)
 - [2026-10-26-baby-vaccine-schedule](2026-10-26-baby-vaccine-schedule.md)
 - [2026-10-19-due-date-weeks](2026-10-19-due-date-weeks.md)
