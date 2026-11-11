@@ -1,6 +1,7 @@
 /* 아이 키·몸무게 백분위 — 만 3~18세 (질병관리청 2017 소아청소년 성장도표)
  * /kids/ 계산기 · /kids/10-boy/ 나이별 표 · /kids/10-boy/140/ 키별 · /kids/grade/e3-boy/ 학년별 */
 import * as K from '../engine/kids.mjs';
+import { lmsMean } from '../engine/growth.mjs';
 
 export const KIDS_SEX = ['m', 'f'];
 const slug = (s) => s === 'f' ? 'girl' : 'boy';
@@ -17,14 +18,15 @@ const range = (a, b) => { const r = []; for (let i = a; i <= b; i++) r.push(i); 
 const Z = { 3: -1.8808, 5: -1.6449, 85: 1.0364, 95: 1.6449, 97: 1.8808 };
 
 export function buildKids(ctx) {
-  const { write, shell, crumb, tiles, list, section, table, lead, ad } = ctx;
+  const { write, shell, crumb, tiles, list, section, table, lead, ad, babyChain } = ctx;
   const chipsWrap = (items) => `<div class="chips" style="flex-wrap:wrap;overflow:visible">${items.map((c) => c.on ? `<span class="chip on" style="min-width:0;padding:4px 9px">${c.label}</span>` : `<a class="chip" style="min-width:0;padding:4px 9px" href="${c.href}">${c.label}</a>`).join('')}</div>`;
   const SRC = '질병관리청·대한소아청소년과학회 「2017 소아청소년 성장도표」의 LMS 값으로 계산했습니다(만 3세 미만은 WHO 표준). 백분위는 같은 성별·나이 100명을 작은 순서로 세웠을 때의 위치이고, 한 번 잰 값보다 1년 넘게 이어지는 성장 곡선이 중요합니다. 참고용이며 진단은 소아청소년과에서 받으세요.';
   const NOTE = `<p class="note">${SRC} <a href="/method/">계산 기준 보기</a></p>`;
   const val = (m, s, mo, z) => K.kidsRound(K.kidsValue(m, s, mo, z));
   const med = (m, s, mo) => val(m, s, mo, 0);
   const at = (row, p) => row.find((x) => x[0] === p)[1];
-  const form = (s, months, h = '', w = '') => `<form class="quick live" data-live="kids" style="margin-top:14px"><div class="live-head"><b>우리 아이 계산</b><span>2017 소아청소년 성장도표</span></div><div class="ye-grid"><label class="ye-f"><span>성별</span><select data-k="sex"><option value="m"${s === 'm' ? ' selected' : ''}>남자</option><option value="f"${s === 'f' ? ' selected' : ''}>여자</option></select></label><label class="ye-f"><span>생년월일 (넣으면 나이 자동)</span><input data-k="birth" type="date" value=""></label><label class="ye-f"><span>나이 (만 세)</span><input data-k="y" type="text" inputmode="numeric" value="${Math.floor(months / 12)}"></label><label class="ye-f"><span>개월</span><input data-k="mo" type="text" inputmode="numeric" value="${Math.round(months % 12)}"></label><label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="decimal" value="${h}"></label><label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="decimal" value="${w}"></label></div><div class="tiles"><div class="tile"><small>키 백분위</small><span class="num" data-out="hp">—</span></div><div class="tile"><small>몸무게 백분위</small><span class="num" data-out="wp">—</span></div><div class="tile"><small>BMI · 백분위</small><span class="num" data-out="bp">—</span></div></div><p class="sub" style="margin-top:8px" data-out="note"></p><div class="live-foot"><span>이 백분위대로 크면 만 18세 <b class="num" data-out="adult">—</b></span><a data-out="link" href="/kids/">표 보기 →</a></div></form>`;
+  /* par: 아빠·엄마 키 칸 — 허브·나이별·학년별에만(키별 1,038장은 그대로) */
+  const form = (s, months, h = '', w = '', par = false) => `<form class="quick live" data-live="kids" style="margin-top:14px"><div class="live-head"><b>우리 아이 계산</b><span>2017 소아청소년 성장도표</span></div><div class="ye-grid"><label class="ye-f"><span>성별</span><select data-k="sex"><option value="m"${s === 'm' ? ' selected' : ''}>남자</option><option value="f"${s === 'f' ? ' selected' : ''}>여자</option></select></label><label class="ye-f"><span>생년월일 (넣으면 나이 자동)</span><input data-k="birth" type="date" value=""></label><label class="ye-f"><span>나이 (만 세)</span><input data-k="y" type="text" inputmode="numeric" value="${Math.floor(months / 12)}"></label><label class="ye-f"><span>개월</span><input data-k="mo" type="text" inputmode="numeric" value="${Math.round(months % 12)}"></label><label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="decimal" value="${h}"></label><label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="decimal" value="${w}"></label>${par ? '<label class="ye-f"><span>아빠 키 (cm · 선택)</span><input data-k="pf" type="text" inputmode="decimal" value=""></label><label class="ye-f"><span>엄마 키 (cm · 선택)</span><input data-k="pm" type="text" inputmode="decimal" value=""></label>' : ''}</div><div class="tiles"><div class="tile"><small>키 백분위</small><span class="num" data-out="hp">—</span></div><div class="tile"><small>몸무게 백분위</small><span class="num" data-out="wp">—</span></div><div class="tile"><small>BMI · 백분위</small><span class="num" data-out="bp">—</span></div></div><p class="sub" style="margin-top:8px" data-out="note"></p>${par ? '<p class="sub" style="margin-top:6px" data-out="mph"></p>' : ''}<div class="live-foot"><span>이 백분위대로 크면 만 18세 <b class="num" data-out="adult">—</b></span><a data-out="link" href="/kids/">표 보기 →</a></div></form>`;
   const pctTable = (s, mo) => { const H = K.kidsRow('height', s, mo), W = K.kidsRow('weight', s, mo), B = K.kidsRow('bmi', s, mo); return table(['백분위', '키 (cm)', '몸무게 (kg)', 'BMI'], K.KIDS_PCTS.map((p, i) => ({ cells: [`${p}`, String(H[i][1]), String(W[i][1]), String(B[i][1])], cls: p === 50 ? 'on' : '' }))); };
 
   /* ---------- 키별 (나이·성별·키) ---------- */
@@ -88,7 +90,7 @@ ${crumb([['/kids/', '아이 키 백분위'], [null, `만 ${y}세 ${kidShort(s, y
 <p class="meta">만 ${y}세 0개월 기준 · ${gradeHint} · 질병관리청 2017 소아청소년 성장도표</p>
 ${tiles([{ label: '키 50백분위', value: `${at(H, 50)}cm` }, { label: '몸무게 50백분위', value: `${at(W, 50)}kg` }, { label: 'BMI 50백분위', value: `${at(BM, 50)}` }])}
 ${lead(`만 ${y}세 ${kid(s, y)}의 한가운데(50백분위)는 키 <b>${at(H, 50)}cm</b>, 몸무게 <b>${at(W, 50)}kg</b>입니다. 키는 3백분위 ${at(H, 3)}cm부터 97백분위 ${at(H, 97)}cm까지가 정상 범위이고, 만 ${y}세 6개월이 되면 한가운데가 ${med('height', s, mid)}cm로 올라갑니다. 우리 아이 키와 몸무게를 넣으면 정확한 백분위와 비만도가 나옵니다.`)}
-${form(s, mid)}
+${form(s, mid, '', '', true)}
 ${section('백분위표', `만 ${y}세 0개월 ${kidShort(s, y)}`, pctTable(s, m0))}
 ${section('개월별 한가운데', '50백분위', table(['나이', '키', '몸무게'], [0, 3, 6, 9].map((k) => Math.min(K.KIDS_END, m0 + k)).map((mo) => ({ cells: [K.ageLabel(mo), `${med('height', s, mo)}cm`, `${med('weight', s, mo)}kg`] }))))}
 ${section('비만도 기준', `만 ${y}세 0개월 ${kidShort(s, y)} BMI`, `<div class="doc"><p>어린이·청소년은 어른 기준을 그대로 쓰지 않고 같은 성별·나이의 BMI 백분위로 봅니다. 만 ${y}세 ${kidShort(s, y)}는 BMI <b>${at(BM, 85)}</b> 이상이면 과체중(85백분위), <b>${obese}</b> 이상이면 비만(95백분위 또는 25 이상), ${at(BM, 5)} 미만이면 저체중(5백분위)입니다.</p><p>예를 들어 키가 ${hRef}cm라면 몸무게 ${K.kidsRound(at(BM, 85) * Math.pow(hRef / 100, 2))}kg부터 과체중, ${K.kidsRound(obese * Math.pow(hRef / 100, 2))}kg부터 비만입니다.</p></div>`)}
@@ -98,10 +100,10 @@ ${section('키별로 보기', `만 ${y}세 ${kidShort(s, y)} · 누르면 백분
 ${section('이어서', null, list([
   { href: ageUrl(y, other(s)), title: `만 ${y}세 ${kid(other(s), y)} 평균 키·몸무게`, sub: '' },
   ...grades.map((g) => ({ href: gradeUrl(g, s), title: `${K.GRADE_NAMES[g - 1]} ${kidShort(s, y)} 평균 키`, sub: '학년별' })),
-  { href: '/child-height/', title: '부모 키로 예상 키', sub: '아빠·엄마 키로 어른 키' },
+  { href: '/child-height/', title: '부모 키로 예상 키', sub: '아빠·엄마 키 조합표 · 위 계산기에 넣어도 나옵니다' },
 ]))}
 ${NOTE}`;
-    write(url, shell({ og: 'kids', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'kids', url, modified: '2026-11-11', title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
 
   /* ---------- 학년별 ---------- */
@@ -119,7 +121,7 @@ ${crumb([['/kids/', '아이 키 백분위'], [null, `${gs} ${kidShort(s, y)}`]])
 ${tiles([{ label: '키 50백분위', value: `${at(H, 50)}cm` }, { label: '몸무게 50백분위', value: `${at(W, 50)}kg` }, { label: 'BMI 50백분위', value: `${at(BM, 50)}` }])}
 ${lead(`${gn} ${kid(s, y)}는 9월 1일 기준으로 대략 ${K.ageLabel(young)}(12월생)부터 ${K.ageLabel(old)}(1월생)까지 섞여 있습니다. 학년 한가운데 나이(${K.ageLabel(mid)})의 성장도표 50백분위는 키 <b>${at(H, 50)}cm</b>, 몸무게 <b>${at(W, 50)}kg</b>이고, 정상 범위(3~97백분위)는 키 ${at(H, 3)}~${at(H, 97)}cm입니다. 같은 반이라도 1월생과 12월생은 한가운데 키가 ${K.kidsRound(med('height', s, old) - med('height', s, young))}cm 차이 납니다.`)}
 ${section('생일에 따라', '같은 학년 · 50백분위', table(['생일', '9월 1일 나이', '키', '몸무게'], [['1월생', old], ['7월생', mid], ['12월생', young]].map(([lb, mo]) => ({ cells: [lb, K.ageLabel(mo), `${med('height', s, mo)}cm`, `${med('weight', s, mo)}kg`], cls: mo === mid ? 'on' : '' }))))}
-${form(s, mid)}
+${form(s, mid, '', '', true)}
 ${section('백분위표', `${gs} ${kidShort(s, y)} · ${K.ageLabel(mid)}`, pctTable(s, mid))}
 ${ad()}
 ${section('다른 학년', kidShort(s, y), chipsWrap(K.GRADES.map((x, i) => ({ label: x, href: gradeUrl(i + 1, s), on: i + 1 === g }))))}
@@ -129,20 +131,41 @@ ${section('이어서', null, list([
   { href: '/kids/', title: '아이 키 백분위 계산기', sub: '생년월일·키·몸무게로' },
 ]))}
 <p class="note">학년 평균은 성장도표를 학년 한가운데 나이에 맞춰 읽은 값이라, 교육부 학생건강검사의 실측 평균과는 조금 다를 수 있습니다. ${SRC} <a href="/method/">계산 기준 보기</a></p>`;
-    write(url, shell({ og: 'kids', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
+    write(url, shell({ og: 'kids', url, modified: '2026-11-11', title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
 
   /* ---------- 계산기 (허브) ---------- */
-  write('/kids/', shell({ og: 'kids', url: '/kids/', title: '아이 키 백분위 계산기 — 만 3~18세 키·몸무게·BMI가 또래 몇 번째 (2017 성장도표)', desc: '생년월일(또는 나이)과 키·몸무게를 넣으면 또래 100명 중 몇 번째인지(백분위), 비만도(BMI 백분위), 지금 백분위대로 자랐을 때의 만 18세 키가 나옵니다. 나이별·학년별 평균 키 표. 질병관리청 2017 소아청소년 성장도표 기준.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  /* '상위 몇 %' 읽는 법 · 백분위와 평균 · 예상 성인 키 — 숫자는 모두 성장도표 LMS 와 엔진에서 계산 */
+  const RM = 120, RP = [3, 10, 25, 50, 75, 90, 97];
+  const rowOf = (m, s) => Object.fromEntries(K.kidsRow(m, s, RM));
+  const HM = rowOf('height', 'm'), HF = rowOf('height', 'f'), WM = rowOf('weight', 'm');
+  const hL = K.kidsLms('height', 'm', RM), wL = K.kidsLms('weight', 'm', RM);
+  const rankLabel = (p) => p === 50 ? '한가운데' : `${K.kidsRank(p)} · ${p}명보다 큼`;
+  const exM = K.adultHeight('m', 175, 162, RM, 145), exF = K.adultHeight('f', 175, 162), exP = K.kidsCheck('height', 'm', RM, 145).pct;
+  const MEAN_DOC = `<div class="doc">
+<p><b>50백분위는 한가운데 아이입니다.</b> 100명을 작은 순서로 세웠을 때 50번째 값(중앙값)이고, 평균은 모두 더해 사람 수로 나눈 값입니다. 이 사이트의 "평균 키·평균 몸무게"는 성장도표의 50백분위입니다.</p>
+<p><b>키는 둘이 거의 같고, 몸무게는 평균이 더 높습니다.</b> 만 10세 남자 키는 50백분위 ${K.kidsRound(hL[1])}cm, 분포로 계산한 평균은 ${lmsMean(...hL).toFixed(1)}cm로 거의 같습니다. 몸무게는 50백분위 ${K.kidsRound(wL[1])}kg에서 97백분위까지 +${K.kidsRound(WM[97] - WM[50])}kg, 3백분위까지 −${K.kidsRound(WM[50] - WM[3])}kg으로 무거운 쪽이 훨씬 넓게 퍼져 있어, 평균이 약 ${lmsMean(...wL).toFixed(1)}kg으로 올라갑니다.</p>
+<p><b>그래서 몸무게는 평균보다 백분위로 봅니다.</b> 몸무게가 "평균보다 가볍다"는 아이가 절반을 넘습니다. 키는 3~97백분위, 비만도는 BMI 5~85백분위가 정상 범위입니다.</p>
+</div>`;
+  const ADULT_DOC = `<div class="doc">
+<p><b>① 부모 키로 (중간 부모 키).</b> 아들 = (아빠 + 엄마 + 13) ÷ 2, 딸 = (아빠 + 엄마 − 13) ÷ 2. 아빠 175cm·엄마 162cm면 아들 약 ${exM.mph}cm, 딸 약 ${exF.mph}cm입니다.</p>
+<p><b>② 지금 백분위대로.</b> 지금 키의 백분위를 만 18세까지 그대로 따라간 값입니다. 만 10세 남자 145cm(백분위 ${pctTxt(exP)})면 약 ${exM.track}cm입니다.</p>
+<p><b>얼마나 맞나요?</b> 둘 다 어림값입니다. 부모 키 공식은 실제 어른 키의 약 95%가 예상값 ±${K.MPH_RANGE}cm 안에 들어가는 정도라, 위 예의 아들은 ${exM.lo}~${exM.hi}cm 어디든 될 수 있습니다. 백분위를 따라간 값은 사춘기가 이르면 높게, 늦으면 낮게 나옵니다. 정확한 예측은 소아청소년과에서 손목 X선으로 뼈 나이를 보고 합니다.</p>
+<p>위 계산기에 아빠·엄마 키를 넣으면 두 값이 함께 나옵니다. 공식 출처는 Tanner·Goldstein·Whitehouse(1970, Archives of Disease in Childhood)입니다. <a href="/child-height/">부모 키 조합표 →</a></p>
+</div>`;
+  write('/kids/', shell({ og: 'kids', url: '/kids/', modified: '2026-11-11', title: '아이 키 백분위 계산기 — 만 3~18세 키·몸무게·BMI가 또래 몇 번째 (2017 성장도표)', desc: '생년월일(또는 나이)과 키·몸무게를 넣으면 또래 100명 중 몇 번째인지(백분위·상위 몇 %), 비만도(BMI 백분위), 예상 성인 키가 나옵니다. 아빠·엄마 키를 넣으면 부모 키로 본 예상 키도 함께. 나이별·학년별 평균 키 표. 질병관리청 2017 소아청소년 성장도표 기준.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '아이 키 백분위']])}
 <h1 class="title">아이 키 백분위</h1>
 <p class="meta">만 3~18세 · 키·몸무게·BMI · 질병관리청 2017 소아청소년 성장도표 · 만 3세 미만은 <a href="/baby/percentile/">아기 성장 백분위</a></p>
-${form('m', 126)}
+${form('m', 126, '', '', true)}
 ${lead('백분위는 같은 성별·나이 아이 100명을 작은 순서로 세웠을 때 몇 번째인지입니다. 50이 한가운데이고 3~97 사이면 정상 범위입니다. 생년월일을 넣으면 개월까지 맞춰 계산하고, 키와 몸무게를 함께 넣으면 비만도(BMI 백분위)도 나옵니다.')}
+${section('우리 아이는 상위 몇 %?', '100에서 백분위를 빼면 됩니다 · 예: 만 10세 키', table(['백분위', '또래 100명 중', '남자 키', '여자 키'], RP.map((p) => ({ cells: [`${p}`, rankLabel(p), `${HM[p]}cm`, `${HF[p]}cm`], cls: p === 50 ? 'on' : '' }))) + `<p class="sub" style="margin-top:8px">75백분위는 100명 중 75명보다 크다는 뜻이라 상위 25%입니다. 50보다 작으면 "하위 몇 %"로 읽습니다. 위 계산기에 키를 넣으면 우리 아이의 상위·하위 %가 바로 나옵니다.</p>`)}
 ${section('나이별 평균 키·몸무게', '만 N세 0개월 · 50백분위 · 누르면 백분위표', table(['나이', '남자 키', '남자 몸무게', '여자 키', '여자 몸무게'], K.KIDS_AGES.map((y) => ({ cells: [`만 ${y}세`, `<a href="${ageUrl(y, 'm')}">${med('height', 'm', y * 12)}cm</a>`, `${med('weight', 'm', y * 12)}kg`, `<a href="${ageUrl(y, 'f')}">${med('height', 'f', y * 12)}cm</a>`, `${med('weight', 'f', y * 12)}kg`] }))))}
 ${section('학년별 평균 키', '남자', chipsWrap(K.GRADES.map((x, i) => ({ label: x, href: gradeUrl(i + 1, 'm') }))))}
 ${section('학년별 평균 키', '여자', chipsWrap(K.GRADES.map((x, i) => ({ label: x, href: gradeUrl(i + 1, 'f') }))))}
 ${ad()}
+${section('백분위와 평균은 다릅니다', null, MEAN_DOC)}
+${section('예상 성인 키 — 두 가지 어림', '부모 키로 · 지금 백분위대로', ADULT_DOC)}
 ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>한 번 잰 숫자보다 곡선이 중요합니다.</b> 10백분위든 90백분위든 자기 곡선을 따라 자라면 정상입니다. 1년 사이 큰 구간을 두 칸 넘게(예: 50 → 10) 내려가면 소아청소년과에 물어보세요.</p>
 <p><b>3백분위 미만이면 성장 평가를 받아 봅니다.</b> 부모를 닮은 작은 키나 사춘기가 늦게 오는 체질이 흔하지만, 사춘기 전에 1년 동안 4cm 미만으로 자라면 원인을 확인하는 것이 좋습니다.</p>
@@ -150,6 +173,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>비만은 BMI 백분위로 봅니다.</b> 85백분위 이상 과체중, 95백분위 이상(또는 BMI 25 이상) 비만, 5백분위 미만 저체중입니다.</p>
 <p><b>재는 법.</b> 아침에 신발을 벗고 발뒤꿈치·엉덩이·어깨를 벽에 붙여 잽니다. 저녁에는 1cm가량 줄어듭니다.</p>
 </div>`)}
+${babyChain('/kids/')}
 ${section('이어서', null, list([{ href: '/child-height/', title: '부모 키로 예상 키', sub: '아빠·엄마 키로 아들·딸 어른 키' }, { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '0~36개월 · WHO' }, { href: '/baby/month/', title: '아기 개월별 발달', sub: '0~36개월 평균 키·몸무게' }]))}
 ${NOTE}` }));
 }

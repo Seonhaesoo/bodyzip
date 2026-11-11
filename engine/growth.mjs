@@ -44,3 +44,16 @@ export const round = (measure, v) => { const d = MEASURES[measure].dec; return M
 export const percentileRow = (measure, sex, month) => PCTS.map((p) => [p, round(measure, valueAt(measure, sex, month, ZP[p]))]);
 /* 생후 일수 → 개월(소수) */
 export const monthsFromDays = (days) => days / 30.4375;
+/* LMS 분포의 평균(산술평균) — 50백분위(중앙값 M)와 견주려고 z −3~+3 구간을 수치 적분한다.
+ * L = 1 이면 좌우 대칭이라 평균 = M, L < 1 이면 큰 쪽 꼬리가 길어 평균 > M (몸무게·BMI) */
+export function lmsMean(L, M, S) {
+  let sum = 0, w = 0;
+  for (let i = -300; i <= 300; i++) {
+    const z = i / 100, p = Math.exp(-z * z / 2), t = 1 + L * S * z;
+    if (Math.abs(L) >= 1e-6 && t <= 0) continue;
+    sum += p * (Math.abs(L) < 1e-6 ? M * Math.exp(S * z) : M * Math.pow(t, 1 / L)); w += p;
+  }
+  return sum / w;
+}
+/* 백분위 → "상위 38%" / "하위 8%" (아기·어린이 공통) */
+export const rankText = (p) => { const v = p >= 50 ? 100 - p : p, t = v < 1 ? (Math.round(v * 10) / 10 || 0.1) : Math.round(v); return `${p >= 50 ? '상위' : '하위'} ${t}%`; };

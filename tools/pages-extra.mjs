@@ -26,7 +26,7 @@ const wk = (w) => w <= 13 ? 1 : w <= 27 ? 2 : 3;
 const GUIDE_EDITED = '2026-10-03';   /* 서재 문장 다듬기(약 200곳) — 업데이트 기록 2026-10-03 */
 
 export function buildExtra(ctx) {
-  const { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, babyMin } = ctx;
+  const { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, SISTERS, babyMin, babyChain } = ctx;
   const pager = (prev, next) => `<div class="pager">${prev ? `<a href="${prev[0]}">← ${prev[1]}</a>` : '<span></span>'}${next ? `<a href="${next[0]}">${next[1]} →</a>` : '<span></span>'}</div>`;
   const wrapChips = (items) => `<div class="chips" style="flex-wrap:wrap;overflow:visible">${items.map((c) => c.on ? `<span class="chip on" style="min-width:0;padding:4px 9px">${c.label}</span>` : `<a class="chip" style="min-width:0;padding:4px 9px" href="${c.href}">${c.label}</a>`).join('')}</div>`;
   const NOTE = (s) => `<p class="note">${s} <a href="/method/">계산 기준 보기</a></p>`;
@@ -270,7 +270,7 @@ ${section('이어서', null, list([{ href: '/guide/child-height/', title: '우�
     /* 아빠×엄마 806 조합은 허브의 조합표와 겹쳐 검색에서 뺀다(2026-09-13) — 허브 /child-height/ 는 색인 */
     write(url, shell({ og: 'child', url, title, desc, body, nav: 'baby', noindex: 'google', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'] }));
   }
-  write('/child-height/', shell({ og: 'child', url: '/child-height/', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나오고 결과 카드로 저장·공유할 수 있습니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'], body: `
+  write('/child-height/', shell({ og: 'child', url: '/child-height/', modified: '2026-11-11', title: '아이 키 예측 계산기 — 부모 키로 아들·딸 예상 키 (중간 부모 키 공식)', desc: '아빠 키와 엄마 키를 넣으면 아들·딸의 예상 성인 키와 95% 범위가 나오고 결과 카드로 저장·공유할 수 있습니다. 아빠 160~190cm × 엄마 150~175cm 조합표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js', '/js/child-card.js'], body: `
 ${crumb([['/', '홈'], [null, '아이 키 예측']])}
 <h1 class="title">아이 키 예측</h1>
 <p class="meta">중간 부모 키 공식 · 아들 (아빠+엄마+13)÷2 · 딸 (아빠+엄마−13)÷2 · ±8.5cm</p>
@@ -281,7 +281,9 @@ ${section('아빠 키 × 엄마 키', '아들 예상 키 · cm', `<div class="tb
 ${section('딸 예상 키', 'cm', `<div class="tbl"><table><thead><tr><th>아빠 \\ 엄마</th>${[150, 155, 160, 165, 170, 175].map((m) => `<th>${m}</th>`).join('')}</tr></thead><tbody>${[160, 165, 170, 175, 180, 185, 190].map((f) => `<tr><td>${f}cm</td>${[150, 155, 160, 165, 170, 175].map((m) => `<td><a href="${chUrl(f, m)}">${X.childHeight(f, m).girl}</a></td>`).join('')}</tr>`).join('')}</tbody></table></div>`)}
 ${ad()}
 ${section('아빠 키별', null, wrapChips(FATHERS.map((f) => ({ label: `${f}`, href: chUrl(f, 162) }))))}
-${section('이어서', null, list([{ href: '/guide/child-height/', title: '우리 아이 키 예측 — 공식과 한계', sub: '서재' }, { href: '/baby/month/', title: '아기 개월별 발달', sub: '평균 키·몸무게' }]))}` }));
+${babyChain('/child-height/')}
+${section('이어서', null, list([{ href: '/kids/', title: '아이 키 백분위 (3~18세)', sub: '지금 키가 또래 몇 번째 · 백분위대로 크면 몇 cm' }, { href: '/guide/child-height/', title: '우리 아이 키 예측 — 공식과 한계', sub: '서재' }, { href: '/baby/month/', title: '아기 개월별 발달', sub: '평균 키·몸무게' }]))}
+<p class="note">Tanner·Goldstein·Whitehouse(1970, Archives of Disease in Childhood)의 중간 부모 키 공식입니다. 실제 어른 키의 약 95%가 예상값 ±8.5cm 안에 들어가는 어림이며, 영양·수면·질병·사춘기 시기에 따라 달라집니다. 정확한 예측은 손목 X선 뼈 나이 검사로 합니다. <a href="/method/">계산 기준 보기</a></p>` }));
 
   /* ---------- 혈중알코올농도 ---------- */
   const DR = Object.fromEntries(X.DRINKS.map((d) => [d.key, d]));

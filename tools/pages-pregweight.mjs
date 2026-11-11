@@ -78,7 +78,7 @@ ${NOTE}`;
   }
 
   /* ---------- 계산기 (허브) ---------- */
-  write('/pregnancy/weight/', shell({ og: 'pregweight', url: '/pregnancy/weight/', nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'], title: '임신 중 체중 증가 계산기 — 임신 전 BMI별 권장 범위와 주차별 몸무게 (IOM 2009)', desc: '키와 임신 전 몸무게를 넣으면 출산까지 권장 체중 증가(정상 BMI 11.5~16kg), 출산 무렵 몸무게, 이번 주 권장 범위와 지금까지 늘어난 양의 판정이 나옵니다. 쌍둥이 기준 포함, 미국 IOM 2009 기준.', body: `
+  write('/pregnancy/weight/', shell({ og: 'pregweight', url: '/pregnancy/weight/', modified: '2026-11-11', nav: 'preg', scripts: ['/js/engine.js', '/js/live.js'], title: '임신 중 체중 증가 계산기 — 임신 전 BMI별 권장 범위와 주차별 몸무게 (IOM 2009)', desc: '키와 임신 전 몸무게를 넣으면 출산까지 권장 체중 증가(정상 BMI 11.5~16kg), 출산 무렵 몸무게, 이번 주 권장 범위와 지금까지 늘어난 양의 판정이 나옵니다. 쌍둥이 기준 포함, 미국 IOM 2009 기준.', body: `
 ${crumb([['/due-date/', '임신'], [null, '체중 증가']])}
 <h1 class="title">임신 중 체중 증가</h1>
 <p class="meta">미국 국립의학원(IOM) 2009 · 임신 전 BMI 기준 · 한 명·쌍둥이</p>
@@ -90,6 +90,6 @@ ${section('주차별로 보기', '임신 전보다 몇 kg', chipsWrap(PW_WEEKS.m
 ${ad()}
 ${section('분기별로', null, `<div class="doc">${triDoc(10)}${triDoc(20)}${triDoc(32)}</div>`)}
 ${section('너무 적게, 너무 많이', null, RISK)}
-${section('이어서', null, list([{ href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로' }, { href: '/pregnancy/week/', title: '임신 주차별 안내', sub: '아기 크기 · 엄마 몸 · 검사' }, { href: '/bmi/', title: 'BMI 계산', sub: '임신 전 BMI 확인' }, { href: '/caffeine/', title: '카페인 계산', sub: '임신 중 하루 300mg' }]))}
+${section('이어서', null, list([{ href: '/due-date/', title: '출산예정일 계산기', sub: '마지막 생리일로' }, { href: '/pregnancy/week/', title: '임신 주차별 안내', sub: '아기 크기 · 엄마 몸 · 검사' }, { href: '/bmi/', title: 'BMI 계산', sub: '임신 전 BMI 확인' }, { href: '/caffeine/', title: '카페인 계산', sub: '임신 중 하루 300mg' }, { href: '/baby/', title: '태어난 뒤 — 아기 개월수·예방접종', sub: '생년월일로 접종 날짜 · 100일 · 돌' }]))}
 ${NOTE}` }));
 }

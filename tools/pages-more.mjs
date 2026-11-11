@@ -11,7 +11,7 @@ export const CAFFEINE_COUNTS = [1, 2, 3, 4, 5];
 export const QUIT_DAYS = [1, 3, 7, 14, 30, 60, 90, 100, 180, 365, 730, 1000, 1825, 3650];
 
 export function buildMore(ctx) {
-  const { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY } = ctx;
+  const { write, shell, crumb, tiles, list, section, table, lead, ad, TODAY, babyChain } = ctx;
   const wrapChips = (items) => `<div class="chips" style="flex-wrap:wrap;overflow:visible">${items.map((c) => c.on ? `<span class="chip on" style="min-width:0;padding:4px 9px">${c.label}</span>` : `<a class="chip" style="min-width:0;padding:4px 9px" href="${c.href}">${c.label}</a>`).join('')}</div>`;
   const NOTE = (s) => `<p class="note">${s} <a href="/method/">계산 기준 보기</a></p>`;
 
@@ -45,7 +45,7 @@ ${section('이어서', null, list([{ href: '/baby/', title: '아기 개월수 ·
   /* ---------- 아기 성장 백분위 ---------- */
   const pctUrl = (sex, m) => `/baby/percentile/${sex === 'f' ? 'girl' : 'boy'}/${m}/`;
   const sexName = (s) => s === 'f' ? '여아' : '남아';
-  const pctForm = (sex, m) => `<form class="quick live" data-live="percentile" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>WHO 표준 · 질병관리청 성장도표</span></div><div class="ye-grid"><label class="ye-f"><span>성별</span><select data-k="sex"><option value="m"${sex === 'm' ? ' selected' : ''}>남아</option><option value="f"${sex === 'f' ? ' selected' : ''}>여아</option></select></label><label class="ye-f"><span>생년월일 (넣으면 개월 자동)</span><input data-k="birth" type="date" value=""></label><label class="ye-f"><span>개월수</span><input data-k="month" type="text" inputmode="decimal" value="${m}"></label><label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="decimal" value=""></label><label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="decimal" value=""></label><label class="ye-f"><span>머리둘레 (cm)</span><input data-k="hc" type="text" inputmode="decimal" value=""></label></div><div class="tiles"><div class="tile"><small>몸무게 백분위</small><span class="num" data-out="wp">—</span></div><div class="tile"><small>키 백분위</small><span class="num" data-out="hp">—</span></div><div class="tile"><small>머리둘레 백분위</small><span class="num" data-out="hcp">—</span></div></div><p class="sub" style="margin-top:8px" data-out="note"></p><div class="live-foot"><a data-out="link" href="/baby/percentile/">이 개월의 백분위표 →</a></div></form>`;
+  const pctForm = (sex, m, read = false) => `<form class="quick live" data-live="percentile" style="margin-top:14px"><div class="live-head"><b>직접 계산</b><span>WHO 표준 · 질병관리청 성장도표</span></div><div class="ye-grid"><label class="ye-f"><span>성별</span><select data-k="sex"><option value="m"${sex === 'm' ? ' selected' : ''}>남아</option><option value="f"${sex === 'f' ? ' selected' : ''}>여아</option></select></label><label class="ye-f"><span>생년월일 (넣으면 개월 자동)</span><input data-k="birth" type="date" value=""></label><label class="ye-f"><span>개월수</span><input data-k="month" type="text" inputmode="decimal" value="${m}"></label><label class="ye-f"><span>몸무게 (kg)</span><input data-k="w" type="text" inputmode="decimal" value=""></label><label class="ye-f"><span>키 (cm)</span><input data-k="h" type="text" inputmode="decimal" value=""></label><label class="ye-f"><span>머리둘레 (cm)</span><input data-k="hc" type="text" inputmode="decimal" value=""></label></div><div class="tiles"><div class="tile"><small>몸무게 백분위</small><span class="num" data-out="wp">—</span></div><div class="tile"><small>키 백분위</small><span class="num" data-out="hp">—</span></div><div class="tile"><small>머리둘레 백분위</small><span class="num" data-out="hcp">—</span></div></div><p class="sub" style="margin-top:8px" data-out="note"></p>${read ? '<p class="sub" style="margin-top:6px" data-out="read"></p>' : ''}<div class="live-foot"><a data-out="link" href="/baby/percentile/">이 개월의 백분위표 →</a></div></form>`;
   for (const sex of ['m', 'f']) for (const m of PCT_MONTHS) {
     const url = pctUrl(sex, m);
     const W = G.percentileRow('weight', sex, m), H = G.percentileRow('length', sex, m), HC = G.percentileRow('head', sex, m);
@@ -75,17 +75,33 @@ ${section('이어서', null, list([{ href: pctUrl(sex === 'm' ? 'f' : 'm', m), t
 ${NOTE('WHO Child Growth Standards(2006) LMS 값으로 계산합니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 같은 표준을 씁니다. 백분위는 참고용이며 진단은 소아과에서.')}`;
     write(url, shell({ og: 'percentile', url, title, desc, body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/baby/percentile/', shell({ og: 'percentile', url: '/baby/percentile/', title: '아기 성장 백분위 계산기 — 몸무게·키·머리둘레가 또래 어디쯤 (WHO·질병관리청 성장도표)', desc: '성별·개월·몸무게·키·머리둘레를 넣으면 백분위와 판정이 바로 나옵니다. 남아·여아 0~36개월 백분위표(3·5·10·25·50·75·90·95·97).', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  /* 허브 — '상위 몇 %' 읽는 법 표와 백분위·평균 설명. 숫자는 모두 WHO LMS 에서 계산 */
+  const READ_M = 12, READ_P = [3, 10, 25, 50, 75, 90, 97];
+  const readRow = (measure) => Object.fromEntries(G.percentileRow(measure, 'm', READ_M));
+  const RW = readRow('weight'), RH = readRow('length');
+  const rankLabel = (p) => p === 50 ? '한가운데' : `${G.rankText(p)} · ${p}명보다 큼`;
+  const wL = G.lms('weight', 'm', READ_M), hL = G.lms('length', 'm', READ_M);
+  const r2 = (x) => Math.round(x * 100) / 100, r1 = (x) => Math.round(x * 10) / 10;
+  const MEAN_DOC = `<div class="doc">
+<p><b>50백분위는 한가운데 아기입니다.</b> 100명을 작은 순서로 세웠을 때 50번째 값(중앙값)이고, 평균은 모두 더해 사람 수로 나눈 값입니다. 성장도표에서 흔히 "평균 몸무게·평균 키"라고 부르는 숫자는 이 50백분위입니다.</p>
+<p><b>키는 둘이 거의 같고, 몸무게는 평균이 조금 높습니다.</b> 남아 ${READ_M}개월 키는 50백분위 ${r1(hL[1])}cm, 분포로 계산한 평균도 ${G.lmsMean(...hL).toFixed(1)}cm로 거의 같습니다. 몸무게는 50백분위 ${r2(wL[1])}kg에서 97백분위까지 +${r2(RW[97] - RW[50])}kg, 3백분위까지 −${r2(RW[50] - RW[3])}kg으로 무거운 쪽이 더 넓게 퍼져 있어, 평균이 약 ${G.lmsMean(...wL).toFixed(2)}kg으로 조금 높습니다.</p>
+<p><b>50백분위보다 작다고 작은 아기는 아닙니다.</b> 아기 절반은 50백분위 아래에 있습니다. 15~85백분위는 보통이고, 3~97백분위까지 정상 범위로 봅니다.</p>
+</div>`;
+  write('/baby/percentile/', shell({ og: 'percentile', url: '/baby/percentile/', modified: '2026-11-11', title: '아기 성장 백분위 계산기 — 몸무게·키·머리둘레가 또래 어디쯤 (WHO·질병관리청 성장도표)', desc: '성별·개월·몸무게·키·머리둘레를 넣으면 백분위와 상위 몇 %인지, 판정이 바로 나옵니다. 남아·여아 0~36개월 백분위표(3·5·10·25·50·75·90·95·97)와 백분위 읽는 법.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/baby/', '아기'], [null, '성장 백분위']])}
 <h1 class="title">아기 성장 백분위</h1>
 <p class="meta">WHO 아동 성장 표준 · 질병관리청 2017 성장도표 0~35개월 · 남아·여아</p>
-${pctForm('m', 6)}
+${pctForm('m', 6, true)}
 ${lead('백분위는 같은 성별·개월의 아기 100명을 작은 순으로 세웠을 때 몇 번째인지입니다(75백분위면 75명보다 큼). 50이 한가운데, 3~97 사이면 정상 범위입니다. 생년월일을 넣으면 개월이 자동으로 계산되고, 개월을 누르면 남아·여아 백분위표가 나옵니다.')}
+${section('우리 아기는 상위 몇 %?', `100에서 백분위를 빼면 됩니다 · 예: 남아 ${READ_M}개월`, table(['백분위', '또래 100명 중', '몸무게', '키'], READ_P.map((p) => ({ cells: [`${p}`, rankLabel(p), `${RW[p]}kg`, `${RH[p]}cm`], cls: p === 50 ? 'on' : '' }))) + `<p class="sub" style="margin-top:8px">75백분위는 100명 중 75명보다 크다는 뜻이라 상위 25%입니다. 50보다 작으면 "하위 몇 %"로 읽습니다. 위 계산기에 수치를 넣으면 우리 아기의 상위·하위 %가 바로 나옵니다.</p>`)}
+${section('백분위와 평균은 다릅니다', null, MEAN_DOC)}
 ${section('남아 개월별 표', null, wrapChips(PCT_MONTHS.map((k) => ({ label: `${k}`, href: pctUrl('m', k) }))))}
 ${section('여아 개월별 표', null, wrapChips(PCT_MONTHS.map((k) => ({ label: `${k}`, href: pctUrl('f', k) }))))}
 ${ad()}
 ${section('50백분위 한눈에', '몸무게 kg · 키 cm', table(['개월', '남아 몸무게', '남아 키', '여아 몸무게', '여아 키'], [0, 1, 2, 3, 4, 5, 6, 9, 12, 18, 24, 30, 36].map((k) => ({ cells: [`<a href="${pctUrl('m', k)}">${k}</a>`, String(G.round('weight', G.valueAt('weight', 'm', k, 0))), String(G.round('length', G.valueAt('length', 'm', k, 0))), String(G.round('weight', G.valueAt('weight', 'f', k, 0))), String(G.round('length', G.valueAt('length', 'f', k, 0)))] }))))}
-${section('이어서', null, list([{ href: '/baby/month/', title: '아기 개월별 발달', sub: '할 수 있는 것 · 수유 · 수면' }, { href: '/kids/', title: '아이 키 백분위 (3~18세)', sub: '만 3세부터 · 학년별 평균 키' }, { href: '/child-height/', title: '아이 예상 키', sub: '부모 키로' }, { href: '/baby/card/', title: '아기 100일·돌 카드', sub: '공유용 이미지' }]))}` }));
+${babyChain('/baby/percentile/')}
+${section('이어서', null, list([{ href: '/baby/month/', title: '아기 개월별 발달', sub: '할 수 있는 것 · 수유 · 수면' }, { href: '/baby/formula/', title: '분유 수유량', sub: '개월·몸무게로 1회량' }, { href: '/kids/', title: '아이 키 백분위 (3~18세)', sub: '만 3세부터 · 학년별 평균 키' }, { href: '/child-height/', title: '아이 예상 키', sub: '부모 키로' }, { href: '/baby/card/', title: '아기 100일·돌 카드', sub: '공유용 이미지' }]))}
+${NOTE('WHO Child Growth Standards(2006) LMS 값으로 계산합니다. 질병관리청 2017 소아청소년 성장도표는 0~35개월에 같은 표준을 씁니다. 백분위는 참고용이며 진단은 소아과에서.')}` }));
 
   /* ---------- 카페인 ---------- */
   const CF = Object.fromEntries(X.CAFFEINE.map((c) => [c.key, c]));

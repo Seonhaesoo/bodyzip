@@ -25,6 +25,11 @@ export const MILK_12 = [400, 500];
 export const r10 = (x) => Math.round(x / 10) * 10;
 export const feedsFor = (months) => FEEDS[Math.max(0, Math.min(5, Math.floor(months)))];
 export const dailyFor = (kg) => r10(Math.min(DAY_MAX, kg * ML_PER_KG));
+/* 개월별 횟수 범위(FEEDS_RANGE)로 나눈 1회량 범위 — 6개월 전, 몸무게 기준. 횟수가 많을수록 1회량이 적다 */
+export function perRange(months, kg) {
+  const [a, b] = FEEDS_RANGE[Math.max(0, Math.min(5, Math.floor(months)))], daily = dailyFor(kg);
+  return { feeds: [a, b], per: [r10(daily / b), r10(daily / a)], daily };
+}
 export const solidsDaily = (m) => { const s = SOLIDS[m]; return s && s.feeds ? [Math.min(DAY_MAX, s.feeds[0] * SOLID_PER[0]), Math.min(DAY_MAX, s.feeds[1] * SOLID_PER[1])] : null; };
 
 /* 생후 일수·몸무게 → 수유 계획. feeds를 주면 그 횟수로 1회량을 나눈다 */
@@ -33,7 +38,7 @@ export function formulaPlan(days, kg, feeds) {
   if (days < 7) return { stage: 'week1', months, per: FIRST_WEEK.per, feeds: FIRST_WEEK.feeds, daily: null };
   if (months < 6) {
     const n = feeds || feedsFor(months), raw = kg * ML_PER_KG, daily = dailyFor(kg);
-    return { stage: 'weight', months, daily, raw: Math.round(raw), capped: raw > DAY_MAX, feeds: n, per: r10(daily / n), hours: Math.round(24 / n * 10) / 10 };
+    return { stage: 'weight', months, daily, raw: Math.round(raw), capped: raw > DAY_MAX, feeds: n, per: r10(daily / n), hours: Math.round(24 / n * 10) / 10, range: perRange(months, kg) };
   }
   const m = Math.min(12, Math.floor(months)), s = SOLIDS[m];
   if (!s.feeds) return { stage: 'milk', months, solids: s.solids, milk: MILK_12 };

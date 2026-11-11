@@ -8,6 +8,7 @@
   function val(box, k) { var el = q(box, k); return el ? parseFloat(el.value) || 0 : 0; }
   function sel(box, k) { var el = q(box, k); return el ? el.value : ''; }
   function dateOf(box, k) { var v = sel(box, k); if (!v) return null; var p = v.split('-').map(Number); return M.utc(p[0], p[1], p[2]); }
+  function rk(p) { return (M.rankText || M.kidsRank)(p); }   /* 엔진 파일이 한발 늦게 갱신돼도 멈추지 않게 */
   function today() { var t = new Date(Date.now() + 9 * 3600e3); return M.utc(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()); }
 
   function blobLink(a, text, name) { try { if (a._url) URL.revokeObjectURL(a._url); a._url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' })); a.href = a._url; a.download = name; a.hidden = false; } catch (e) { a.hidden = true; } }
@@ -205,13 +206,16 @@
       var sex = sel(box, 'sex') || 'm', b = dateOf(box, 'birth'), mo = val(box, 'month');
       if (b) { var dd = M.diffDays(b, today()); if (dd >= 0) { mo = Math.round(M.monthsFromDays(dd) * 10) / 10; var mi = q(box, 'month'); if (mi && document.activeElement !== mi) mi.value = mo; } }
       mo = Math.max(0, Math.min(M.MAX_MONTH, mo || 0));
-      var notes = [];
+      var notes = [], reads = [];
       [['w', 'weight', 'wp'], ['h', 'length', 'hp'], ['hc', 'head', 'hcp']].forEach(function (o) {
         var v = val(box, o[0]); if (!v) { out(box, o[2], '—'); return; }
-        var r = M.growthCheck(o[1], sex, mo, v); out(box, o[2], r.pct + '백분위');
+        var r = M.growthCheck(o[1], sex, mo, v); out(box, o[2], r.pct + ' · ' + rk(r.pct));
+        reads.push(M.MEASURES[o[1]].label + '는 약 ' + Math.min(99, Math.max(1, Math.round(r.pct))) + '명보다 ' + (o[1] === 'weight' ? '무겁고' : '크고') + '(' + rk(r.pct) + ')');
         notes.push(M.MEASURES[o[1]].label + ': ' + r.band.label + ' (중간값 ' + r.median + M.MEASURES[o[1]].unit + ')');
       });
       out(box, 'note', notes.length ? notes.join(' · ') : '몸무게·키·머리둘레 가운데 아는 것만 넣어도 됩니다.');
+      /* 허브의 '상위 몇 %' 한 줄 — 같은 성별·개월 100명 가운데 몇 명보다 큰지 */
+      out(box, 'read', reads.length ? '같은 개월 ' + (sex === 'f' ? '여아' : '남아') + ' 100명 가운데 ' + reads.join(', ').replace(/(무겁고|크고)(\([^)]*\))$/, function (x, a, b) { return (a === '무겁고' ? '무겁습니다' : '큽니다') + b + '.'; }) + ' 50에 가까울수록 한가운데입니다.' : '수치를 넣으면 또래 100명 가운데 몇 번째인지 풀어서 보여 줍니다.');
       var link = box.querySelector('[data-out="link"]'); if (link) { var mm = Math.max(0, Math.min(36, Math.round(mo))); link.href = '/baby/percentile/' + (sex === 'f' ? 'girl' : 'boy') + '/' + mm + '/'; link.textContent = (sex === 'f' ? '여아 ' : '남아 ') + mm + '개월 백분위표 →'; }
     });
   });
@@ -249,7 +253,7 @@
       if (p.stage === 'week1') { out(box, 'per', '30~60ml'); out(box, 'feeds', '8~12회'); out(box, 'daily', '—'); out(box, 'interval', '2~3시간'); out(box, 'note', '태어나서 1주까지는 1회 30~60ml로 시작해 배고파할 때마다 먹입니다(미국 CDC·소아과학회). 몸무게로 계산하는 하루 총량은 1주가 지난 뒤부터 봅니다.'); }
       else if (p.stage === 'weight') {
         if (!kg) { ['per', 'feeds', 'daily', 'interval'].forEach(function (k) { out(box, k, '—'); }); out(box, 'note', '몸무게를 넣으면 하루 총량과 1회량이 나옵니다.'); }
-        else { out(box, 'per', p.per + 'ml'); out(box, 'feeds', p.feeds + '회'); out(box, 'daily', num(p.daily) + 'ml'); out(box, 'interval', '평균 ' + p.hours + '시간'); out(box, 'note', (p.capped ? '몸무게로는 ' + num(p.raw) + 'ml지만 하루 960ml를 넘기지 않게 잡았습니다. ' : '') + (kg < 2.5 ? '2.5kg 미만이면 병원에서 정한 양을 먼저 따르세요. ' : '') + '1kg당 하루 165ml 기준입니다. 아기가 덜 먹거나 더 찾으면 아기에게 맞춰 주세요.'); }
+        else { out(box, 'per', p.per + 'ml'); out(box, 'feeds', p.feeds + '회'); out(box, 'daily', num(p.daily) + 'ml'); out(box, 'interval', '평균 ' + p.hours + '시간'); out(box, 'note', (p.capped ? '몸무게로는 ' + num(p.raw) + 'ml지만 하루 960ml를 넘기지 않게 잡았습니다. ' : '') + (kg < 2.5 ? '2.5kg 미만이면 병원에서 정한 양을 먼저 따르세요. ' : '') + (fe || !p.range ? '' : '이 개월에는 보통 하루 ' + p.range.feeds[0] + '~' + p.range.feeds[1] + '회 먹고, 그렇게 나누면 1회 ' + p.range.per[0] + '~' + p.range.per[1] + 'ml 범위입니다. ') + '1kg당 하루 165ml 기준입니다. 아기가 덜 먹거나 더 찾으면 아기에게 맞춰 주세요.'); }
       } else if (p.stage === 'solids') { out(box, 'per', '180~240ml'); out(box, 'feeds', p.feeds[0] === p.feeds[1] ? p.feeds[0] + '회' : p.feeds[0] + '~' + p.feeds[1] + '회'); out(box, 'daily', num(p.daily[0]) + '~' + num(p.daily[1]) + 'ml'); out(box, 'interval', '이유식 사이'); out(box, 'note', p.solids + '와 함께 먹는 시기입니다. 이유식을 잘 먹을수록 분유는 줄어듭니다.'); }
       else { out(box, 'per', '—'); out(box, 'feeds', '—'); out(box, 'daily', '우유 ' + p.milk[0] + '~' + p.milk[1] + 'ml'); out(box, 'interval', '끼니 사이'); out(box, 'note', '돌이 지나면 분유 대신 생우유와 밥(하루 3끼 + 간식 2회)으로 바꿉니다.'); }
       if (link) { link.href = '/baby/formula/' + mm + '/'; link.textContent = mm === 12 ? '돌 아기 우유량 →' : (mm ? '생후 ' + mm + '개월' : '신생아') + ' 분유량 표 →'; }
@@ -263,11 +267,16 @@
       if (b) { var dd = M.diffDays(b, today()); if (dd >= 0) { months = dd / 30.4375; var yy = Math.floor(months / 12), mm = Math.floor(months - yy * 12), yi = q(box, 'y'), mi = q(box, 'mo'); if (yi && document.activeElement !== yi) yi.value = yy; if (mi && document.activeElement !== mi) mi.value = mm; } }
       var h = val(box, 'h'), w = val(box, 'w'), link = box.querySelector('[data-out="link"]'), s2 = sex === 'f' ? 'girl' : 'boy';
       ['hp', 'wp', 'bp', 'adult'].forEach(function (k) { out(box, k, '—'); });
+      /* 부모 키 칸이 있는 폼(허브·나이별·학년별) — 중간 부모 키와 지금 백분위를 따라간 키를 나란히 */
+      if (q(box, 'pf') && M.adultHeight) {
+        var ah = M.adultHeight(sex, val(box, 'pf'), val(box, 'pm'), months, val(box, 'h')), who = sex === 'f' ? '딸' : '아들';
+        out(box, 'mph', ah.mph == null ? '아빠·엄마 키를 넣으면 부모 키로 본 예상 키가 나옵니다.' : '부모 키로 본 ' + who + ' 예상 키는 약 ' + ah.mph + 'cm(' + ah.lo + '~' + ah.hi + 'cm)입니다.' + (ah.track == null ? '' : ' 지금 백분위대로면 ' + ah.track + 'cm로 ' + (ah.inRange ? '이 범위 안입니다.' : '이 범위 밖입니다. 두 값이 크게 다르면 소아청소년과에서 성장 속도와 뼈 나이를 확인해 보세요.')) + (ah.track == null ? ' 어림값입니다.' : ' 둘 다 어림값입니다.'));
+      }
       if (months < 36) { out(box, 'note', '만 3세 미만은 WHO 기준 아기 성장 백분위에서 봅니다.'); if (link) { link.href = '/baby/percentile/'; link.textContent = '아기 성장 백분위 →'; } return; }
       if (months >= 228) { out(box, 'note', '만 18세까지 계산합니다. 어른은 BMI로 봅니다.'); if (link) { link.href = '/bmi/'; link.textContent = 'BMI 계산 →'; } return; }
       var notes = [], y = Math.floor(months / 12);
       if (h) { var rh = M.kidsCheck('height', sex, months, h); out(box, 'hp', rh.pct + ' · ' + M.kidsRank(rh.pct)); notes.push('키 ' + rh.band.label + ' · 또래 한가운데 ' + rh.median + 'cm'); if (months < 204) out(box, 'adult', M.trackAdult(sex, months, h) + 'cm'); }
-      if (w) { var rw = M.kidsCheck('weight', sex, months, w); out(box, 'wp', String(rw.pct)); notes.push('몸무게 ' + rw.band.label + ' · 한가운데 ' + rw.median + 'kg'); }
+      if (w) { var rw = M.kidsCheck('weight', sex, months, w); out(box, 'wp', rw.pct + ' · ' + M.kidsRank(rw.pct)); notes.push('몸무게 ' + rw.band.label + ' · 한가운데 ' + rw.median + 'kg'); }
       if (h && w) { var bmi = M.kidsBmi(h, w), rb = M.kidsCheck('bmi', sex, months, bmi); out(box, 'bp', bmi + ' · ' + rb.pct); notes.push('BMI ' + rb.band.label); }
       out(box, 'note', notes.length ? notes.join(' / ') : '키와 몸무게 가운데 아는 것만 넣어도 됩니다.');
       if (link) { var rg = M.kidsHeightRange(sex, y), hr = Math.round(h); if (h && hr >= rg[0] && hr <= rg[1]) { link.href = '/kids/' + y + '-' + s2 + '/' + hr + '/'; link.textContent = '만 ' + y + '세 ' + hr + 'cm 자세히 →'; } else { link.href = '/kids/' + y + '-' + s2 + '/'; link.textContent = '만 ' + y + '세 ' + (sex === 'f' ? '여자' : '남자') + ' 백분위표 →'; } }

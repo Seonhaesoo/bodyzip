@@ -19,7 +19,7 @@ const kgRows = (months) => { const lo = Math.floor(G.valueAt('weight', 'f', mont
 const perAt = (kg, n) => FM.r10(FM.dailyFor(kg) / n);
 
 export function buildFormula(ctx) {
-  const { write, shell, crumb, tiles, list, section, table, lead, ad } = ctx;
+  const { write, shell, crumb, tiles, list, section, table, lead, ad, babyChain } = ctx;
   const chipsWrap = (items) => `<div class="chips" style="flex-wrap:wrap;overflow:visible">${items.map((c) => c.on ? `<span class="chip on" style="min-width:0;padding:4px 9px">${c.label}</span>` : `<a class="chip" style="min-width:0;padding:4px 9px" href="${c.href}">${c.label}</a>`).join('')}</div>`;
   const NOTE = `<p class="note">하루 총량은 미국소아과학회(AAP) HealthyChildren 「Amount and Schedule of Baby Formula Feedings」(2022)의 몸무게 1파운드당 하루 2.5온스(1kg당 약 165ml) 규칙과 하루 960ml(32온스) 이내 기준이고, 신생아 수유 간격은 미국 CDC 「How Much and How Often to Feed Infant Formula」를 따랐습니다. 보통 몸무게는 WHO 성장 표준 50백분위의 남녀 평균입니다. 아기마다 먹는 양이 달라 참고용이며, 체중이 늘지 않거나 잘 먹지 않으면 소아청소년과에 문의하세요. <a href="/method/">계산 기준 보기</a></p>`;
   const SIGNS = `<div class="doc">
@@ -134,23 +134,38 @@ ${NOTE}`;
   }
 
   /* ---------- 계산기 (허브) ---------- */
-  const rows = FORMULA_MONTHS.map((m) => {
-    if (m <= 5) { const kg = typKg(m + 0.5), d = FM.dailyFor(kg); return { cells: [`<a href="${fmUrl(m)}">${mShort(m)}</a>`, `${kg}kg`, FM.FEEDS_TEXT[m], `${FM.r10(d / FM.FEEDS[m])}ml`, `${num(d)}ml`] }; }
+  const rows = [{ cells: ['첫 주', '—', `${FM.FIRST_WEEK.feeds[0]}~${FM.FIRST_WEEK.feeds[1]}회`, `${FM.FIRST_WEEK.per[0]}~${FM.FIRST_WEEK.per[1]}ml`, '—'] }].concat(FORMULA_MONTHS.map((m) => {
+    if (m <= 5) { const kg = typKg(m + 0.5), r = FM.perRange(m + 0.5, kg); return { cells: [`<a href="${fmUrl(m)}">${mShort(m)}</a>`, `${kg}kg`, FM.FEEDS_TEXT[m], `${r.per[0]}~${r.per[1]}ml`, `${num(r.daily)}ml`] }; }
     const s = FM.SOLIDS[m], d = FM.solidsDaily(m);
-    return { cells: [`<a href="${fmUrl(m)}">${mShort(m)}</a>`, '—', s.feeds ? `${s.feeds[0] === s.feeds[1] ? s.feeds[0] : `${s.feeds[0]}~${s.feeds[1]}`}회 + ${s.solids}` : s.solids, s.feeds ? '180~240ml' : '—', d ? `${num(d[0])}~${num(d[1])}ml` : '우유 400~500ml'] };
-  });
-  write('/baby/formula/', shell({ og: 'formula', url: '/baby/formula/', title: '분유 수유량 계산기 — 개월·몸무게로 1회량과 하루 총량 (신생아~돌)', desc: '아기 생년월일(또는 개월)과 몸무게를 넣으면 하루 분유 총량, 1회량, 하루 횟수가 나옵니다. 몸무게 1kg당 하루 165ml, 하루 960ml 이내(미국소아과학회). 신생아·주별·개월별·몸무게별 표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
+    return { cells: [`<a href="${fmUrl(m)}">${mShort(m)}</a>`, '—', s.feeds ? `${s.feeds[0] === s.feeds[1] ? s.feeds[0] : `${s.feeds[0]}~${s.feeds[1]}`}회 + ${s.solids}` : s.solids, s.feeds ? `${FM.SOLID_PER[0]}~${FM.SOLID_PER[1]}ml` : '—', d ? `${num(d[0])}~${num(d[1])}ml` : `우유 ${FM.MILK_12[0]}~${FM.MILK_12[1]}ml`] };
+  }));
+  /* 계산 예시 — 엔진 값 그대로 */
+  const example = (label, months, kg) => { const raw = Math.round(kg * FM.ML_PER_KG), r = FM.perRange(months, kg); return `<p><b>${label}, ${kg}kg.</b> ${kg} × ${FM.ML_PER_KG} = ${num(raw)}ml${raw > FM.DAY_MAX ? `이지만 하루 ${FM.DAY_MAX}ml를 넘기지 않으므로 <b>${num(r.daily)}ml</b>로 잡습니다` : `라서 하루 약 <b>${num(r.daily)}ml</b>입니다`}. 이 시기에는 하루 ${r.feeds[0]}~${r.feeds[1]}회 먹으니 1회 <b>${r.per[0]}~${r.per[1]}ml</b>입니다.</p>`; };
+  const EXAMPLES = `<div class="doc">${example('생후 3주', 21 / 30.4375, 3.8)}${example('생후 2개월', 2.5, 5.6)}${example('생후 5개월', 5.5, 7.5)}<p>같은 몸무게라도 횟수가 적은 아기는 한 번에 더 먹습니다. 범위 안이면 아기가 먹는 대로 두면 됩니다.</p></div>`;
+  const DOCTOR = `<div class="doc"><ul>
+<li>젖은 기저귀가 하루 6개 미만이거나, 입이 마르고 울어도 눈물이 적을 때</li>
+<li>평소보다 축 늘어져 잘 깨지 않거나 먹으려 하지 않을 때</li>
+<li>2주가 지나도 출생 체중을 되찾지 못했거나 몸무게가 늘지 않을 때</li>
+<li>먹을 때마다 뿜듯이 토하거나, 초록색 토를 할 때</li>
+<li>흰색·회색 변이나 피가 섞인 변을 볼 때</li>
+<li>생후 3개월 미만인데 체온이 38℃ 이상일 때(미국소아과학회는 바로 연락하라고 권합니다)</li>
+<li>하루 ${FM.DAY_MAX}ml를 넘게 계속 찾을 때</li>
+</ul><p>표의 양보다 덜 먹어도 기저귀와 몸무게가 괜찮으면 억지로 맞출 필요는 없습니다. <a href="/guide/formula-enough/">충분히 먹고 있는지 보는 법 →</a></p></div>`;
+  write('/baby/formula/', shell({ og: 'formula', url: '/baby/formula/', modified: '2026-11-11', title: '분유 수유량 계산기 — 개월·몸무게로 1회량과 하루 총량 (신생아~돌)', desc: '아기 생년월일(또는 개월)과 몸무게를 넣으면 하루 분유 총량, 1회량과 그 범위, 하루 횟수가 나옵니다. 몸무게 1kg당 하루 165ml, 하루 960ml 이내(미국소아과학회). 신생아 첫 주부터 돌까지 개월별 표.', nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/baby/', '아기'], [null, '분유 수유량']])}
 <h1 class="title">분유 수유량</h1>
 <p class="meta">미국소아과학회(AAP) · 미국 CDC 기준 · 신생아부터 돌까지</p>
 ${form(2.5, 5.6)}
 ${lead('생후 6개월까지는 몸무게로 하루 총량을 잡습니다. 1kg당 하루 약 165ml이고, 하루 960ml를 넘기지 않습니다. 하루 총량을 수유 횟수로 나누면 1회량입니다. 태어나서 1주까지는 1회 30~60ml로 시작하고, 6개월부터는 이유식이 늘면서 분유가 줄어듭니다.')}
-${section('개월별 한눈에', '6개월 전은 보통 몸무게 기준', table(['개월', '보통 몸무게', '하루 횟수', '1회량', '하루 총량'], rows))}
+${section('개월별 한눈에', '1회량 · 하루 횟수 · 하루 총량 — 6개월 전은 보통 몸무게 기준', table(['개월', '보통 몸무게', '하루 횟수', '1회량', '하루 총량'], rows) + `<p class="sub" style="margin-top:8px">출처: 미국소아과학회(AAP) 「Amount and Schedule of Baby Formula Feedings」, 미국 CDC 「How Much and How Often to Feed Infant Formula」. 보통 몸무게는 WHO 성장 표준 50백분위(남녀 평균)이고, 1회량은 하루 총량을 그 개월의 횟수 범위로 나눈 값입니다. 우리 아기 몸무게로 보려면 위 계산기에 넣으세요.</p>`)}
+${section('계산 예시', '몸무게 × 165ml ÷ 하루 횟수', EXAMPLES)}
 ${section('주별', '생후 2개월까지', chipsWrap(FORMULA_WEEKS.map((w) => ({ label: `${w}주`, href: fwUrl(w) }))))}
 ${section('몸무게별', '생후 6개월 전', chipsWrap(FORMULA_KG.map((k) => ({ label: `${k}kg`, href: fkUrl(k) }))))}
 ${ad()}
 ${section('신생아 첫 주', '1회 30~60ml · 2~3시간마다', FIRST)}
+${section('이럴 때는 소아청소년과에', '분유량보다 먼저 볼 신호', DOCTOR)}
 ${section('알아두면 좋은 것', null, SIGNS)}
-${section('이어서', null, list([{ href: '/baby/', title: '아기 개월수 · 예방접종', sub: '생년월일로 오늘 몇 개월' }, { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게가 또래 어디쯤' }, { href: '/guide/baby-food/', title: '이유식 단계', sub: '서재' }]))}
+${babyChain('/baby/formula/')}
+${section('이어서', null, list([{ href: '/baby/', title: '아기 개월수 · 예방접종', sub: '생년월일로 오늘 몇 개월 · 접종 날짜' }, { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게가 또래 100명 중 몇 번째' }, { href: '/guide/baby-food/', title: '이유식 단계', sub: '서재' }]))}
 ${NOTE}` }));
 }

@@ -1,6 +1,6 @@
 /* 어린이·청소년 성장 백분위 — 질병관리청 2017 소아청소년 성장도표(만 3~18세) LMS. 0~35개월 아기는 growth.mjs(WHO) */
 import { KIDS, KIDS_START, KIDS_END } from '../data/kdca-lms.mjs';
-import { cdf } from './growth.mjs';
+import { cdf, rankText } from './growth.mjs';
 export { KIDS_START, KIDS_END };
 
 export const KIDS_MEASURES = { height: { label: '키', unit: 'cm' }, weight: { label: '몸무게', unit: 'kg' }, bmi: { label: 'BMI', unit: '' } };
@@ -66,4 +66,13 @@ export function kidsHeightRange(sex, y) {
   return [lo, hi];
 }
 /* 백분위 → "상위 42%" / "하위 8%" */
-export const kidsRank = (p) => { const v = p >= 50 ? 100 - p : p, t = v < 1 ? (Math.round(v * 10) / 10 || 0.1) : Math.round(v); return `${p >= 50 ? '상위' : '하위'} ${t}%`; };
+export const kidsRank = rankText;
+/* 예상 성인 키 두 가지를 나란히 — ① 중간 부모 키(Tanner 1970): 아들 (아빠+엄마+13)÷2 · 딸 (아빠+엄마−13)÷2, 약 95%가 ±8.5cm 안
+ * ② 지금 키 백분위를 만 18세까지 따라간 값(trackAdult, 만 17세 미만 · 키를 넣었을 때만). 둘 다 어림값이다 */
+export const MPH_RANGE = 8.5;
+export function adultHeight(sex, father, mother, months, height) {
+  const ok = father >= 120 && father <= 220 && mother >= 120 && mother <= 220;
+  const mph = ok ? Math.round((father + mother + (sex === 'f' ? -13 : 13)) / 2 * 10) / 10 : null;
+  const track = height && months >= KIDS_START && months < 204 ? trackAdult(sex, months, height) : null;
+  return { mph, lo: mph == null ? null : kidsRound(mph - MPH_RANGE), hi: mph == null ? null : kidsRound(mph + MPH_RANGE), track, inRange: mph != null && track != null ? Math.abs(track - mph) <= MPH_RANGE : null };
+}

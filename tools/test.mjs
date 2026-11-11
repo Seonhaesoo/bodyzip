@@ -114,6 +114,9 @@ ok(G.round('weight', G.valueAt('weight', 'm', 12, 0)) === 9.65 && G.round('lengt
 { const r = G.growthCheck('weight', 'm', 12, 9.65); ok(Math.abs(r.pct - 50) < 0.6 && r.band.key === 'mid', '중간값은 50백분위', JSON.stringify(r)); }
 ok(G.growthCheck('weight', 'm', 12, 7.7).pct < 4 && G.growthCheck('weight', 'm', 12, 7.7).band.key !== 'mid' && G.growthCheck('weight', 'm', 12, 12.0).pct > 96, '남 12개월 7.7kg ≈ 3백분위 · 12.0kg ≈ 97백분위', [G.growthCheck('weight', 'm', 12, 7.7).pct, G.growthCheck('weight', 'm', 12, 12.0).pct]);
 ok(Math.abs(G.cdf(1.2816) - 0.9) < 0.001 && Math.abs(G.cdf(-1.8808) - 0.03) < 0.001, '정규분포 누적');
+ok(G.rankText(62.3) === '상위 38%' && G.rankText(3) === '하위 3%' && G.rankText(50) === '상위 50%', '아기 백분위 상위·하위 표기', [G.rankText(62.3), G.rankText(3)]);
+ok(near(G.lmsMean(1, 100, 0.05), 100, 0.01) && G.lmsMean(-1, 30, 0.15) > 30.3 && G.lmsMean(0, 10, 0.1) > 10, 'LMS 평균 — L=1 이면 중앙값과 같고 L<1 이면 더 큼', [G.lmsMean(1, 100, 0.05), G.lmsMean(-1, 30, 0.15)]);
+{ const w = G.lms('weight', 'm', 12), h = G.lms('length', 'm', 12); ok(G.lmsMean(...w) > w[1] && G.lmsMean(...w) - w[1] < 0.2 && Math.abs(G.lmsMean(...h) - h[1]) < 0.05, '남 12개월 — 몸무게 평균은 50백분위보다 조금 크고 키는 거의 같음', [G.lmsMean(...w), w[1], G.lmsMean(...h), h[1]]); }
 ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', 'm', 6)[4][0] === 50, '백분위표 9칸');
 /* 혈압 기록 (가정혈압 135/85) */
 { const BL = await import('../engine/bplog.mjs');
@@ -175,6 +178,9 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   { const p = FM.formulaPlan(140, 7.5); ok(p.capped && p.daily === 960 && p.per === 190, '4개월 7.5kg은 960ml 상한 · 5회 · 1회 190ml', JSON.stringify(p)); }
   { const p = FM.formulaPlan(200, 8); ok(p.stage === 'solids' && p.feeds.join() === '3,4' && p.daily.join() === '540,960', '6개월 이후 이유식 2회 + 분유 3~4회', JSON.stringify(p)); }
   ok(FM.formulaPlan(380, 10).stage === 'milk', '돌 이후는 생우유');
+  { const r = FM.perRange(2.5, 5.6); ok(r.feeds.join() === '6,7' && r.per.join() === '130,150' && r.daily === 920 && FM.formulaPlan(76, 5.6).range.per.join() === '130,150', '2개월 5.6kg 1회량 범위 130~150ml (6~7회)', JSON.stringify(r));
+    const c = FM.perRange(5.5, 7.5); ok(c.feeds.join() === '4,5' && c.per.join() === '190,240' && c.daily === 960, '5개월 7.5kg은 960ml 상한 · 4~5회 · 190~240ml', JSON.stringify(c));
+    ok([0, 1, 2, 3, 4, 5].every((m) => [3, 5, 7, 9].every((kg) => { const x = FM.perRange(m, kg), p = FM.formulaPlan((m + 0.5) * 30.4375, kg).per; return x.per[0] <= p && p <= x.per[1]; })), '기준 1회량은 늘 범위 안'); }
   { const k1 = (x) => Math.round(x * 10) / 10, typ = (mo) => k1((G.valueAt('weight', 'm', mo, 0) + G.valueAt('weight', 'f', mo, 0)) / 2);
     const bad = [0, 1, 2, 3, 4, 5].filter((m) => { const f = BM.find((x) => x.m === m).feed; return !f.includes(`약 ${FM.r10(FM.dailyFor(typ(m + 0.5)) / FM.FEEDS[m])}ml`) || !f.includes(FM.FEEDS_TEXT[m]); })
       .concat([6, 7, 8, 9, 10, 11].filter((m) => { const [a, b] = FM.SOLIDS[m].feeds; return !BM.find((x) => x.m === m).feed.includes(`분유 ${a === b ? a : `${a}~${b}`}회`); }));
@@ -192,6 +198,11 @@ ok(G.percentileRow('length', 'm', 6).length === 9 && G.percentileRow('length', '
   ok(KD.gradeMonths(1) === 86 && KD.gradeMonths(12) === 218 && KD.gradesForAge(10).join() === '4,5' && KD.gradeFor(110) === 3, '학년 나이 초1 86개월 · 만 10세 = 초4~초5', KD.gradesForAge(10));
   ok(KD.kidsRank(57.9) === '상위 42%' && KD.kidsRank(8.2) === '하위 8%' && KD.kidsRank(99.95) === '상위 0.1%', '상위·하위 표기', [KD.kidsRank(57.9), KD.kidsRank(8.2), KD.kidsRank(99.95)]);
   { const [lo, hi] = KD.kidsHeightRange('m', 10); ok(lo === 125 && hi > 150 && hi < 165, '남 10세 키 페이지 범위', [lo, hi]); }
+  { const a = KD.adultHeight('m', 175, 162, 120, 138.8), X2 = await import('../engine/extra.mjs');
+    ok(a.mph === 175 && a.lo === 166.5 && a.hi === 183.5 && a.track === KD.trackAdult('m', 120, 138.8) && a.inRange === true && a.mph === X2.childHeight(175, 162).boy && KD.MPH_RANGE === X2.childHeight(175, 162).range, '예상 성인 키 — 중간 부모 키 175(166.5~183.5) · 아이 키 예측 페이지와 같은 값', JSON.stringify(a));
+    ok(KD.adultHeight('f', 175, 162).mph === 162 && KD.adultHeight('f', 175, 162).track === null && KD.adultHeight('m', 0, 162, 120, 138.8).mph === null && KD.adultHeight('m', 175, 162, 210, 170).track === null, '부모 키가 없으면 중간 부모 키 없음 · 만 17세부터는 백분위 추적 없음');
+    const w = KD.kidsLms('weight', 'm', 120), h = KD.kidsLms('height', 'm', 120), G2 = await import('../engine/growth.mjs');
+    ok(G2.lmsMean(...w) - w[1] > 0.5 && Math.abs(G2.lmsMean(...h) - h[1]) < 0.3, '남 10세 — 몸무게 평균은 50백분위보다 0.5kg 넘게 크고 키는 0.3cm 안', [G2.lmsMean(...w), w[1], G2.lmsMean(...h), h[1]]); }
   ok(KD.kidsLms('height', 'm', 30)[1] === KD.kidsLms('height', 'm', 36)[1] && KD.kidsLms('height', 'f', 300)[1] === KD.kidsLms('height', 'f', 227)[1], '범위 밖은 끝값');
 }
 /* 반려동물 */

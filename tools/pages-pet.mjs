@@ -45,7 +45,7 @@ ${section('이어서', null, list([{ href: `/pet/${kind}-food/`, title: `${kindN
 ${NOTE('미국수의사회(AVMA) 지침(중형견 기준 1살 15세·2살 24세·이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식입니다. 품종·건강 상태에 따라 다릅니다.')}`;
       write(url, shell({ url, title, desc, body, nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'] }));
     }
-    write(`/pet/${kind}-age/`, shell({ url: `/pet/${kind}-age/`, title: kind === 'dog' ? '강아지 나이 계산기 — 사람 나이로 환산 (소형·중형·대형견 표)' : '고양이 나이 계산기 — 사람 나이로 환산 (1~25살 표)', desc: kind === 'dog' ? '강아지 나이를 사람 나이로 바꿉니다. 1살 15세, 2살 24세, 이후 소형견 4세·중형견 5세·대형견 6세씩. 1~20살 표와 노령견 시기.' : '고양이 나이를 사람 나이로 바꿉니다. 1살 15세, 2살 24세, 이후 해마다 4세씩. 1~25살 표와 노령묘 시기.', nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'], body: `
+    write(`/pet/${kind}-age/`, shell({ url: `/pet/${kind}-age/`, modified: '2026-11-11', title: kind === 'dog' ? '강아지 나이 계산기 — 사람 나이로 환산 (소형·중형·대형견 표)' : '고양이 나이 계산기 — 사람 나이로 환산 (1~25살 표)', desc: kind === 'dog' ? '강아지 나이를 사람 나이로 바꿉니다. 1살 15세, 2살 24세, 이후 소형견 4세·중형견 5세·대형견 6세씩. 1~20살 표와 노령견 시기.' : '고양이 나이를 사람 나이로 바꿉니다. 1살 15세, 2살 24세, 이후 해마다 4세씩. 1~25살 표와 노령묘 시기.', nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/pet/', '반려동물'], [null, `${kindName(kind)} 나이`]])}
 <h1 class="title">${kindName(kind)} 나이 → 사람 나이</h1>
 <p class="meta">1살 = 15세 · 2살 = 24세 · 이후 ${kind === 'dog' ? '크기별 4·5·6세씩' : '해마다 4세씩'}</p>
@@ -58,14 +58,16 @@ ${section('사람 나이로 바꾸는 법', null, kind === 'dog'
 ${section('자주 묻는 질문', null, kind === 'dog'
   ? `<h3>강아지 1살은 사람 나이로 몇 살인가요?</h3><p>약 15세로 봐요. 첫돌이면 사람의 청소년기에 해당해요. 2살은 24세, 그 뒤로는 크기에 따라 해마다 4~6세씩 더해요.</p>
 <h3>소형견·중형견·대형견은 어떻게 나누나요?</h3><p>보통 다 자란 몸무게로 나눠요. 10kg 아래를 소형견, 10~25kg을 중형견, 25kg 이상을 대형견으로 보는 기준을 썼어요.</p>
-<h3>강아지는 몇 살부터 노령견인가요?</h3><p>소형견 7~8살, 중형견 6~7살, 대형견 5~6살 무렵부터예요. 사람 나이로 50대에 들어서는 때예요.</p>`
+<h3>강아지는 몇 살부터 노령견인가요?</h3><p>소형견 10살, 중형견 8살, 대형견 7살 무렵부터예요. 사람 나이로 치면 ${P.dogAge(10, 'small')}세, ${P.dogAge(8, 'medium')}세, ${P.dogAge(7, 'large')}세쯤이에요.</p>`
   : `<h3>고양이 1살은 사람 나이로 몇 살인가요?</h3><p>약 15세로 봐요. 2살은 24세, 그 뒤로는 해마다 4세씩 더해요.</p>
 <h3>고양이는 몇 살부터 노령묘인가요?</h3><p>11살 무렵부터 노령묘로 봐요. 사람 나이로 60세쯤이에요. 7살부터는 중년으로 보고 검진을 챙기기 시작하면 좋아요.</p>
 <h3>고양이 20살은 사람 나이로 몇 살인가요?</h3><p>약 96세예요. 20살을 넘기는 고양이도 있지만 드문 편이고, 이때는 반년마다 검진을 권해요.</p>`)}
 ${lead(kind === 'dog' ? '강아지 5살은 소형견 기준 사람 36세입니다. 나이를 누르면 크기별 환산과 그 시기에 챙길 것이 나옵니다.' : '고양이 5살은 사람 36세입니다. 나이를 누르면 환산과 그 시기에 챙길 것이 나옵니다.')}
+${section('나이별 한눈에', kind === 'dog' ? '사람 나이 · 소형 · 중형 · 대형' : '사람 나이와 시기', table(kind === 'dog' ? ['나이', '소형견', '중형견', '대형견'] : ['나이', '사람 나이', '시기'], [1, 2, 3, 5, 7, 8, 10, 12, 15, 18, 20].map((k) => ({ cells: kind === 'dog' ? [`<a href="${ageUrl(kind, k)}">${k}살</a>`, `${P.dogAge(k, 'small')}세`, `${P.dogAge(k, 'medium')}세`, `${P.dogAge(k, 'large')}세`] : [`<a href="${ageUrl(kind, k)}">${k}살</a>`, `${P.catAge(k)}세`, P.petStage('cat', k).split(' —')[0]] }))) + `<p class="sub" style="margin-top:8px">${kind === 'dog' ? `계산 예: 소형견 12살 = 24 + 4 × (12 − 2) = ${P.dogAge(12, 'small')}세, 대형견 12살 = 24 + 6 × (12 − 2) = ${P.dogAge(12, 'large')}세. 노령견으로 보는 때는 소형견 10살(${P.dogAge(10, 'small')}세), 중형견 8살(${P.dogAge(8, 'medium')}세), 대형견 7살(${P.dogAge(7, 'large')}세)부터입니다.` : `계산 예: 12살 = 24 + 4 × (12 − 2) = ${P.catAge(12)}세. 11살(${P.catAge(11)}세)부터 노령묘로 봅니다.`}</p>`)}
 ${section('나이별', null, wrapChips(YEARS.map((k) => ({ label: `${k}살`, href: ageUrl(kind, k) }))))}
 ${ad()}
-${section('이어서', null, list([{ href: `/pet/${kind}-food/`, title: `${kindName(kind)} 사료량`, sub: '몸무게별' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '캘린더 파일' }]))}` }));
+${section('이어서', null, list([{ href: `/pet/${kind}-food/`, title: `${kindName(kind)} 사료량`, sub: '몸무게별' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '캘린더 파일' }, { href: `/pet/${kind === 'dog' ? 'cat' : 'dog'}-age/`, title: `${kindName(kind === 'dog' ? 'cat' : 'dog')} 나이 환산`, sub: '사람 나이로' }]))}
+${NOTE('미국수의사회(AVMA) 지침(중형견 기준 1살 15세·2살 24세·이후 해마다 5세)을 크기별 4·5·6세로 나눈 통용 공식입니다(고양이는 해마다 4세). 품종·건강 상태에 따라 다릅니다.')}` }));
   }
 
   /* ---------- 사료량 ---------- */
@@ -96,12 +98,13 @@ ${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindNa
 ${NOTE('RER·DER 계산은 WSAVA 영양 가이드라인의 일반 공식이며 계수는 개체·품종·질환에 따라 수의사가 조정합니다.')}`;
       write(url, shell({ url, title, desc, body, nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'] }));
     }
-    write(`/pet/${kind}-food/`, shell({ url: `/pet/${kind}-food/`, title: `${kindName(kind)} 사료량 계산기 — 몸무게·상태별 하루 급여량 (g·kcal)`, desc: `${kindName(kind)} 몸무게와 상태(중성화·${kind === 'cat' ? '아기 고양이' : '강아지'}·노령·감량)를 넣으면 하루 열량과 사료 그램이 나옵니다. RER 70×kg^0.75 공식, ${kind === 'dog' ? '1~50' : '1~12'}kg 표.`, nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'], body: `
+    write(`/pet/${kind}-food/`, shell({ url: `/pet/${kind}-food/`, modified: '2026-11-11', title: `${kindName(kind)} 사료량 계산기 — 몸무게·상태별 하루 급여량 (g·kcal)`, desc: `${kindName(kind)} 몸무게와 상태(중성화·${kind === 'cat' ? '아기 고양이' : '강아지'}·노령·감량)를 넣으면 하루 열량과 사료 그램이 나옵니다. RER 70×kg^0.75 공식, ${kind === 'dog' ? '1~50' : '1~12'}kg 표.`, nav: 'pet', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/pet/', '반려동물'], [null, `${kindName(kind)} 사료량`]])}
 <h1 class="title">${kindName(kind)} 하루 사료량</h1>
 <p class="meta">RER = 70 × 몸무게^0.75 · 상태 계수 · 사료 열량</p>
 ${foodForm(kind, kind === 'dog' ? 5 : 4)}
 ${lead(`몸무게를 누르면 상태별 하루 사료량 표가 나옵니다. 기본값은 사료 100g당 ${P.KCAL_PER_100G}kcal(건사료 평균)이며 봉지의 열량으로 바꿔 넣으면 정확해집니다.`)}
+${(() => { const kg0 = kind === 'dog' ? 5 : 4, a = P.petFood(kind, kg0, 'neutered'), b = P.petFood(kind, kg0, 'inactive'), adult = kind === 'cat' ? '성묘' : '성견'; return section('계산 예시', `${kg0}kg 중성화한 ${adult}`, `<div class="doc"><ol><li>기초 열량(RER) = 70 × ${kg0}<sup>0.75</sup> = <b>${num(a.rer)}kcal</b></li><li>하루 열량 = ${num(a.rer)} × ${a.factor.f} = <b>${num(a.der)}kcal</b></li><li>사료 = ${num(a.der)} ÷ ${P.KCAL_PER_100G} × 100 = <b>${a.grams}g</b> (하루 두 번이면 한 끼 ${a.perMeal2}g)</li></ol><p>실내에서만 지내 살이 찌는 편이면 더 낮은 계수 ×${b.factor.f}을 씁니다. 하루 ${num(b.der)}kcal, 사료 ${b.grams}g으로 ${a.grams - b.grams}g 줄어듭니다.</p></div>`) + section('사료 열량이 다르면', `${kg0}kg 중성화한 ${adult} · 하루 ${num(a.der)}kcal`, table(['봉지의 100g당 열량', '하루 사료', '한 끼 (2번)'], [330, 350, 370, 390, 410].map((k) => { const x = P.petFood(kind, kg0, 'neutered', k); return { cells: [`${k}kcal`, `${x.grams}g`, `${x.perMeal2}g`], cls: k === P.KCAL_PER_100G ? 'on' : '' }; })) + `<p class="sub" style="margin-top:8px">같은 열량을 채우는 데 드는 양이라, 열량이 높은 사료일수록 적게 줍니다. 봉지에 "대사에너지(ME) 3,700kcal/kg"처럼 적혀 있으면 10으로 나눈 370이 100g당 값입니다.</p>`); })()}
 ${section('몸무게별 (중성화 성체)', 'kcal · g', table(['몸무게', '하루 열량', '사료'], KGS.map((k) => { const x = P.petFood(kind, k, 'neutered'); return { cells: [`<a href="${foodUrl(kind, k)}">${k}kg</a>`, `${num(x.der)}kcal`, `${x.grams}g`] }; })))}
 ${(() => { const kg0 = kind === 'dog' ? 5 : 4, F = kind === 'cat' ? P.CAT_FACTORS : P.DOG_FACTORS; return section('상태에 따라 달라지는 양', `${kg0}kg 기준 · 같은 몸무게라도 중성화·나이·활동량에 따라 필요한 열량이 다릅니다`, table(['상태', '계수', '하루 열량', '사료'], F.map((f) => { const x = P.petFood(kind, kg0, f.key); return { cells: [f.label, `×${f.f}`, `${num(x.der)}kcal`, `${x.grams}g`] }; }))); })()}
 ${ad()}
@@ -111,7 +114,8 @@ ${section('자주 묻는 것', null, `<div class="doc">
 <p><b>하루 몇 번에 나눠 주나요?</b> ${kind === 'dog' ? '성견은 하루 2번이 보통이고, 어린 강아지는 3~4번으로 나눠 줍니다.' : '고양이는 조금씩 여러 번 먹는 습성이 있어 하루 양을 정해 두고 2~4번에 나눠 주면 좋습니다.'} 위의 '한 끼' 칸에서 바로 볼 수 있습니다.</p>
 <p><b>살이 쪘는지 어떻게 아나요?</b> 손으로 옆구리를 쓸었을 때 갈비뼈가 살짝 만져지고, 위에서 봤을 때 허리가 잘록하면 알맞은 체형입니다. 갈비뼈가 잘 안 만져지면 양을 줄일 때입니다.</p>
 </div>`)}
-${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindName(kind)} 나이 환산`, sub: '사람 나이로' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '생일로 날짜 · 캘린더 파일' }]))}` }));
+${section('이어서', null, list([{ href: `/pet/${kind}-age/`, title: `${kindName(kind)} 나이 환산`, sub: '사람 나이로' }, { href: `/pet/${kind}-vaccine/`, title: `${kindName(kind)} 예방접종 일정`, sub: '생일로 날짜 · 캘린더 파일' }, { href: `/pet/${kind === 'dog' ? 'cat' : 'dog'}-food/`, title: `${kindName(kind === 'dog' ? 'cat' : 'dog')} 사료량`, sub: '몸무게·상태별' }]))}
+${NOTE('RER = 70 × 몸무게(kg)^0.75 와 상태 계수는 세계소동물수의사회(WSAVA) 영양 가이드라인의 일반 공식입니다. 계수는 개체·품종·질환에 따라 수의사가 조정하며, 2~3주마다 몸무게를 재고 양을 맞추세요.')}` }));
   }
 
   /* ---------- 예방접종 (생일별, 최근 1년) ---------- */
