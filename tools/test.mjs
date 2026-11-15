@@ -9,6 +9,7 @@ import * as I from '../engine/ics.mjs';
 import * as G from '../engine/growth.mjs';
 import * as P from '../engine/pet.mjs';
 import * as CK from '../engine/checkup.mjs';
+import * as FV from '../engine/fever.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES, GUIDE_CATS } from '../data/guides.mjs';
@@ -236,6 +237,18 @@ ok(CK.uric(7.0, 'm').key === 'ok' && CK.uric(7.5, 'm').key === 'high' && CK.uric
 ok(CK.ggt(50, 'm').key === 'ok' && CK.ggt(50, 'f').key === 'mild', '감마지티피 남녀 기준');
 { const s1 = CK.summary({ sys: 118, dia: 76, glucose: 92, ldl: 95 }); ok(s1.worst === 0 && s1.rows.length === 3 && s1.text.includes('정상'), '종합 — 모두 정상', JSON.stringify(s1.text));
   const s2 = CK.summary({ sys: 165, dia: 105, glucose: 130 }); ok(s2.worst === 3 && s2.text.includes('진료'), '종합 — 진료 필요'); }
+
+/* 어린이 해열제 — 식약처 허가 용법(의약품안전나라)과 같은지, 라벨 상한을 넘지 않는지 */
+{ const a = FV.feverDose('apap', 10, 12); ok(a.ok && a.mg[0] === 100 && a.mg[1] === 150 && a.ml[0] === 3.2 && a.ml[1] === 4.6 && a.dayMg === 750 && a.label.ml === '3.5', '아세트아미노펜 10kg 100~150mg · 3.2~4.6mL · 하루 750mg', JSON.stringify(a)); }
+{ const a = FV.feverDose('apap', 50, 144); ok(a.ok && a.mg[1] === 640 && a.dayMg === 3200, '아세트아미노펜 1회 640mg(만 12세 칸)·하루 5회 상한', JSON.stringify(a)); }
+ok(!FV.feverDose('apap', 5, 0).ok && !FV.feverDose('apap', 40, 156).ok, '아세트아미노펜 4개월 미만·13세 이상은 계산하지 않음');
+{ const i = FV.feverDose('ibu', 10, 12); ok(i.ok && i.mg[0] === 50 && i.mg[1] === 100 && i.ml[1] === 5 && i.dayMg === 400, '이부프로펜 1~2세 50~100mg · 하루 400mg', JSON.stringify(i)); }
+ok(!FV.feverDose('ibu', 8, 6).ok && !FV.feverDose('ibu', 9, 36).ok, '이부프로펜 1세 미만·라벨과 안 겹치는 몸무게는 계산하지 않음');
+{ const d = FV.feverDose('dexi', 10, 12); ok(d.ok && d.mg[0] === 50 && d.mg[1] === 70 && d.ml[0] === 4.2 && d.ml[1] === 5.8 && d.dayMg === 280, '덱시부프로펜 10kg 50~70mg · 4.2~5.8mL · 하루 280mg', JSON.stringify(d)); }
+ok(FV.feverDose('dexi', 60, 144).mg[1] === 300 && FV.feverDose('dexi', 60, 144).dayMg === 1200 && !FV.feverDose('dexi', 7, 4).ok, '덱시부프로펜 1회 300·하루 1,200mg 상한, 6개월 미만 제외');
+{ let bad = 0; for (let kg = 3; kg <= 80; kg += 0.5) for (const a of FV.FEVER_AGES) for (const k of ['apap', 'ibu', 'dexi']) { const r = FV.feverDose(k, kg, a.mo); if (!r.ok) continue; const D2 = FV.FEVER_DRUGS[k];
+    const hiMg = r.ml[1] * D2.mgPerMl; if (hiMg > r.mg[1] + 1e-6 || r.mg[1] > D2.perKg[1] * kg + 1e-6 || r.dayMg > D2.maxDoses * r.mg[1] || (D2.maxDay && r.dayMg > D2.maxDay) || (r.band && (r.mg[1] > r.band.hi || r.dayMg > r.band.day)) || r.ml[0] > r.ml[1]) bad++; }
+  ok(bad === 0, '해열제 — 모든 몸무게·나이에서 mL·하루량이 라벨 상한 안', bad); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

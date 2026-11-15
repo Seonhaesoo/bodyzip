@@ -397,4 +397,23 @@
       }).join('') : '<tr><td colspan="3">수치를 넣으면 여기에 판정이 나옵니다</td></tr>';
     });
   });
+
+  /* 어린이 해열제 — 몸무게·나이 → 성분별 1회 mg·mL, 간격, 하루 최대 (engine/fever.mjs, 식약처 허가 용법) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="fever"]'), function (box) {
+    if (!M.feverAll) return;
+    bind(box, function () {
+      var kg = val(box, 'kg'), ageEl = q(box, 'age'), tb = box.querySelector('[data-out="rows"]'), msg = box.querySelector('[data-out="msg"]');
+      var mo = ageEl && ageEl.value !== '' ? parseInt(ageEl.value, 10) : -1;
+      if (!kg || mo < 0) { if (tb) tb.innerHTML = '<tr><td colspan="4">몸무게와 나이를 넣으면 성분별 1회 용량이 나옵니다</td></tr>'; if (msg) msg.innerHTML = ''; return; }
+      var rows = M.feverAll(kg, mo);
+      if (tb) tb.innerHTML = rows.map(function (r) {
+        var head = '<td><b>' + r.name + '</b><small>' + r.strength + '</small></td>';
+        if (!r.ok) return '<tr>' + head + '<td colspan="3">' + r.reason + '</td></tr>';
+        var mg = r.mg[0] === r.mg[1] ? r.mg[0] : r.mg[0] + '~' + r.mg[1], ml = r.ml[0] === r.ml[1] ? r.ml[0] : r.ml[0] + '~' + r.ml[1];
+        var lab = r.label ? '<small>설명서 표(' + r.label.age + ' · ' + (r.label.kg[1] > 900 ? r.label.kg[0] + 'kg 이상' : r.label.kg[0] + '~' + r.label.kg[1] + 'kg') + '): ' + r.label.ml + 'mL</small>' : r.band ? '<small>설명서 ' + r.band.label + ': ' + r.band.lo + '~' + r.band.hi + 'mg</small>' : '';
+        return '<tr>' + head + '<td><b class="num">' + ml + 'mL</b><small>' + mg + 'mg</small>' + lab + '</td><td>' + r.interval + '<small>하루 ' + r.maxDoses + '번까지</small></td><td>' + num(r.dayMg) + 'mg<small>' + r.dayMl + 'mL</small></td></tr>' + (r.notes.length ? '<tr><td></td><td colspan="3"><small>' + r.notes.join(' ') + '</small></td></tr>' : '');
+      }).join('');
+      if (msg) msg.innerHTML = mo < 3 ? '<b>생후 3개월 미만은 38℃ 이상이면 해열제보다 진료가 먼저입니다.</b> 바로 병원(응급실)으로 가세요.' : '병에 적힌 농도가 위와 같을 때만 mL 값을 쓰세요. 농도가 다르면 mg으로 설명서와 맞춰 보고, <b>제품 설명서의 용량이 우선</b>입니다.';
+    });
+  });
 })();

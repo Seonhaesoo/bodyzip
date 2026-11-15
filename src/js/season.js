@@ -54,8 +54,11 @@
   });
 
   /* ---------- 건강검진 ---------- */
-  var Y = 2026;
+  var Y = 2026, END = '2026-12-31';
+  function daysLeft() { var t = todayIso(); return Math.round((Date.parse(END + 'T00:00:00Z') - Date.parse(t + 'T00:00:00Z')) / 864e5); }
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="checkup2026"]'), function (box) {
+    var left = daysLeft();
+    out(box, 'dday', left > 0 ? Y + '년 검진 마감 <b>12월 31일(목)</b> · 오늘 기준 <b>' + left + '일</b> 남았습니다' : left === 0 ? '<b>오늘(12월 31일)이 ' + Y + '년 검진 마감일</b>입니다' : Y + '년 검진은 12월 31일에 마감했습니다. 못 받았다면 ' + (Y + 1) + '년에 공단에 전년도 미수검자 추가 신청을 하세요.');
     bind(box, function () {
       var by = parseInt(q(box, 'by').value, 10), sex = q(box, 'sex').value, type = q(box, 'type').value;
       if (!(by >= 1900 && by <= Y)) { out(box, 'yes', '—'); out(box, 'age', '—'); out(box, 'cancer', '—'); out(box, 'msg', '태어난 해를 넣어 보세요.'); out(box, 'items', ''); return; }
@@ -65,25 +68,27 @@
       var items = ['공통 검사 (혈압·혈액·소변·흉부 X선·구강)'];
       if ((sex === 'm' && age >= 24 && (age - 24) % 4 === 0) || (sex === 'f' && age >= 40 && (age - 40) % 4 === 0)) items.push('이상지질혈증 (콜레스테롤·중성지방)');
       if (age === 40) items.push('B형간염 항원·항체');
+      if (age === 40 || age === 50 || age === 60 || age === 70) items.push('생활습관평가');
+      if (age === 40) items.push('치면세균막검사');
       if (age === 56) items.push('C형간염 항체');
       if (age === 56 || age === 66) items.push('폐기능검사 (2026년 신설)');
       if (sex === 'f' && (age === 54 || age === 60 || age === 66)) items.push('골밀도');
       if (age >= 66 && (age - 66) % 2 === 0) items.push('인지기능장애');
-      if (age >= 20 && age <= 34 && (age - 20) % 2 === 0) items.push('정신건강검사 (우울증)');
+      if (age >= 20 && age <= 34 && (age - 20) % 2 === 0) items.push('정신건강검사 (우울증·조기정신증)');
       else if (age >= 35) items.push('정신건강검사 (우울증 · 나이대에 한 번, 해당 여부는 공단 조회)');
-      if (age === 66) items.push('생애전환기 검사 (노인 신체기능)');
+      if (age === 66 || age === 70 || age === 80) items.push('노인신체기능검사');
       var cancer = [];
       if (age >= 40) cancer.push('위암 (2년마다)');
       if (age >= 50) cancer.push('대장암 (매년 분변잠혈)');
-      if (age >= 40) cancer.push('간암 (B·C형 간염 보유자 등 고위험군만, 6개월마다)');
+      if (age >= 40) cancer.push('간암 (간경변·B·C형 간염 등 고위험군만, 6개월마다)');
       if (sex === 'f' && age >= 40) cancer.push('유방암 (2년마다)');
       if (sex === 'f' && age >= 20) cancer.push('자궁경부암 (2년마다)');
-      if (age >= 54 && age <= 74) cancer.push('폐암 (30갑년 이상 흡연자만, 2년마다)');
+      if (age >= 54 && age <= 74) cancer.push('폐암 (30갑년 이상 흡연 고위험군만, 2년마다)');
       out(box, 'yes', target ? '대상' : '아님');
       out(box, 'age', age + '세');
       out(box, 'cancer', cancer.length ? cancer.length + '종' : '없음');
       var msg = '<b>' + by + '년생 · 검진 나이 ' + age + '세</b>: ' + why + '.';
-      if (target) msg += ' ' + Y + '년 12월 31일까지 받으면 됩니다.' + (type === 'office' || type === 'field' ? ' 직장가입자는 안 받으면 과태료가 있습니다.' : '');
+      if (target) msg += ' ' + Y + '년 12월 31일까지 받으면 됩니다' + (left > 0 ? '(' + left + '일 남음).' : '.') + (type === 'office' || type === 'field' ? ' 직장가입자는 안 받으면 과태료가 있습니다.' : '');
       else if (!even && type !== 'field') msg += ' 올해는 일반검진 차례가 아니지만, 작년에 못 받았다면 공단에 전년도 미수검자 추가 신청을 할 수 있습니다.';
       out(box, 'msg', msg);
       var html;

@@ -26,6 +26,8 @@ import * as PW from '../engine/pregweight.mjs';
 import { buildBpLog } from './pages-bplog.mjs';
 import { buildChuseok, CHUSEOK_SLUGS } from './pages-chuseok.mjs';
 import { buildSeason, FLU, CHK } from './pages-season.mjs';
+import { buildFever } from './pages-fever.mjs';
+import * as FV from '../engine/fever.mjs';
 import * as KD from '../engine/kids.mjs';
 import { GUIDES } from '../data/guides.mjs';
 
@@ -59,6 +61,7 @@ const MODIFIED = new Map();
 const PRIVACY_DATE = '2026-09-10';
 /* 업데이트 기록 — 이용자에게 보이는 변경만, 최근 것부터. 글·기준을 고칠 때 맨 위에 한 줄 더한다 */
 const UPDATES = [
+  { date: '2026-11-16', text: '어린이 해열제 용량 계산기를 열었습니다. 아이 몸무게와 나이를 넣으면 아세트아미노펜·이부프로펜·덱시부프로펜 시럽의 1회 mg·mL와 간격, 하루 최대량이 식약처 허가 용법 기준으로 나오고, 번갈아 먹이는 법과 바로 병원에 가야 할 신호를 함께 적었습니다. 2026년 국가건강검진 페이지에 12월 31일 마감 전 할 일과 남은 날을 더하고, 공단 안내에 맞춰 의료급여 대상 나이(20~64세), 노인신체기능검사 나이(66·70·80세), 확진검사 기한(다음 해 3월 31일, 위·대장암 2차는 1월 31일), 폐암 고위험군 기준, 전년도 미수검자 추가 신청 방법을 바로잡았습니다.' },
   { date: '2026-11-11', text: '분유 수유량에 개월별 1회량 범위와 계산 예시, 소아청소년과에 가야 할 신호를 더했습니다. 아기 성장 백분위와 아이 키 백분위에 "상위 몇 %"로 읽는 법과 백분위·평균의 차이를 더하고, 아이 키 백분위 계산기에 아빠·엄마 키를 넣으면 부모 키로 본 예상 키(중간 부모 키, ±8.5cm)가 함께 나오게 했습니다. 강아지·고양이 사료량과 나이 계산기에 계산 예시와 표를 더하고, 강아지 나이 페이지의 노령견 기준 문장을 소형 10살·중형 8살·대형 7살로 바로잡았습니다.' },
   { date: '2026-11-05', text: '혈중알코올농도 계산기에 "언제쯤 술이 깰까" 칸을 더했습니다. 마지막 잔 시각을 넣으면 분해가 느린 사람(시간당 0.010%p) 기준으로 0.03% 아래가 되는 시각까지 함께 보여 줍니다. 나이별 권장 칼로리 페이지에 목표 체중까지 걸리는 기간 계산기를 더했습니다. 기초대사량과 하루 1,200·1,500kcal 아래로 내려가는 식단은 권하지 않도록 하한선을 두었습니다.' },
   { date: '2026-10-15', text: 'BMI 계산표에 한국·세계 기준 비교, 물 섭취량과 강아지·고양이 사료량에 설명과 자주 묻는 질문을 더했습니다. 편집 원칙 페이지를 열고, 서재 글마다 처음 쓴 날과 실제로 고친 날을 따로 적었습니다.' },
@@ -660,10 +663,11 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
 <a href="/kids/"><b>아이 키 백분위 (3~18세)</b><span>만 10세 남자 140cm → 또래 <span class="num">${KD.kidsRank(KD.kidsCheck('height', 'm', 126, 140).pct)}</span> · 나이별·학년별 평균 키</span></a>
 <a href="/baby/formula/"><b>분유 수유량</b><span>2개월 5.6kg → 1회 <span class="num">${FM.formulaPlan(76, 5.6).per}</span>ml × ${FM.formulaPlan(76, 5.6).feeds}회 · 하루 ${num(FM.formulaPlan(76, 5.6).daily)}ml</span></a>
+<a href="/fever-medicine/"><b>어린이 해열제 용량</b><span>10kg → 아세트아미노펜 <span class="num">${FV.feverDose('apap', 10, 12).ml.join('~')}</span>mL · 이부프로펜·덱시부프로펜 · 번갈아 먹이기</span></a>
 <a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 · 카톡·인스타용 이미지</span></a>
 </div>`)}
 ${section('건강검진 결과', null, `<div class="dict">
-<a href="/checkup/${CHK.year}/"><b>${CHK.year}년 건강검진 대상자</b><span>${CHK.parity}년생 + 비사무직 · 태어난 해 넣으면 <span class="num">내 나이 항목</span> · 12월 31일까지</span></a>
+<a href="/checkup/${CHK.year}/"><b>${CHK.year}년 건강검진 12월 31일 마감</b><span>${CHK.parity}년생 + 비사무직 · 태어난 해 넣으면 <span class="num">내 나이 항목</span> · 놓치면 과태료·다음 해 추가 신청</span></a>
 <a href="/flu/"><b>2026-2027 독감 예방접종</b><span>어린이·임신부 <span class="num">9/21</span> · 65세 이상 10/12부터 · 생년월일로 무료 시작일</span></a>
 <a href="/checkup/"><b>검진 결과 해석</b><span>혈압·혈당·콜레스테롤·간수치를 넣으면 <span class="num">한 번에</span> 판정</span></a>
 <a href="/bp/120-80/"><b>혈압</b><span>정상 <span class="num">120/80</span> 미만 · 고혈압 140/90 이상</span></a>
@@ -820,7 +824,9 @@ function docs() {
 <h2>임신 중 체중 증가</h2><p>미국 국립의학원(IOM) 「Weight Gain During Pregnancy: Reexamining the Guidelines」(2009)의 임신 전 BMI별 권장 총 증가량(저체중 12.5~18kg · 정상 11.5~16kg · 과체중 7~11.5kg · 비만 5~9kg, 쌍둥이 잠정 권고 정상 17~25 · 과체중 14~23 · 비만 11~19kg)을 씁니다. 임신 전 BMI 구간은 세계보건기구 기준(18.5 · 25 · 30)입니다. 주차별 범위는 1분기(13주까지) 0.5~2kg을 주수에 비례해 나누고, 14주부터 40주까지는 총 증가 범위의 하한·상한으로 곧게 이었습니다. 총 증가량에 맞춰 이은 값이라 한 주 증가는 IOM의 2·3분기 주당 권고(저체중 0.44~0.58 · 정상 0.35~0.50 · 과체중 0.23~0.33 · 비만 0.17~0.27kg)와 조금 다를 수 있습니다. 정상 BMI의 하한은 한 주 약 0.41kg으로 권고(0.35kg)보다 높고, 나머지는 한 주 0.03kg 안으로 같습니다. 분기별 추가 칼로리(2분기 하루 약 340kcal · 3분기 약 450kcal)는 미국 CDC 안내입니다.</p>
 <h2>혈압 기록</h2><p>집에서 잰 혈압은 이 브라우저(localStorage)에만 저장하고 서버로 보내지 않습니다. 최근 7일 안의 측정값을 모두 산술평균해 대한고혈압학회의 가정혈압 고혈압 기준(135/85mmHg, 수축기나 이완기 중 하나라도 이상)과 비교하고, 시각으로 아침(4~12시)·저녁(18~4시)을 나눠 따로 평균을 냅니다. 잰 날이 5일이 안 되면 더 모으라고 안내합니다. 한 번 잰 값은 180/120 이상이면 매우 높음(혈압 수치표의 위기 기준과 같음), 135/85 이상 높음, 90/60 미만 낮음으로 표시합니다.</p>
 <h2>임신 주차·아기 개월별 발달</h2><p>주차별 아기 크기·길이·몸무게와 개월별 평균 키·몸무게(질병관리청 2017 성장도표 50백분위 부근)는 일반적인 참고값이며 개인차가 큽니다. 검사 시기는 국내 산부인과의 일반적 일정, 발달 이정표는 소아과 일반 안내를 따랐습니다.</p>
-<h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`, '2026-11-11');
+<h2>국가건강검진 대상</h2><p>일반건강검진은 2년마다(직장가입자 비사무직은 매년) 받고, 출생연도 끝자리가 짝수면 짝수 해, 홀수면 홀수 해에 대상이 됩니다(국민건강보험공단 안내). 대상은 직장가입자, 지역 세대주, 20세 이상 세대원·피부양자, 20~64세 의료급여수급권자입니다. 계산기는 검진 나이를 "올해 − 태어난 해"로 셉니다. 공단이 나이 세는 법을 따로 적어 두지는 않았으므로, 생일 무렵 항목이 헷갈리면 공단 대상 조회(건강모아·The건강보험 앱·1577-1000)가 기준입니다. 나이별 항목은 공단 「일반건강검진 안내」, 2026년 변경(폐기능검사 56·66세, 이상지질혈증·당화혈색소 확진검사 본인부담 면제, 확진검사 기한 다음 해 3월 31일)은 보건복지부 보도자료와 공단 안내, 암검진은 국가암정보센터·공단 「국가암검진 안내」, 과태료는 산업안전보건법 시행령 별표35를 따릅니다.</p>
+<h2>어린이 해열제</h2><p>식약처 의약품안전나라의 허가 용법·용량을 씁니다. 아세트아미노펜 시럽(32mg/mL): 만 12세 이하 1회 10~15mg/kg, 4~6시간마다, 하루 5회(75mg/kg)·4,000mg 이하, 1회 640mg(설명서 표의 만 12세 칸) 이하, 생후 4개월부터. 덱시부프로펜 시럽(12mg/mL): 생후 6개월 이상 1회 5~7mg/kg, 하루 최대 4회(28mg/kg), 1회 300mg·하루 1,200mg(표의 12세 칸) 이하. 이부프로펜 시럽(20mg/mL): 설명서의 나이별 1회·하루 최대량(1~2세 50~100mg·400mg, 3~6세 100~150mg·600mg, 7~10세 150~200mg·800mg, 11~14세 200~250mg·1,000mg) 안에서 식품의약품안전평가원 안내의 1회 5~10mg/kg과 겹치는 범위만 보이고, 겹치지 않거나 표가 없는 나이(1세 미만)는 계산하지 않습니다. 간격은 이부프로펜·덱시부프로펜 모두 식약처 안내의 6~8시간을 씁니다(덱시부프로펜 설명서는 4~6시간). mL는 아래쪽을 올림, 위쪽을 내림해 소수 첫째 자리로 보여 주므로 설명서 상한을 넘지 않습니다. 번갈아 먹이기와 병원에 가야 할 신호는 식약처 컨슈머 뉴스레터(2026.1)와 「아이들을 위한 해열소염진통제, 안전하게 사용하기」(2023.11) 내용만 옮겼습니다.</p>
+<h2>주의</h2><p>바디집의 모든 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단·치료를 대신하지 않습니다. 건강 문제는 의사와 상의하세요.</p>`, '2026-11-16');
   doc('/about/', '바디집 소개 — 계산 근거와 검증, 갱신 방식', '바디집이 BMI·칼로리·검진 수치·아이 성장을 무엇을 근거로 계산하고 어떻게 검증·갱신하는지, 한계와 개인정보, 문의 방법을 정리했습니다.', `
 <p>바디집은 몸에 관한 숫자를 한곳에 모아 둔 집입니다. "키 170에 65kg이면 정상인가?", "치킨 한 마리는 밥 몇 공기인가?", "공복혈당 110이면 괜찮은가?", "우리 아이 키는 또래 몇 번째인가?" 같은 질문에 숫자만 넣으면 바로 답이 나오도록, 공개된 기준으로 미리 계산해 표와 계산기로 묶었습니다. 회원 가입도, 입력값 저장도 없습니다.</p>
 <h2>무엇을 근거로 계산하나요</h2>
@@ -876,7 +882,7 @@ ${UPDATES.map((x) => `<li><b>${x.date}</b> ${x.text}</li>`).join('\n')}
 <li>2027년 국가건강검진 대상(짝수·홀수 해 출생) — 2027년 1월</li>
 <li>2027-2028 독감 예방접종 무료 대상과 일정 — 질병관리청 발표 뒤(보통 9월)</li>
 </ul>
-<p>틀린 값을 발견하면 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 알려 주세요.</p>`, '2026-11-11');
+<p>틀린 값을 발견하면 인스타그램 <a href="https://www.instagram.com/sajucheop/" target="_blank" rel="noopener">@sajucheop</a> 다이렉트 메시지로 알려 주세요.</p>`, '2026-11-16');
   doc('/terms/', '이용약관 — 바디집', '바디집 이용약관.', `
 <p>바디집(이하 "사이트")는 몸에 관한 계산 결과를 제공하는 무료 정보 서비스입니다. 사이트를 이용하면 아래 내용에 동의한 것으로 봅니다.</p>
 <p>사이트의 모든 계산 결과는 공개된 공식과 기준에 따른 참고용 정보이며 의학적 진단, 치료, 처방을 대신하지 않습니다. 건강·임신·육아에 관한 결정은 반드시 의료인과 상의하세요. 이용자는 계산 결과를 근거로 한 결정에 대해 스스로 책임지며, 사이트는 결과의 정확성·완전성을 보증하지 않고 이용으로 인한 손해에 책임지지 않습니다.</p>
@@ -904,7 +910,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, babyChain, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX); buildFever(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
@@ -912,7 +918,7 @@ docs();
 /* noindex 페이지(위젯·약관·조합·날짜별 부가 페이지)는 사이트맵에서 뺀다 */
 const indexable = urls.filter((u) => !NOINDEX.has(u) && !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
-const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/baby\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight|flu)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/(baby|fever-medicine)\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight|flu)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
 const smFiles = [];
 for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));

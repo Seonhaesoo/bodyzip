@@ -378,3 +378,5 @@ body.bare { background: transparent; }
 /* 계산기 안 안내문 — 결손 하한선·느린 분해 시각처럼 결과 아래 붙는 설명. warn 은 하한선에 걸렸거나 큰 감량일 때 */
 .live .sub { margin-top: 8px; font-size: 12.5px; line-height: 1.65; color: var(--muted); }
 .live .sub.warn { color: var(--gold); font-weight: 500; }
+.fever-tbl td[colspan] { white-space: normal; text-align: left; font-family: var(--sans); color: var(--muted); line-height: 1.6; }
+.fever-tbl td:first-child { white-space: normal; min-width: 92px; }
