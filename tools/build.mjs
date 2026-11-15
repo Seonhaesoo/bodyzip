@@ -105,6 +105,10 @@ function coupangBox(url, max = 99) {
  * 휴대폰 방문자가 끝까지 내려가지 않아 클릭이 거의 없었다(10월 클릭 11·구매 0). 나머지 페이지는 그대로 맨 끝 */
 const CP_TOP = new Set(['/bmi/', '/bmi/165/', '/bmi/170/', '/bmi/175/', '/bmr/', '/kcal-need/', '/baby/formula/', '/pet/dog-food/', '/water/', '/exercise/']);
 
+/* 2026-11-16 쿠팡 다이나믹 배너 '고객 관심 기반 추천'(파트너스 배너 1019568, subId bodyzip) — 본문 끝·바닥글 위에 한 번.
+ * 보는 사람이 쿠팡에서 본 상품을 띄운다. 폭은 화면에 맞춰 최대 680px, 대가성 문구 함께. 소개·약관·개인정보·계산 방법에는 넣지 않는다 */
+const DYN_BANNER = `<aside class="cp-dyn"><p class="cp-h">쿠팡 추천 상품</p><div class="cp-dyn-slot"><script src="https://ads-partners.coupang.com/g.js"></script><script>(function(){var s=document.currentScript,w=Math.min(680,Math.max(280,(s.parentNode&&s.parentNode.clientWidth)||680));new PartnersCoupang.G({"id":1019568,"trackingCode":"AF3659962","subId":"bodyzip","template":"carousel","width":String(w),"height":"140"});})();</script></div><p class="cp-note">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p></aside>`;
+
 function shell(o) {
   /* 숫자 조합 페이지는 구글에만 뺀다('google' → googlebot noindex). robots noindex(모든 검색엔진)로 두면 주 유입인 네이버에서도 빠진다
    * (2026-10-24 감사). noindex: true 는 날짜별 부가 페이지·위젯·약관처럼 어디서도 뺄 것 */
@@ -153,7 +157,7 @@ ${o.bare ? o.body : `<div class="app">
   <span class="year-pill">${YEAR}</span>
 </header>
 ${o.body}
-${o.cpTop ? '' : coupangBox(o.url)}<footer class="foot foot2">
+${o.cpTop ? '' : coupangBox(o.url)}${o.noDyn || /^\/(about|terms|privacy|method)\//.test(o.url || '') ? '' : DYN_BANNER}<footer class="foot foot2">
   <p class="flabel">계산 찾아보기</p>
   <nav class="fgrid" aria-label="계산 찾아보기"><a href="/bmi/">BMI·정상 체중</a><a href="/bmr/">기초대사량</a><a href="/food/">음식 칼로리</a><a href="/exercise/">운동 칼로리</a><a href="/due-date/">출산예정일</a><a href="/baby/">아기 개월수</a><a href="/checkup/">건강검진</a><a href="/pet/">반려동물 나이</a><a href="/guide/">서재</a></nav>
   <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/editorial/">편집 원칙</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>
