@@ -1,4 +1,4 @@
-/* 철 페이지 계산 — [data-live="flu"] 독감 무료 대상·시작일, [data-live="checkup2026"] 올해 검진 대상·항목
+/* 철 페이지 계산 — [data-live="flu"] 독감 무료 대상·횟수·시작일, [data-live="checkup2026"] 올해 검진 대상·항목
  * 날짜·출생 범위는 tools/pages-season.mjs 의 FLU·CHK 와 같아야 한다 (해마다 함께 갱신). */
 (function () {
   function q(box, k) { return box.querySelector('[data-k="' + k + '"]'); }
@@ -14,42 +14,59 @@
 
   /* ---------- 독감 ---------- */
   var FLU = {
-    end: '2027-04-30', kidsFrom: '2012-01-01', kidsTo: '2026-08-31', kidsTwo: '2026-09-21', kidsOne: '2026-09-28', preg: '2026-09-21',
-    senior: [['75세 이상', '0000-00-00', '1951-12-31', '2026-10-12'], ['70~74세', '1952-01-01', '1956-12-31', '2026-10-15'], ['65~69세', '1957-01-01', '1961-12-31', '2026-10-19']],
-    covidStart: '2026-10-12', covidEnd: '2027-06-30'
+    end: '2027-04-30', kidsFrom: '2012-01-01', kidsTo: '2026-08-31', kidsStart: '2026-09-21', preg: '2026-09-21', onceBy: '2026.6.30',
+    senior: [['75세 이상', '0000-00-00', '1951-12-31', '2026-10-06'], ['70~74세', '1952-01-01', '1956-12-31', '2026-10-12'], ['65~69세', '1957-01-01', '1961-12-31', '2026-10-15']],
+    covid: { '75세 이상': '2026-10-12', '70~74세': '2026-10-12', '65~69세': '2026-10-15' }, covidEnd: '2027-06-30'
   };
+  function addMonthsIso(iso, n) {   /* 말일 넘침은 그 달 말일로 */
+    var p = iso.split('-').map(Number), y = p[0], m = p[1] - 1 + n, d = p[2];
+    y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
+    var last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    return y + '-' + ('0' + (m + 1)).slice(-2) + '-' + ('0' + Math.min(d, last)).slice(-2);
+  }
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="flu"]'), function (box) {
     bind(box, function () {
-      var b = q(box, 'birth').value, preg = q(box, 'preg').checked, today = todayIso();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(b)) { out(box, 'free', '—'); out(box, 'date', '—'); out(box, 'now', '—'); out(box, 'msg', '생년월일을 넣어 보세요.'); return; }
-      if (b > today) { out(box, 'free', '—'); out(box, 'date', '—'); out(box, 'now', '—'); out(box, 'msg', '아직 오지 않은 날짜입니다.'); return; }
-      var res = null, extra = '';
+      var b = q(box, 'birth').value, preg = q(box, 'preg').checked, hist = (q(box, 'hist') || {}).value || 'two', today = todayIso();
+      function blank(m) { out(box, 'free', '—'); out(box, 'date', '—'); out(box, 'doses', '—'); out(box, 'msg', m); }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(b)) { blank('생년월일을 넣어 보세요.'); return; }
+      if (b > today) { blank('아직 오지 않은 날짜입니다.'); return; }
+      var ended = today > FLU.end, tail = ended ? ' 이번 절기 무료 접종은 ' + dot(FLU.end) + '에 끝났습니다.' : '';
+      if (preg) {
+        out(box, 'free', '무료'); out(box, 'date', md(FLU.preg)); out(box, 'doses', '1회');
+        out(box, 'msg', '<b>임신부 (임신 주수와 관계없이)</b>: ' + md(FLU.preg) + '부터 ' + dot(FLU.end) + '까지 전국 위탁의료기관·보건소에서 무료. 산모수첩이나 임신확인서 같은 서류를 보여 주세요.' + tail);
+        return;
+      }
       if (b >= FLU.kidsFrom && b <= FLU.kidsTo) {
-        var nineAgo = (+today.slice(0, 4) - 9) + today.slice(4);   /* 오늘 기준 9세 미만 = 이 날짜 뒤 출생 */
-        var under9 = b > nineAgo;
-        res = { free: true, date: under9 ? FLU.kidsTwo : FLU.kidsOne, who: '어린이 (생후 6개월~14세, ' + dot(FLU.kidsFrom) + '~' + dot(FLU.kidsTo) + ' 출생)' };
-        extra = under9
-          ? ' 9세 미만이라 <b>올해 처음 맞거나 지금까지 1회만 맞았다면 4주 간격으로 2회</b>(' + md(FLU.kidsTwo) + '부터), 이미 두 번 이상 맞았다면 1회(' + md(FLU.kidsOne) + '부터)입니다.'
-          : ' 해마다 1회이며 ' + md(FLU.kidsOne) + '부터입니다.';
-      } else if (b > FLU.kidsTo) {
-        res = { free: false, who: '생후 6개월 미만' };
-        extra = ' 생후 6개월이 되기 전에는 독감 백신을 맞을 수 없습니다. 그동안은 엄마가 임신 중에 맞거나 함께 사는 어른들이 맞으면 아기를 지킬 수 있습니다. 6개월이 지나면 이번 절기(' + md(FLU.end) + '까지) 안에 무료로 맞을 수 있습니다.';
-      } else {
-        for (var i = 0; i < FLU.senior.length; i++) {
-          var g = FLU.senior[i];
-          if (b >= g[1] && b <= g[2]) {
-            res = { free: true, date: g[3], who: g[0] + ' (' + (g[1] === '0000-00-00' ? dot(g[2]) + ' 이전' : dot(g[1]) + '~' + dot(g[2])) + ' 출생)' };
-            extra = ' 코로나19 백신도 같은 날 함께 맞도록 권합니다(코로나19는 ' + md(FLU.covidStart) + '부터 ' + dot(FLU.covidEnd) + '까지).';
-            break;
-          }
+        var six = addMonthsIso(b, 6), start = six > FLU.kidsStart ? six : FLU.kidsStart;
+        var nineAgo = (+today.slice(0, 4) - 9) + today.slice(4), under9 = b > nineAgo;   /* 오늘 기준 9세 미만 = 이 날짜 뒤 출생 */
+        var two = under9 && hist !== 'two';
+        out(box, 'free', '무료'); out(box, 'date', start.slice(0, 4) === FLU.kidsStart.slice(0, 4) ? md(start) : dot(start)); out(box, 'doses', two ? '2회' : '1회');
+        var m = '<b>어린이 (생후 6개월~14세, ' + dot(FLU.kidsFrom) + '~' + dot(FLU.kidsTo) + ' 출생)</b>: ';
+        m += (six > FLU.kidsStart ? '생후 6개월이 되는 <b>' + dot(six) + '</b>부터' : md(FLU.kidsStart) + '부터') + ' ' + dot(FLU.end) + '까지 무료.';
+        if (two) m += ' 9세 미만이고 ' + (hist === 'one' ? FLU.onceBy + '까지 1회만 맞았으니' : '처음 맞거나 기록을 모르니') + ' <b>1개월 간격으로 2회</b>입니다. 두 번째는 첫 접종 1개월 뒤에 맞습니다.';
+        else if (under9) m += ' 이미 2회 이상 맞았다면 올해는 1회입니다.';
+        else m += ' 9세 이상은 해마다 1회입니다.';
+        m += ' 최종 횟수는 예진 의사가 정합니다.' + tail;
+        if (six > FLU.end) m = '<b>생후 6개월 미만</b>: 생후 6개월이 되는 ' + dot(six) + '은 이번 절기(' + dot(FLU.end) + '까지)가 끝난 뒤입니다. 다음 절기 일정은 질병관리청 발표를 확인하세요.';
+        out(box, 'msg', m);
+        if (six > FLU.end) { out(box, 'free', '—'); out(box, 'date', '—'); out(box, 'doses', '—'); }
+        return;
+      }
+      if (b > FLU.kidsTo) {
+        out(box, 'free', '대상 아님'); out(box, 'date', '—'); out(box, 'doses', '—');
+        out(box, 'msg', '<b>' + dot(FLU.kidsTo) + ' 뒤 출생</b>: 이번 절기 어린이 무료 접종은 ' + dot(FLU.kidsTo) + '까지 태어난 아이가 대상입니다. 독감 백신은 생후 6개월부터 맞을 수 있어, 그 전에는 함께 사는 가족이 맞아 두는 것이 방법입니다.');
+        return;
+      }
+      for (var i = 0; i < FLU.senior.length; i++) {
+        var g = FLU.senior[i];
+        if (b >= g[1] && b <= g[2]) {
+          out(box, 'free', '무료'); out(box, 'date', md(g[3])); out(box, 'doses', '1회');
+          out(box, 'msg', '<b>' + g[0] + ' (' + (g[1] === '0000-00-00' ? dot(g[2]) + ' 이전' : dot(g[1]) + '~' + dot(g[2])) + ' 출생)</b>: ' + md(g[3]) + '부터 ' + dot(FLU.end) + '까지 무료. 코로나19 백신(' + md(FLU.covid[g[0]]) + '부터 ' + dot(FLU.covidEnd) + '까지)도 한 번 방문으로 함께 맞도록 권합니다.' + tail);
+          return;
         }
       }
-      if (preg) { res = { free: true, date: FLU.preg, who: '임신부 (임신 주수와 관계없이)' }; extra = ' 산모수첩이나 임신확인서를 가져가세요. 엄마가 맞으면 생후 6개월 전 아기도 항체를 나눠 받습니다.'; }
-      if (!res) { res = { free: false, who: '15~64세 성인' }; extra = ' 국가 지원 대상이 아니라 비급여로 맞습니다. 값은 병원마다 다르고, 직장·학교 단체 접종이 싼 경우가 많습니다. 만성질환이 있거나 노부모·어린 아기와 함께 산다면 10~11월에 꼭 맞아 두세요.'; }
-      out(box, 'free', res.free ? '무료' : '비급여');
-      out(box, 'date', res.date ? md(res.date) : '—');
-      out(box, 'now', res.free ? (today >= res.date ? (today <= FLU.end ? '지금 가능' : '절기 끝') : '아직') : (res.date === undefined && res.who === '생후 6개월 미만' ? '나중에' : '언제든'));
-      out(box, 'msg', '<b>' + res.who + '</b>: ' + (res.free ? md(res.date) + '부터 ' + dot(FLU.end) + '까지 전국 위탁의료기관·보건소에서 무료.' : '') + extra);
+      out(box, 'free', '비급여'); out(box, 'date', '—'); out(box, 'doses', '1회');
+      out(box, 'msg', '<b>15~64세 (임신부 제외)</b>: 국가 무료 대상이 아니라 비급여로 맞습니다. 값은 병원마다 다릅니다. 만성질환(심장·폐 질환, 당뇨, 신장 기능 이상, 면역저하 등)이 있으면 질병관리청이 꼽는 합병증 위험군이니 접종을 의사와 상의하세요.');
     });
   });
 

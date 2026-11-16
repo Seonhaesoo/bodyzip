@@ -416,4 +416,17 @@
       if (msg) msg.innerHTML = mo < 3 ? '<b>생후 3개월 미만은 38℃ 이상이면 해열제보다 진료가 먼저입니다.</b> 바로 병원(응급실)으로 가세요.' : '병에 적힌 농도가 위와 같을 때만 mL 값을 쓰세요. 농도가 다르면 mg으로 설명서와 맞춰 보고, <b>제품 설명서의 용량이 우선</b>입니다.';
     });
   });
+
+  /* 아기·어린이 체온 — 잰 곳·나이·체온 → 정상/미열/열/바로 진료 (engine/temp.mjs, 대한소아청소년과학회·서울대병원 기준) */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-live="temp"]'), function (box) {
+    if (!M.tempCheck) return;
+    bind(box, function () {
+      var raw = (q(box, 't') || {}).value || '', t = parseFloat(String(raw).replace(',', '.'));
+      var badge = box.querySelector('[data-out="label"]'), msg = box.querySelector('[data-out="msg"]');
+      if (!raw) { if (badge) { badge.textContent = '—'; badge.className = 'num'; } if (msg) msg.innerHTML = '잰 곳과 나이를 고르고 체온을 넣어 보세요.'; return; }
+      var r = M.tempCheck(t, sel(box, 'site'), sel(box, 'age'));
+      if (badge) { badge.textContent = r.label; badge.className = 'num temp-' + (r.key || 'none'); }
+      if (msg) msg.innerHTML = r.why;
+    });
+  });
 })();

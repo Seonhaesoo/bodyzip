@@ -24,7 +24,8 @@ export function makeBundle() {
     wrap('PW', strip(read('pregweight.mjs')), ['PW_CATS', 'FIRST_TRI', 'EXTRA_KCAL', 'PW_STATUS', 'pwBmi', 'pwCat', 'pwCatBy', 'trimester', 'gainRange', 'pregWeight']),
     wrap('BL', 'const { bloodPressure } = CK;\n' + strip(read('bplog.mjs')), ['HOME_LIMIT', 'LOW_BP', 'SLOT_NAME', 'slotOf', 'bpValid', 'homeAvg', 'readingTag']),
     wrap('FV', strip(read('fever.mjs')), ['FEVER_AGES', 'feverAge', 'FEVER_DRUGS', 'APAP_LABEL', 'DEXI_LABEL', 'labelRow', 'feverDose', 'feverAll']),
-    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD, FM, PW, BL, FV);`,
+    wrap('TP', strip(read('temp.mjs')), ['TEMP_SITES', 'TEMP_AGES', 'FEVER_AT', 'HIGH_AT', 'ANY_FEVER', 'LOW_AT', 'tempCheck']),
+    `window.Bodyzip = Object.assign({}, F, B, K, D, X, P, I, G, CK, KD, FM, PW, BL, FV, TP);`,
   ];
   return `/* 바디집 계산 엔진 — 브라우저용, 빌드 때 engine/*.mjs 에서 생성 */\n(function(){\n${parts.join('\n')}\n})();\n`;
 }

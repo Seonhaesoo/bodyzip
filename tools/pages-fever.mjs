@@ -105,6 +105,7 @@ ${section('설명서 표 그대로', '아세트아미노펜 32mg/mL 시럽 · 4~
 ${section('덱시부프로펜 설명서 표', '12mg/mL 시럽 · 생후 6개월 이상 · 하루 최대 4번(28mg/kg)', table(['나이', '몸무게', '1회', '하루 최대'], dexiLabel))}
 ${section('자주 묻는 것', null, `<div class="doc">${qa.map(([q, a]) => `<p><b>${q}</b> ${a}</p>`).join('')}</div>`)}
 ${section('이어서', null, list([
+  { href: '/baby/temperature/', title: '아기 정상 체온 · 열 기준', sub: '겨드랑이·귀·항문 체온 · 열 몇 도부터 병원' },
   { href: '/flu/', title: '2026-2027 독감 예방접종', sub: '생후 6개월~14세 무료 · 생년월일로 시작일' },
   { href: '/baby/', title: '아기 개월수 · 예방접종', sub: '생일만 넣으면 오늘 몇 개월 · 접종 날짜' },
   { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게가 또래 100명 중 몇 번째' },

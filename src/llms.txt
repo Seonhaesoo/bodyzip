@@ -8,7 +8,9 @@
 - 건강 정보는 참고용이며 진단·치료를 대신하지 않는다.
 
 ## 자주 찾는 페이지
-- 2026-2027 독감 예방접종 무료 대상·시작일: https://bodyzip.com/flu/
+- 2026-2027 독감 예방접종 무료 대상·시작일·독감 감기 차이: https://bodyzip.com/flu/
+- 아기·어린이 정상 체온과 열 기준(재는 곳별, 열 몇 도부터 병원): https://bodyzip.com/baby/temperature/
+- 어린이 해열제 몸무게별 용량: https://bodyzip.com/fever-medicine/
 - 2026년 국가건강검진 대상자·항목·과태료: https://bodyzip.com/checkup/2026/
 - 건강검진 결과 해석(혈압·혈당·콜레스테롤·간수치): https://bodyzip.com/checkup/
 - BMI·정상 체중(키별): https://bodyzip.com/bmi/

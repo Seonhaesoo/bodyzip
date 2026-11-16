@@ -10,6 +10,7 @@ import * as G from '../engine/growth.mjs';
 import * as P from '../engine/pet.mjs';
 import * as CK from '../engine/checkup.mjs';
 import * as FV from '../engine/fever.mjs';
+import * as TP from '../engine/temp.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES, GUIDE_CATS } from '../data/guides.mjs';
@@ -249,6 +250,17 @@ ok(FV.feverDose('dexi', 60, 144).mg[1] === 300 && FV.feverDose('dexi', 60, 144).
 { let bad = 0; for (let kg = 3; kg <= 80; kg += 0.5) for (const a of FV.FEVER_AGES) for (const k of ['apap', 'ibu', 'dexi']) { const r = FV.feverDose(k, kg, a.mo); if (!r.ok) continue; const D2 = FV.FEVER_DRUGS[k];
     const hiMg = r.ml[1] * D2.mgPerMl; if (hiMg > r.mg[1] + 1e-6 || r.mg[1] > D2.perKg[1] * kg + 1e-6 || r.dayMg > D2.maxDoses * r.mg[1] || (D2.maxDay && r.dayMg > D2.maxDay) || (r.band && (r.mg[1] > r.band.hi || r.dayMg > r.band.day)) || r.ml[0] > r.ml[1]) bad++; }
   ok(bad === 0, '해열제 — 모든 몸무게·나이에서 mL·하루량이 라벨 상한 안', bad); }
+
+/* 아기 체온 — 대한소아청소년과학회(직장 38·겨드랑이 37.3 미열·38.0 진찰·39.0 고열·3개월 미만·3~36개월 39)와 서울대병원(37.8 발열·35.5 저체온) 기준 */
+{ const k = (t, s, a) => TP.tempCheck(t, s, a).key;
+  ok(k(36.8, 'axilla', 'y3') === 'normal' && k(37.2, 'axilla', 'y3') === 'normal' && k(37.3, 'axilla', 'y3') === 'mild' && k(37.9, 'axilla', 'y3') === 'mild' && k(38.0, 'axilla', 'y3') === 'fever', '겨드랑이 37.3 미열 · 38.0 열');
+  ok(k(37.7, 'ear', 'y3') === 'normal' && k(37.8, 'ear', 'y3') === 'mild' && k(38.0, 'forehead', 'y3') === 'fever' && k(37.9, 'rectal', 'y3') === 'normal' && k(38.0, 'rectal', 'y3') === 'fever', '귀·이마 37.8 미열, 항문 37.9 정상·38.0 열');
+  ok(k(37.8, 'axilla', 'u3') === 'urgent' && k(37.4, 'axilla', 'u3') === 'mild' && k(37.9, 'rectal', 'u3') === 'normal' && k(38.0, 'rectal', 'u3') === 'urgent' && k(37.8, 'ear', 'u3') === 'urgent', '생후 3개월 미만 열이면 바로 진료');
+  ok(k(39.0, 'ear', 'm3') === 'urgent' && k(38.9, 'ear', 'm3') === 'fever' && k(39.5, 'ear', 'y3') === 'fever' && TP.tempCheck(39.5, 'ear', 'y3').label === '고열', '3~36개월 39℃ 바로 진료, 3세 이상 39℃ 고열');
+  ok(k(35.5, 'ear', 'y3') === 'low' && k(35.6, 'ear', 'y3') === 'normal' && !TP.tempCheck(NaN, 'ear', 'y3').ok && !TP.tempCheck(29, 'ear', 'y3').ok && !TP.tempCheck(45, 'ear', 'y3').ok, '35.5 이하 저체온 · 엉뚱한 값 거름');
+  let bad = 0; for (let t = 34; t <= 42.001; t += 0.1) for (const s of TP.TEMP_SITES) { const ks = TP.TEMP_AGES.map((a) => TP.tempCheck(t, s.key, a.key).key); const rank = { low: 0, normal: 1, mild: 2, fever: 3, urgent: 4 };
+    if (rank[ks[0]] < rank[ks[1]] || rank[ks[1]] < rank[ks[2]]) bad++; }
+  ok(bad === 0, '체온 — 어린 나이일수록 판정이 가볍게 나오지 않음', bad); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);
