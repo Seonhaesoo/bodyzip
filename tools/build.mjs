@@ -99,14 +99,24 @@ function write(url, html) {
 }
 
 /* 쿠팡 파트너스 상자 — data/coupang.mjs 의 규칙에 맞는 페이지에만, 대가성 문구와 함께 */
-function coupangBox(url, max = 99) {
+function coupangBox(url, max = 99, lead = '') {
   const items = coupangFor(url).slice(0, max);
   if (!items.length) return '';
-  return `<aside class="cp-box"><p class="cp-h">함께 쓰면 좋은 물건</p><div class="cp-list">${items.map((x) => `<a class="cp-item" href="${x.href}" target="_blank" rel="sponsored noopener">${x.img ? `<img class="cp-img" src="${x.img}" alt="" width="80" height="80" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}<span class="cp-t"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span><span class="cp-go">쿠팡에서 보기</span></a>`).join('')}</div><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
+  return `<aside class="cp-box${lead ? ' cp-in' : ''}"><p class="cp-h">${lead ? esc(lead) : '함께 쓰면 좋은 물건'}</p><div class="cp-list">${items.map((x) => `<a class="cp-item" href="${x.href}" target="_blank" rel="sponsored noopener">${x.img ? `<img class="cp-img" src="${x.img}" alt="" width="80" height="80" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}<span class="cp-t"><b>${esc(x.label)}</b><small>${esc(x.note)}</small></span><span class="cp-go">쿠팡에서 보기</span></a>`).join('')}</div><p class="cp-note">${DISCLOSURE}</p></aside>\n`;
 }
 /* 많이 들어오는 계산 페이지(GA4 2026-10 상위)는 상자를 맨 끝 대신 계산기 바로 아래에, 물건 1개만 둔다.
  * 휴대폰 방문자가 끝까지 내려가지 않아 클릭이 거의 없었다(10월 클릭 11·구매 0). 나머지 페이지는 그대로 맨 끝 */
-const CP_TOP = new Set(['/bmi/', '/bmi/165/', '/bmi/170/', '/bmi/175/', '/bmr/', '/kcal-need/', '/baby/formula/', '/pet/dog-food/', '/water/', '/exercise/']);
+const CP_TOP = new Set(['/bmi/', '/bmi/165/', '/bmi/170/', '/bmi/175/', '/bmr/', '/kcal-need/', '/baby/formula/', '/pet/dog-food/', '/pet/cat-food/', '/water/', '/exercise/']);
+/* 2026-11-21 클릭은 본문 30~40% 깊이 상자에서 나왔다(바닥 배너는 55~90%라 거의 안 눌림). 사려는 마음이 있는 페이지는
+ * 계산 결과·첫 설명 단락 뒤(375px 기준 약 30~40%)에 한 줄 안내와 함께 둔다. before: 그 h2 단락 바로 앞, 없으면 계산기(</form>) 바로 아래 */
+const CP_AT = {
+  '/baby/formula/': { before: '계산 예시', lead: '수유량을 확인했다면 — 분유 탈 때 쓰는 물건' },
+  '/pet/dog-food/': { before: '몸무게별', lead: '하루 사료량을 확인했다면 — 이런 사료도 있어요' },
+  '/pet/cat-food/': { before: '몸무게별', lead: '하루 사료량을 확인했다면 — 이런 사료도 있어요' },
+  '/bmi/': { before: '판정 기준', lead: '정상 체중 범위를 확인했다면 — 몸무게를 꾸준히 잴 때' },
+  '/kcal-need/': { lead: '목표 칼로리를 정했다면 — 몸무게 변화를 기록할 때' },
+  '/bmr/': { lead: '기초대사량을 확인했다면 — 몸무게·체지방률을 함께 잴 때' },
+};
 
 /* 2026-11-16 쿠팡 다이나믹 배너 '고객 관심 기반 추천'(파트너스 배너 1019568, subId bodyzip) — 본문 끝·바닥글 위에 한 번.
  * 보는 사람이 쿠팡에서 본 상품을 띄운다. 폭은 화면에 맞춰 최대 680px, 대가성 문구 함께. 소개·약관·개인정보·계산 방법에는 넣지 않는다 */
@@ -118,9 +128,12 @@ function shell(o) {
   if (!o.noindex && o.url && thinPage(o.url)) o.noindex = 'google';
   if (o.noindex) NOINDEX.add(o.url);
   if (o.noindex === 'google') GOOGLE_ONLY.add(o.url);
-  if (CP_TOP.has(o.url) && typeof o.body === 'string' && o.body.includes('</form>')) {
-    o.body = o.body.replace('</form>', '</form>\n' + coupangBox(o.url, 1));
-    o.cpTop = true;
+  if (CP_TOP.has(o.url) && typeof o.body === 'string') {
+    const at = CP_AT[o.url] || {};
+    const box = coupangBox(o.url, 1, at.lead);
+    const re = at.before && new RegExp(`<section\\b[^>]*>\\s*<h2[^>]*>${at.before}`);
+    if (re && re.test(o.body)) { o.body = o.body.replace(re, (m) => box + m); o.cpTop = true; }
+    else if (o.body.includes('</form>')) { o.body = o.body.replace('</form>', '</form>\n' + box); o.cpTop = true; }
   }
   const GA = GA_ID ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script><script>if(location.hostname.indexOf('localhost')<0&&location.hostname.indexOf('127.0.0.1')<0&&location.protocol!=='file:'&&!navigator.webdriver&&!/bot|crawl|spider|slurp|yeti|daumoa|bingpreview|headless|lighthouse|scrap|facebookexternalhit|compatible;|mediapartners|adsbot/i.test(navigator.userAgent)){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');}</script>\n` : '';
   const ADS = ADSENSE && !o.bare ? `<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}" crossorigin="anonymous"></script>\n` : '';

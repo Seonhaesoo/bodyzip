@@ -335,6 +335,7 @@ body.bare { background: transparent; }
 .cp-t small { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 .cp-go { flex: none; padding: 7px 12px; border-radius: 999px; background: var(--gold); color: #fff; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .cp-box .cp-note { margin: 10px 0 0; font-size: 11.5px; color: var(--faint, #8a8a8a); line-height: 1.6; }
+.cp-in { margin: 22px 0 6px; padding: 12px 14px; } .cp-in .cp-h { margin: 0 0 8px; font-size: 14px; font-weight: 600; color: var(--muted); word-break: keep-all; } .cp-in .cp-note { margin-top: 8px; }
 @media (max-width: 480px) { .cp-item { flex-wrap: wrap; gap: 8px 12px; padding: 12px; } .cp-img { width: 64px; height: 64px; } .cp-t { flex: 1 1 calc(100% - 76px); } .cp-go { margin-left: auto; padding: 6px 12px; font-size: 12.5px; } .cp-img ~ .cp-go { margin-left: 76px; margin-right: auto; } }
 
 /* 홈 소개 단계·바닥글(2026-10-11) — 사주첩 첫 화면 아래쪽과 같은 형식. 빈 광고 자리는 광고가 붙기 전까지 숨김 */
