@@ -152,7 +152,8 @@ function shell(o) {
   if (o.noindex === 'google') GOOGLE_ONLY.add(o.url);
   if (CP_TOP.has(o.url) && typeof o.body === 'string') {
     const at = CP_AT[o.url] || {};
-    const box = coupangBox(o.url, 1, at.lead);
+    /* 2026-11-25 상품 상자 대신 다이나믹 배너(사용자 결정) — 자리(계산기 아래·해당 단락 앞)는 그대로 */
+    const box = o.noDyn ? coupangBox(o.url, 1, at.lead) : DYN_BANNER;
     const re = at.before && new RegExp(`<section\\b[^>]*>\\s*<h2[^>]*>${at.before}`);
     if (re && re.test(o.body)) { o.body = o.body.replace(re, (m) => box + m); o.cpTop = true; }
     else if (o.body.includes('</form>')) { o.body = o.body.replace('</form>', '</form>\n' + box); o.cpTop = true; }
@@ -197,7 +198,7 @@ ${o.bare ? o.body : `<div class="app">
   <span class="year-pill">${YEAR}</span>
 </header>
 ${_mid ?? o.body}
-${o.cpTop ? '' : coupangBox(o.url)}${_dyn}<footer class="foot foot2">
+${_dyn}<footer class="foot foot2">
   <p class="flabel">계산 찾아보기</p>
   <nav class="fgrid" aria-label="계산 찾아보기"><a href="/bmi/">BMI·정상 체중</a><a href="/bmr/">기초대사량</a><a href="/food/">음식 칼로리</a><a href="/exercise/">운동 칼로리</a><a href="/due-date/">출산예정일</a><a href="/baby/">아기 개월수</a><a href="/checkup/">건강검진</a><a href="/pet/">반려동물 나이</a><a href="/guide/">서재</a></nav>
   <div class="frow2"><nav><a href="/method/">계산 기준</a><a href="/editorial/">편집 원칙</a><a href="/updates/">업데이트 기록</a><a href="/about/">소개</a><a href="/embed/">위젯</a><a href="/terms/">이용약관</a><a href="/privacy/">개인정보</a></nav><span>© 바디집 · 갱신 ${CONTENT_DATE}</span></div>

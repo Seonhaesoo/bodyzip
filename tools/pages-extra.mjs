@@ -320,7 +320,7 @@ ${section('이어서', null, list([{ href: '/guide/alcohol-bac/', title: '소주
   const END = 23 * 60, c1 = X.bacClock(END, EX1.driveHours), c1s = X.bacClock(END, EX1.driveHoursSlow), z1s = X.bacClock(END, EX1.soberHoursSlow);
   const c2s = X.bacClock(0, EX2.driveHoursSlow), c2 = X.bacClock(0, EX2.driveHours);
   const hhmmd = (c) => `${c.time}${c.nextDay ? ' (다음 날)' : ''}`;
-  write('/alcohol/', shell({ og: 'alcohol', url: '/alcohol/', modified: '2026-11-05', title: '혈중알코올농도 계산기 — 소주·맥주 몇 병이면 면허 정지, 몇 시간 뒤 운전 가능한지 (위드마크)', desc: `술 종류와 양, 몸무게, 성별, 지난 시간을 넣으면 위드마크 공식으로 혈중알코올농도와 0.03% 아래로 내려오는 시간이 나옵니다. 언제쯤 술이 깰까: 소주 1병 70kg 남성은 마지막 잔 뒤 ${EX1.driveHours}~${EX1.driveHoursSlow}시간. 소주·맥주·막걸리·와인 1~5병 표.`, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/alcohol/', shell({ og: 'alcohol', url: '/alcohol/', modified: '2026-11-25', title: '혈중알코올농도 계산기 — 소주·맥주 몇 병이면 면허 정지, 몇 시간 뒤 운전 가능한지 (위드마크)', desc: `술 종류와 양, 몸무게, 성별, 지난 시간을 넣으면 위드마크 공식으로 혈중알코올농도와 0.03% 아래로 내려오는 시간이 나옵니다. 언제쯤 술이 깰까: 소주 1병 70kg 남성은 마지막 잔 뒤 ${EX1.driveHours}~${EX1.driveHoursSlow}시간. 소주·맥주·막걸리·와인 1~5병 표.`, nav: 'food', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '혈중알코올농도']])}
 <h1 class="title">혈중알코올농도</h1>
 <p class="meta">위드마크 공식 · 단속 0.03% · 취소 0.08% · 마지막 잔 뒤 흡수 1.5시간 + 시간당 0.010~0.015%p 분해</p>
@@ -333,6 +333,7 @@ ${section('언제쯤 술이 깰까', '최고 농도에서 단속 기준까지 �
 <p><b>이 계산이 보장하지 않는 것.</b> 위드마크 공식은 평균값이라 공복·빠른 속도·체지방·약 복용에 따라 실제 농도는 더 높고 분해는 더 느릴 수 있습니다. 실제 단속은 호흡측정기와 채혈로 하며 결과가 계산과 다를 수 있습니다. 그래서 계산기는 "몇 시부터 운전 가능"이 아니라 "적어도 이 시각 전에는 확실히 안 된다"로 읽어야 하고, 술을 마셨다면 운전하지 않는 것이 유일하게 안전한 규칙입니다.</p>
 </div>`)}
 ${section('단속 기준', '도로교통법 제44조 · 제148조의2', table(['농도', '처분'], [{ cells: ['0.03% 이상', '면허 정지 · 1년 이하 징역 또는 500만원 이하 벌금'] }, { cells: ['0.08% 이상', '면허 취소 · 1~2년 징역 또는 500~1,000만원 벌금'] }, { cells: ['0.2% 이상', '면허 취소 · 2~5년 징역 또는 1,000~2,000만원 벌금'] }]))}
+${section('송년회 다음 날 아침 운전', '70kg 남성 · 느린 분해(0.010%p/h)로 셈한 0.03% 아래 시각 — 이 시각 전엔 운전하지 마세요', table(['마지막 잔', '소주 1병', '소주 2병', '소주 3병'], [22, 23, 24, 25].map((h) => ({ cells: [(h === 24 ? '자정' : h > 24 ? `새벽 ${h - 24}시` : `밤 ${h - 12}시`), ...[1, 2, 3].map((n) => { const r = X.bac(X.alcoholGrams(360 * n, 0.165), 70, 'm'); const end = Math.round(h * 60 + r.driveHoursSlow * 60); const day = Math.floor(end / 1440), mm = end % 1440; return `${['', '다음 날 ', '그다음 날 '][day] || ''}${String(Math.floor(mm / 60)).padStart(2, '0')}:${String(mm % 60).padStart(2, '0')}`; })] }))) + '<p class="note">송년회·회식 다음 날 — 잠을 자도 분해 속도는 그대로라 아침 출근길 단속에 걸리는 일이 많습니다. 여성·체중이 적은 사람은 더 늦어집니다. 공복이었거나 빨리 마셨다면 한두 시간 더 두세요.</p>')}
 ${section('소주 · 맥주 · 막걸리 · 와인', '70kg 남성 최고 농도 · 마지막 잔부터 0.03% 아래로 걸리는 시간 (평균~느린 분해)', table(['술', '1', '2', '3', '4', '5'], DRINK_PAGES.map((k) => ({ cells: [DR[k].label.split(' ')[0]].concat(DRINK_COUNTS.map((c) => { const r = X.bac(X.alcoholGrams(DR[k].ml * c, DR[k].abv), 70, 'm'); return `<a href="${alUrl(k, c)}">${r.peak}%<br><small>${r.driveHours}~${r.driveHoursSlow}h</small></a>`; })) }))))}
 ${ad()}
 ${section('이어서', null, list([{ href: '/alcohol/team/', title: '회식 음주 표 만들기', sub: '우리 팀 사람별 0.03% 시각 · 카드로 공유' }, { href: '/guide/alcohol-bac/', title: '소주 한 병 마시면 몇 시간 뒤 운전할 수 있나', sub: '서재' }, { href: '/food/soju/', title: '술 칼로리', sub: '소주 1병 · 맥주 500ml' }]))}
@@ -395,13 +396,14 @@ ${section('이어서', null, list([{ href: '/bmr/', title: '기초대사량·하
 ${NOTE('체지방 1kg ≈ 7,700kcal 가정. 실제 감량 속도는 체성분·대사 적응·수분 변화에 따라 달라집니다.')}`;
     write(url, shell({ url, title, desc, body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
   }
-  write('/diet/', shell({ og: 'diet', url: '/diet/', title: '다이어트 기간 계산기 — 목표 체중까지 몇 주 걸리나 (하루 500kcal 기준 감량 kg별 표)', desc: '지금 몸무게와 목표 몸무게를 넣으면 하루 줄이는 칼로리별로 걸리는 기간과 목표 날짜가 나옵니다. 1~30kg 감량 표, 500kcal을 만드는 운동·음식.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
+  write('/diet/', shell({ og: 'diet', url: '/diet/', modified: '2026-11-25', title: '다이어트 기간 계산기 — 목표 체중까지 몇 주 걸리나 (하루 500kcal 기준 감량 kg별 표)', desc: '지금 몸무게와 목표 몸무게를 넣으면 하루 줄이는 칼로리별로 걸리는 기간과 목표 날짜가 나옵니다. 1~30kg 감량 표, 500kcal을 만드는 운동·음식.', nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'], body: `
 ${crumb([['/', '홈'], [null, '다이어트 기간']])}
 <h1 class="title">목표 체중까지 몇 주</h1>
 <p class="meta">체지방 1kg ≈ 7,700kcal · 하루 500kcal 결손 = 주 0.45kg</p>
 ${dietForm(75, 68)}
 ${lead('하루 500kcal을 덜 먹으면 일주일에 3,500kcal, 체지방 약 0.45kg이 빠집니다. 5kg이면 11주, 10kg이면 22주입니다. 아래에서 뺄 kg을 누르면 결손 칼로리별 기간과 목표 날짜, 500kcal을 만드는 방법이 나옵니다.')}
 ${section('감량 kg별 기간', '하루 500kcal · 오늘 시작', table(['뺄 몸무게', '기간', '날수', '목표일'], DIET_KG.map((kg) => { const q = X.dietPlan(kg, 0, 500), e = D.addDays(TODAY, q.days); return { cells: [`<a href="${dietUrl(kg)}">${kg}kg</a>`, `${q.weeks}주`, `${q.days}일`, `${e.getUTCFullYear()}.${e.getUTCMonth() + 1}.${e.getUTCDate()}`], cls: kg === 5 ? 'on' : '' }; })))}
+${section('새해 1월 1일에 시작하면', '2027-01-01 시작 · 체지방 1kg ≈ 7,700kcal로 어림한 그날까지 빠지는 양', table(['그날까지', '날수', '하루 300kcal', '하루 500kcal', '하루 750kcal'], [['설 연휴 전 (2월 5일)', '2027-02-05'], ['3월 1일', '2027-03-01'], ['봄 (5월 1일)', '2027-05-01'], ['여름휴가 (7월 15일)', '2027-07-15']].map(([lab, d]) => { const n = Math.round((Date.parse(d) - Date.parse('2027-01-01')) / 864e5); return { cells: [lab, `${n}일`, ...[300, 500, 750].map((k) => `${(n * k / 7700).toFixed(1)}kg`)] }; })) + '<p class="note">새해 목표는 하루 500kcal(주 0.45kg) 안쪽이 오래 갑니다. 하루 섭취가 기초대사량(여 1,200·남 1,500kcal) 아래로 내려가면 근육이 먼저 빠지고 요요가 오기 쉽습니다. 내 기초대사량은 <a href="/bmr/">기초대사량 계산기</a>로 확인하세요.</p>')}
 ${ad()}
 ${section('이어서', null, list([{ href: '/bmr/', title: '기초대사량·하루 칼로리', sub: '결손을 만들 기준 숫자' }, { href: '/steps/', title: '걸음 수 칼로리', sub: '만보는 몇 칼로리' }, { href: '/guide/bmr-diet/', title: '기초대사량보다 적게 먹으면 왜 살이 안 빠지나', sub: '서재' }]))}` }));
 
