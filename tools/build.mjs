@@ -978,7 +978,9 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="U
 console.log('사이트맵:', smFiles.map((f) => `${f.file} ${f.n}`).join(' · '));
 fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 /* 네이버용 전체 목록 — 구글에만 뺀 숫자 조합 페이지까지. robots.txt 에는 적지 않고(구글이 보지 않게) 네이버 서치어드바이저에 직접 제출한다 */
-const naverList = urls.filter((u) => (!NOINDEX.has(u) || GOOGLE_ONLY.has(u)) && !['/terms/', '/privacy/'].includes(u));
+const naverList = urls.filter((u) => (!NOINDEX.has(u) || GOOGLE_ONLY.has(u)) && !['/terms/', '/privacy/'].includes(u))
+  /* 2026-11-25 얕은 주소(허브·대표 숫자)부터 — 수천 개 숫자 조합이 앞을 막지 않게. 같은 깊이는 원래 순서 */
+  .map((u, i) => [u, i]).sort((x, y) => x[0].split('/').length - y[0].split('/').length || x[1] - y[1]).map((x) => x[0]);
 fs.writeFileSync(path.join(OUT, 'sitemap-naver.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${naverList.map((u) => `<url><loc>${SITE}${u}</loc></url>`).join('\n')}\n</urlset>\n`);
 console.log('네이버용 사이트맵:', naverList.length);
 if (DOMAIN_READY) fs.writeFileSync(path.join(OUT, 'CNAME'), 'bodyzip.com\n');
