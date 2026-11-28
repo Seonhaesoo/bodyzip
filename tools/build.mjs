@@ -25,9 +25,11 @@ import { buildPregWeight } from './pages-pregweight.mjs';
 import * as PW from '../engine/pregweight.mjs';
 import { buildBpLog } from './pages-bplog.mjs';
 import { buildChuseok, CHUSEOK_SLUGS } from './pages-chuseok.mjs';
+import { buildSeollal, SEOLLAL_SLUGS } from './pages-seollal.mjs';
 import { buildSeason, FLU, CHK } from './pages-season.mjs';
 import { buildFever } from './pages-fever.mjs';
 import { buildDiaper } from './pages-diaper.mjs';
+import { buildMacro } from './pages-macro.mjs';
 import * as FV from '../engine/fever.mjs';
 import { buildTemp } from './pages-temp.mjs';
 import * as TP from '../engine/temp.mjs';
@@ -359,7 +361,7 @@ ${section('알아두면 좋은 것', null, `<div class="doc">
 <p><b>식은 두 가지가 있습니다.</b> Mifflin-St Jeor(1990)는 현대인에게 가장 잘 맞는다고 평가돼 기본으로 쓰고, Harris-Benedict(1919·1984 개정)는 비교용으로 함께 보여줍니다. 둘의 차이는 보통 5% 안입니다.</p>
 <p><b>근육이 많으면 실제 대사량은 더 높습니다.</b> 식은 평균적인 체성분을 가정하므로 체지방률을 알면 <a href="/bodyfat/">Katch-McArdle 방식</a>이 더 정확합니다.</p>
 </div>`)}
-${section('이어서 계산하기', null, list([{ href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별 판정' }, { href: '/food/', title: '음식 칼로리 사전', sub: '하루 섭취량을 채우는 음식들' }, { href: '/exercise/', title: '운동 소모 칼로리', sub: '몸무게·시간별' }]))}
+${section('이어서 계산하기', null, list([{ href: '/macro/', title: '탄단지 계산기', sub: '하루 칼로리를 탄수화물·단백질·지방 g으로' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별 판정' }, { href: '/food/', title: '음식 칼로리 사전', sub: '하루 섭취량을 채우는 음식들' }, { href: '/exercise/', title: '운동 소모 칼로리', sub: '몸무게·시간별' }]))}
 ${NOTE_BMI}`;
   write('/bmr/', shell({ url: '/bmr/', title: '기초대사량 계산기 — 하루 필요 칼로리와 감량·증량 섭취량', desc: '성별·나이·키·몸무게·활동량을 넣으면 기초대사량(Mifflin-St Jeor)과 하루 필요 칼로리, 감량·증량 섭취 칼로리, 단백질 권장량이 바로 나옵니다.', body, nav: 'bmr', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
@@ -413,7 +415,7 @@ ${hero({ label: `${f.name} (${f.serving})`, value: num(f.kcal), unit: 'kcal', su
 ${tiny ? '' : section('태우려면', '몸무게별 · 분', table(['운동', '50kg', '60kg', '70kg', '80kg'], burnRows))}
 ${ad()}
 ${same.length ? section(`다른 ${f.cat}`, 'kcal', chips(same.map((x) => ({ label: x.name.length > 9 ? x.name.slice(0, 9) + '…' : x.name, value: num(x.kcal), href: foodUrl(x.slug) })))) : ''}
-${section('이어서 계산하기', null, list((CHUSEOK_SLUGS.has(f.slug) ? [{ href: '/food/chuseok/', title: '추석 음식 칼로리 한눈에', sub: '송편·전·갈비찜을 접시에 담아 한 상 합계' }] : []).concat([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }])))}
+${section('이어서 계산하기', null, list((SEOLLAL_SLUGS.has(f.slug) ? [{ href: '/food/seollal/', title: '설 음식 칼로리 한눈에', sub: '떡국·전·갈비찜을 접시에 담아 한 상 합계' }] : []).concat(CHUSEOK_SLUGS.has(f.slug) ? [{ href: '/food/chuseok/', title: '추석 음식 칼로리 한눈에', sub: '송편·전·갈비찜을 접시에 담아 한 상 합계' }] : []).concat([{ href: '/bmr/', title: '내 하루 필요 칼로리', sub: '이 음식이 하루의 몇 %인지' }, { href: '/exercise/', title: '운동 소모 칼로리표', sub: '몸무게·시간별' }, { href: '/bmi/', title: 'BMI · 정상 체중', sub: '키·몸무게별' }])))}
 <p class="note">${FOODS_ASOF} 기준 대략값입니다. 식당·브랜드·조리법·양에 따라 ±20% 이상 차이 날 수 있으니 정확한 값은 제품 영양성분표를 보세요. <a href="/method/">계산 기준 보기</a></p>`;
   write(url, shell({ url, title, desc, body, nav: 'food', scripts: ['/js/today.js'] }));
 }
@@ -425,7 +427,7 @@ ${crumb([['/', '홈'], [null, '음식 칼로리']])}
 <p class="meta">${FOODS.length}가지 · 1인분 기준 · 밥 공기 환산과 태우는 데 걸리는 시간</p>
 <form class="quick" data-quick="smart"><label>음식 이름으로 찾기</label><div class="quick-row"><div class="quick-in"><input type="text" placeholder="치킨, 라면, 아메리카노…" autocomplete="off"></div><button class="btn" type="submit">찾기</button></div><div class="quick-hint" data-hint>예: 치킨 칼로리</div></form>
 ${lead('자주 먹는 음식의 칼로리를 1인분 기준으로 모았습니다. 숫자보다 "밥 몇 공기"와 "걸어서 몇 분"으로 보면 감이 옵니다. 치킨 한 마리는 밥 6공기가 넘고, 아메리카노는 거의 0입니다.')}
-${list([{ href: '/food/chuseok/', title: '추석 음식 칼로리', sub: '송편·전·갈비찜 한 상을 접시에 담아 합계와 걷기 시간까지' }])}
+${list([{ href: '/food/seollal/', title: '설 음식 칼로리', sub: '떡국·전·갈비찜 한 상을 접시에 담아 합계와 걷기 시간까지' }, { href: '/food/chuseok/', title: '추석 음식 칼로리', sub: '송편·전·갈비찜 한 상을 접시에 담아 합계와 걷기 시간까지' }])}
 ${FOOD_CATS.map((c) => { const items = FOODS.filter((f) => f.cat === c); return items.length ? section(c, null, table(['음식', '1인분', 'kcal', '밥 공기'], items.map((f) => ({ cells: [`<a href="${foodUrl(f.slug)}">${f.name}</a>`, f.serving, num(f.kcal), String(K.bowls(f.kcal))] })))) : ''; }).join('\n')}
 ${ad()}
 <p class="note">${FOODS_ASOF} 기준 대략값(식품의약품안전처 식품영양성분 DB·외식 영양성분 자료). 브랜드·조리법에 따라 다릅니다.</p>`;
@@ -694,6 +696,7 @@ ${section('몸', null, `<div class="dict">
 </div>`)}
 ${section('먹고 태우기', null, `<div class="dict">
 <a href="/food/"><b>음식 칼로리 사전</b><span>치킨 한 마리 <span class="num">${num(FOODS.find((f) => f.slug === 'fried-chicken').kcal)}</span>kcal = 밥 ${K.bowls(1900)}공기 · ${FOODS.length}가지</span></a>
+<a href="/food/seollal/"><b>설 음식 칼로리</b><span>떡국 한 그릇 <span class="num">${num(FOODS.find((f) => f.slug === 'tteokguk').kcal)}</span>kcal · 2027년 설날 2월 7일 · 한 상 담아 합계</span></a>
 <a href="/food/chuseok/"><b>추석 음식 칼로리</b><span>송편 5개 <span class="num">${num(FOODS.find((f) => f.slug === 'songpyeon').kcal)}</span>kcal · 모둠전 한 접시 ${num(FOODS.find((f) => f.slug === 'jeon-assorted').kcal)} · 한 상 담아 합계</span></a>
 <a href="/exercise/"><b>운동 소모 칼로리</b><span>달리기 30분 <span class="num">${num(K.burn(EX['running-8'].met, 60, 30))}</span>kcal · 걷기 ${num(K.burn(EX.walking.met, 60, 30))}kcal (60kg)</span></a>
 </div>`)}
@@ -735,6 +738,7 @@ ${section('생활', null, `<div class="dict">
 <a href="/sleep/"><b>몇 시에 자야 할까</b><span>7시 기상 → <span class="num">${X.bedtimes(7)[1].time}</span> 취침 (90분 주기 5번)</span></a>
 <a href="/diet/"><b>다이어트 기간</b><span>5kg → 하루 500kcal 줄이면 <span class="num">${X.dietPlan(5, 0).weeks}</span>주</span></a>
 <a href="/alcohol/"><b>혈중알코올농도</b><span>소주 1병 70kg 남 <span class="num">${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').peak}</span>% · 0.03% 아래까지 ${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHours}~${X.bac(X.alcoholGrams(360, 0.165), 70, 'm').driveHoursSlow}시간 · 언제쯤 깰까</span></a>
+<a href="/macro/"><b>탄단지 계산기</b><span>2025 기준 탄 50~65% · 단 10~20% · 지 15~30% → <span class="num">하루 g</span></span></a>
 <a href="/kcal-need/"><b>나이별 권장 칼로리</b><span>남 19~29세 <span class="num">2,600</span> · 여 2,000kcal · 목표 체중까지 몇 주</span></a>
 <a href="/caffeine/"><b>카페인</b><span>아메리카노 2잔 <span class="num">300</span>mg · 성인 400 · 임신 300mg</span></a>
 <a href="/today/"><b>오늘 먹은 것 담기</b><span>음식을 담으면 하루 칼로리와 <span class="num">남은 양</span>이 바로</span></a>
@@ -960,7 +964,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, babyChain, coupangBox, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX); buildFever(CTX); buildTemp(CTX); buildDiaper(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeollal(CTX); buildSeason(CTX); buildFever(CTX); buildTemp(CTX); buildDiaper(CTX); buildMacro(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
@@ -968,7 +972,7 @@ docs();
 /* noindex 페이지(위젯·약관·조합·날짜별 부가 페이지)는 사이트맵에서 뺀다 */
 const indexable = urls.filter((u) => !NOINDEX.has(u) && !['/terms/', '/privacy/'].includes(u));
 /* 사이트맵 분할 — 구역별 파일 + 인덱스 (색인 속도·구역별 색인 현황 확인용) */
-const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/(baby|fever-medicine)\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight|flu)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
+const SM_GROUPS = [['bmi', /^\/bmi\//], ['food', /^\/(food|caffeine)\//], ['exercise', /^\/(exercise|steps)\//], ['pregnancy', /^\/(due-date|ovulation|pregnancy)\//], ['baby', /^\/(baby|fever-medicine)\//], ['pet', /^\/pet\//], ['life', /^\/(bmr|macro|bodyfat|water|sleep|diet|alcohol|quit-smoking|kcal-need|child-height|today|weight|flu)\//], ['checkup', /^\/(checkup|bp|glucose|cholesterol|ldl|hdl|triglyceride|liver|uric)\//], ['kids', /^\/kids\//], ['guide', /.*/]];
 const smFiles = [];
 for (const [key, re] of SM_GROUPS) {
   const list = indexable.filter((u) => re.test(u) && !smFiles.some((f) => f.set.has(u)));

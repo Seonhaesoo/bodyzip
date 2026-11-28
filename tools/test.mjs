@@ -12,6 +12,7 @@ import * as CK from '../engine/checkup.mjs';
 import * as FV from '../engine/fever.mjs';
 import * as TP from '../engine/temp.mjs';
 import * as DP from '../engine/diaper.mjs';
+import * as MC from '../engine/macro.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES, GUIDE_CATS } from '../data/guides.mjs';
@@ -270,5 +271,8 @@ ok(FV.feverDose('dexi', 60, 144).mg[1] === 300 && FV.feverDose('dexi', 60, 144).
   const o = DP.diaperOutgrow(G, 'm', 4, 7); ok(o && o.month > 4 && o.month < 12 && o.step.key === 2, '기저귀 — 4개월 7kg 남아(2단계)는 돌 전에 2단계 상한', JSON.stringify(o));
   ok(DP.typicalStep(G, 'm', 12).main.key === 3 && DP.perDayFor(0).day[0] === 10 && DP.perDayFor(30).day[1] === 6, '기저귀 — 12개월 남아 보통 3단계 · 하루 개수'); }
 
+/* 탄단지 (2026-11-28) */
+{ const p = MC.macroPlan(2000); ok(p.range.carb.join() === '250,325' && p.range.protein.join() === '50,100' && p.range.fat.join() === '33,67' && p.pick.protein === 100, '탄단지 — 2,000kcal 범위·배분', JSON.stringify(p.range));
+  ok(MC.SPLITS.every((s) => s.carb + s.protein + s.fat === 100 && ['carb', 'protein', 'fat'].every((k) => s[k] >= MC.AMDR_2025[k][0] && s[k] <= MC.AMDR_2025[k][1])), '탄단지 — 예시 배분 모두 합 100·범위 안'); }
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);
