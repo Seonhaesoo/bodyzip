@@ -71,18 +71,19 @@
   });
 
   /* ---------- 건강검진 ---------- */
-  var Y = 2026, END = '2026-12-31';
-  function daysLeft() { var t = todayIso(); return Math.round((Date.parse(END + 'T00:00:00Z') - Date.parse(t + 'T00:00:00Z')) / 864e5); }
+  /* 2026-11-28 연도를 상자의 data-year 로 — /checkup/2026/ 과 /checkup/2027/ 이 같은 코드를 쓴다. data-xray: 흉부 X선 시작 나이(2027년부터 50세) */
+  function daysTo(iso) { var t = todayIso(); return Math.round((Date.parse(iso + 'T00:00:00Z') - Date.parse(t + 'T00:00:00Z')) / 864e5); }
   Array.prototype.forEach.call(document.querySelectorAll('[data-live="checkup2026"]'), function (box) {
-    var left = daysLeft();
-    out(box, 'dday', left > 0 ? Y + '년 검진 마감 <b>12월 31일(목)</b> · 오늘 기준 <b>' + left + '일</b> 남았습니다' : left === 0 ? '<b>오늘(12월 31일)이 ' + Y + '년 검진 마감일</b>입니다' : Y + '년 검진은 12월 31일에 마감했습니다. 못 받았다면 ' + (Y + 1) + '년에 공단에 전년도 미수검자 추가 신청을 하세요.');
+    var Y = parseInt(box.getAttribute('data-year'), 10) || 2026, WD = box.getAttribute('data-wd') || '', XR = parseInt(box.getAttribute('data-xray'), 10) || 0;
+    var left = daysTo(Y + '-12-31'), toStart = daysTo(Y + '-01-01');
+    out(box, 'dday', toStart > 0 ? Y + '년 검진은 <b>1월 1일</b>부터 · 오늘 기준 <b>' + toStart + '일</b> 뒤 시작 · 마감 12월 31일(' + WD + ')' : left > 0 ? Y + '년 검진 마감 <b>12월 31일(' + WD + ')</b> · 오늘 기준 <b>' + left + '일</b> 남았습니다' : left === 0 ? '<b>오늘(12월 31일)이 ' + Y + '년 검진 마감일</b>입니다' : Y + '년 검진은 12월 31일에 마감했습니다. 못 받았다면 ' + (Y + 1) + '년에 공단에 전년도 미수검자 추가 신청을 하세요.');
     bind(box, function () {
       var by = parseInt(q(box, 'by').value, 10), sex = q(box, 'sex').value, type = q(box, 'type').value;
       if (!(by >= 1900 && by <= Y)) { out(box, 'yes', '—'); out(box, 'age', '—'); out(box, 'cancer', '—'); out(box, 'msg', '태어난 해를 넣어 보세요.'); out(box, 'items', ''); return; }
-      var age = Y - by, even = by % 2 === 0, adult = age >= 20;
-      var target = type === 'field' ? true : even && (type === 'office' || adult);
-      var why = type === 'field' ? '비사무직은 해마다 대상' : even ? (adult || type === 'office' ? '짝수년생이라 올해 대상' : '20세부터 대상') : '홀수년생은 ' + (Y + 1) + '년 대상';
-      var items = ['공통 검사 (혈압·혈액·소변·흉부 X선·구강)'];
+      var age = Y - by, match = (by % 2) === (Y % 2), adult = age >= 20, PAR = Y % 2 === 0 ? '짝수' : '홀수', OTHER = Y % 2 === 0 ? '홀수' : '짝수';
+      var target = type === 'field' ? true : match && (type === 'office' || adult);
+      var why = type === 'field' ? '비사무직은 해마다 대상' : match ? (adult || type === 'office' ? PAR + '년생이라 ' + Y + '년 대상' : '20세부터 대상') : OTHER + '년생은 ' + (Y + 1) + '년 대상';
+      var items = [XR && age < XR ? '공통 검사 (혈압·혈액·소변·구강 · 흉부 X선은 ' + XR + '세부터, 고위험 직업군 제외)' : '공통 검사 (혈압·혈액·소변·흉부 X선·구강)'];
       if ((sex === 'm' && age >= 24 && (age - 24) % 4 === 0) || (sex === 'f' && age >= 40 && (age - 40) % 4 === 0)) items.push('이상지질혈증 (콜레스테롤·중성지방)');
       if (age === 40) items.push('B형간염 항원·항체');
       if (age === 40 || age === 50 || age === 60 || age === 70) items.push('생활습관평가');
@@ -105,12 +106,12 @@
       out(box, 'age', age + '세');
       out(box, 'cancer', cancer.length ? cancer.length + '종' : '없음');
       var msg = '<b>' + by + '년생 · 검진 나이 ' + age + '세</b>: ' + why + '.';
-      if (target) msg += ' ' + Y + '년 12월 31일까지 받으면 됩니다' + (left > 0 ? '(' + left + '일 남음).' : '.') + (type === 'office' || type === 'field' ? ' 직장가입자는 안 받으면 과태료가 있습니다.' : '');
-      else if (!even && type !== 'field') msg += ' 올해는 일반검진 차례가 아니지만, 작년에 못 받았다면 공단에 전년도 미수검자 추가 신청을 할 수 있습니다.';
+      if (target) msg += ' ' + (toStart > 0 ? Y + '년 1월 1일부터 12월 31일까지 받으면 됩니다.' : Y + '년 12월 31일까지 받으면 됩니다' + (left > 0 ? '(' + left + '일 남음).' : '.')) + (type === 'office' || type === 'field' ? ' 직장가입자는 안 받으면 과태료가 있습니다.' : '');
+      else if (!match && type !== 'field') msg += ' ' + Y + '년은 일반검진 차례가 아니지만, 그 전해에 못 받았다면 공단에 전년도 미수검자 추가 신청을 할 수 있습니다.';
       out(box, 'msg', msg);
       var html;
       if (age < 20) html = '<p>일반건강검진은 20세부터입니다(직장가입자는 나이와 무관). 영유아·학생 검진은 따로 있습니다.</p>';
-      else if (target) html = '<p><b>올해 받는 검사</b>: ' + items.join(' · ') + '</p>' + (cancer.length ? '<p><b>암검진</b>: ' + cancer.join(' · ') + '</p>' : '');
+      else if (target) html = '<p><b>' + Y + '년에 받는 검사</b>: ' + items.join(' · ') + '</p>' + (cancer.length ? '<p><b>암검진</b>: ' + cancer.join(' · ') + '</p>' : '');
       else html = '<p>' + (Y + 1) + '년에 받는 검사: ' + items.join(' · ') + (cancer.length ? '. 암검진: ' + cancer.join(' · ') : '') + ' (내년 나이 기준으로 조금 달라질 수 있음)</p>';
       out(box, 'items', html);
     });
