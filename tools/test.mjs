@@ -264,10 +264,10 @@ ok(FV.feverDose('dexi', 60, 144).mg[1] === 300 && FV.feverDose('dexi', 60, 144).
   ok(bad === 0, '체온 — 어린 나이일수록 판정이 가볍게 나오지 않음', bad); }
 
 /* 기저귀 단계 (2026-11-28) */
-{ ok(DP.diaperStep(3.3).main.key === 1 && DP.diaperStep(4.5).main.key === 2 && DP.diaperStep(6.5).main.key === 2 && DP.diaperStep(7).main.key === 3, '기저귀 — 겹치는 구간은 아래 단계 상한 1kg 안이면 위 단계', [DP.diaperStep(4.5).main.key, DP.diaperStep(6.5).main.key, DP.diaperStep(7).main.key].join());
+{ ok(DP.diaperStep(3.3).main.key === 1 && DP.diaperStep(4.5).main.key === 2 && DP.diaperStep(7).main.key === 2 && DP.diaperStep(7.6).main.key === 3, '기저귀 — 겹치는 구간은 아래 단계 상한 1kg 안이면 위 단계', [DP.diaperStep(4.5).main.key, DP.diaperStep(7).main.key, DP.diaperStep(7.6).main.key].join());
   ok(DP.diaperStep(30).over && DP.diaperStep(20).main.key === 6, '기저귀 — 범위 밖');
   let gap = 0; for (let w = 0; w <= 25; w += 0.1) if (!DP.diaperStep(w).fits.length) gap++; ok(gap === 0, '기저귀 — 0~25kg 빈 구간 없음', gap);
-  const o = DP.diaperOutgrow(G, 'm', 4, 7); ok(o && o.month > 12 && o.month < 24 && o.step.key === 3, '기저귀 — 4개월 7kg 남아(3단계)는 1~2살 사이에 3단계 상한', JSON.stringify(o));
+  const o = DP.diaperOutgrow(G, 'm', 4, 7); ok(o && o.month > 4 && o.month < 12 && o.step.key === 2, '기저귀 — 4개월 7kg 남아(2단계)는 돌 전에 2단계 상한', JSON.stringify(o));
   ok(DP.typicalStep(G, 'm', 12).main.key === 3 && DP.perDayFor(0).day[0] === 10 && DP.perDayFor(30).day[1] === 6, '기저귀 — 12개월 남아 보통 3단계 · 하루 개수'); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);

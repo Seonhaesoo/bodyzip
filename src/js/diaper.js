@@ -30,7 +30,7 @@
 
     var tips = [];
     if (r.alt) tips.push('<b>' + r.main.short + '와 ' + r.alt.short + '가 모두 맞는 몸무게입니다.</b> ' + (r.main.key > r.alt.key ? r.alt.short + ' 상한(' + r.alt.hi + 'kg)에 가까워 ' + r.main.short + '를 먼저 권합니다. 마르고 다리가 가는 아기라면 ' + r.alt.short + '를 더 써도 됩니다.' : r.main.short + '를 쓰다가 새거나 밴드 자국이 남으면 ' + r.alt.short + '로 올리세요.'));
-    if (!r.over && r.toTop <= 1 && r.toTop >= 0) tips.push('지금 단계 상한까지 ' + r.toTop + 'kg 남았습니다. 곧 바꿀 수 있으니 큰 묶음보다 소포장이 낫습니다.');
+    if (!r.over && r.next && r.toTop <= 1 && r.toTop >= 0) tips.push('지금 단계 상한까지 ' + r.toTop + 'kg 남았습니다. 곧 바꿀 수 있으니 큰 묶음보다 소포장이 낫습니다.');
     if (o && o.month != null && r.next) tips.push('지금 몸무게 백분위대로 자라면 <b>생후 약 ' + Math.round(o.month) + '개월</b>에 ' + r.main.short + ' 상한(' + r.main.hi + 'kg)에 닿고 ' + r.next.short + '로 넘어갑니다. 어림이니 실제로는 새는지·자국이 남는지로 판단하세요.');
     if (mo != null && mo >= 0 && mo <= 60) {
       var g = B.growthCheck ? B.growthCheck('weight', sex, mo, kg) : null;

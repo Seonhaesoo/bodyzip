@@ -38,7 +38,7 @@ export function buildDiaper(ctx) {
   const typRows = TYP_MONTHS.map((m) => { const b = at('m', m), g = at('f', m); return { cells: [mLabel(m), `${b.kg}kg`, stepText(b), `${g.kg}kg`, stepText(g)] }; });
   const countRows = DP.DIAPER_PER_DAY.map((r) => ({ cells: [r.label, `${r.day[0]}~${r.day[1]}개`, `${num(r.day[0] * 30)}~${num(r.day[1] * 30)}개`] }));
 
-  const title = '기저귀 단계 몸무게표 — 신생아·1~6단계, 우리 아기 몇 단계? (개월별 예상·하루 개수)';
+  const title = '기저귀 단계 몸무게표 — 신생아·1~6단계, 우리 아기 몇 단계?';
   const desc = `아기 몸무게를 넣으면 맞는 기저귀 단계와 다음 단계로 넘어갈 때를 알려 드립니다. 1단계 5kg까지, 2단계 4~8kg, 3단계 6~11kg, 4단계 8~14kg처럼 단계가 겹치는 구간에서 고르는 법, 개월별 보통 몸무게로 본 단계, 하루·한 달 기저귀 개수.`;
   const body = `
 ${crumb([['/baby/', '아기'], [null, '기저귀 단계']])}
@@ -49,7 +49,7 @@ ${section('단계별 몸무게', 'kg · 단계끼리 겹치는 것이 정상 · 
 ${lead(`기저귀는 개월이 아니라 <b>몸무게</b>로 고릅니다. 단계 범위가 서로 겹쳐서 ${ex.kg}kg이면 ${exR.fits.map((s) => s.short).join('·')}가 모두 맞는데, 이럴 때는 <b>지금 단계에서 새거나 자국이 남기 시작하면</b> 올리면 됩니다. 아래 계산기에 몸무게와 개월을 넣으면 같은 백분위로 자랄 때 언제쯤 다음 단계가 필요한지도 셈합니다. 생후 ${ex.m}개월 남아 ${ex.kg}kg이면 ${exO && exO.month ? `생후 약 ${Math.round(exO.month)}개월에 ${exO.step.short} 상한(${exO.step.hi}kg)에 닿습니다` : '이번 단계를 한동안 씁니다'}.`)}
 ${form}
 ${coupangBox ? coupangBox('/baby/diaper/', 1, '단계를 확인했다면 — 포장의 권장 체중을 보고 고르기') : ''}
-${section('개월별 보통 몸무게와 단계', 'WHO 50백분위 · 범위가 겹치면 위 단계를 먼저 적고 아래 단계를 괄호에', table(['개월', '남아', '단계', '여아', '단계'], typRows))}
+${section('개월별 보통 몸무게와 단계', 'WHO 50백분위 · 범위가 겹치면 먼저 쓸 단계를 적고 함께 맞는 단계를 괄호에', table(['개월', '남아', '단계', '여아', '단계'], typRows))}
 ${ad()}
 ${section('하루에 몇 개, 한 달에 몇 개', '흔히 안내되는 어림값 · 한 달 = 30일', table(['시기', '하루', '한 달'], countRows) + '<p class="sub">신생아는 먹을 때마다 갈아 하루 10개를 넘기 쉽고, 크면서 소변을 모아 누어 줄어듭니다. 생후 1주가 지나 소변 기저귀가 하루 6개 이상이면 잘 먹고 있다는 신호입니다.</p>')}
 ${section('단계를 올릴 때', null, `<div class="doc">
@@ -62,5 +62,5 @@ ${section('단계를 올릴 때', null, `<div class="doc">
 ${section('이어서', null, list([{ href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게가 또래 100명 중 몇 번째' }, { href: '/baby/formula/', title: '분유 수유량', sub: '개월·몸무게로 1회량과 하루 총량' }, { href: '/baby/', title: '아기 개월수·예방접종', sub: '생년월일로 오늘 몇 개월' }, { href: '/baby/month/', title: '개월별 발달', sub: '0~36개월' }]))}
 ${babyChain('/baby/diaper/')}
 <p class="note">단계 범위는 국내에서 파는 여러 브랜드 제품의 권장 체중 표기를 겹쳐 본 대략값입니다(같은 단계도 브랜드마다 1~2kg 다름). 개월별 몸무게와 '넘어가는 때'·다음 단계 예측은 WHO 아동 성장 표준(2006, 질병관리청 2017 성장도표가 0~35개월에 채택) LMS로 계산했고, 아기가 지금 백분위를 유지한다고 가정한 어림입니다. 하루 개수는 흔히 안내되는 범위로 아기마다 다릅니다. <a href="/method/">계산 기준 보기</a></p>`;
-  write('/baby/diaper/', shell({ url: '/baby/diaper/', og: 'baby', nav: 'baby', modified: MOD, title, desc, body, scripts: ['/js/engine.js', '/js/diaper.js'] }));
+  write('/baby/diaper/', shell({ url: '/baby/diaper/', og: 'baby', nav: 'baby', modified: MOD, dynMid: 1, title, desc, body, scripts: ['/js/engine.js', '/js/diaper.js'] }));
 }

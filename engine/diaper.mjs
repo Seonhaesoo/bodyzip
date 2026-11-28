@@ -25,13 +25,13 @@ export const DIAPER_PER_DAY = [
 ];
 export const perDayFor = (months) => DIAPER_PER_DAY.find((r) => months >= r.from && months < r.to) || DIAPER_PER_DAY[DIAPER_PER_DAY.length - 1];
 
-/* 몸무게 → 맞는 단계. 범위가 겹치면 둘 다 돌려주고, 아래 단계 상한까지 1kg 넘게 남았으면 아래 단계를, 아니면 위 단계를 먼저 권한다 */
+/* 몸무게 → 맞는 단계. 범위가 겹치면 둘 다 돌려주고, 아래 단계를 먼저 권한다(본문 '작은 쪽부터'). 아래 단계 상한까지 0.5kg 이하로 남았을 때만 위 단계 — 2026-11-28 Fable 점검(예전 1kg 규칙은 겹치는 구간에서 거의 늘 위 단계를 골라 본문과 반대였다) */
 export function diaperStep(kg) {
   const w = Math.max(0, Number(kg) || 0);
   const fits = DIAPER_STEPS.filter((s) => w >= s.lo && w <= s.hi);
   if (!fits.length) return { kg: w, fits: [], main: DIAPER_STEPS[DIAPER_STEPS.length - 1], alt: null, over: true };
   let main = fits[0], alt = fits[1] || null;
-  if (alt && main.hi - w <= 1) { main = fits[1]; alt = fits[0]; }
+  if (alt && main.hi - w <= 0.5) { main = fits[1]; alt = fits[0]; }
   const next = DIAPER_STEPS.find((s) => s.key === main.key + 1) || null;
   return { kg: w, fits, main, alt, next, toTop: Math.round((main.hi - w) * 10) / 10, over: false };
 }

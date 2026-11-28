@@ -125,14 +125,14 @@ const DYN_BANNER = `<aside class="cp-dyn"><p class="cp-h">쿠팡 추천 상품</
 
 /* 2026-11-25 쿠팡 다이나믹 배너를 본문 중간으로 — 휴대폰에서 맨 아래까지 내려오는 사람이 적다(사용자 요청).
  * 본문 30% 뒤에서 처음 시작하는 구역·소제목 바로 앞에 넣는다. 그런 자리가 없으면 null — 그때는 맨 아래에 둔다 */
-function midInsert(body, html) {
+function midInsert(body, html, maxPicks = 2) {
   // 2026-11-25 애드센스 자동 광고처럼 글 사이사이에 — 구역(<section, 없으면 <h2) 사이 1/3·2/3 지점 두 곳(구역이 5개 미만이면 가운데 한 곳).
   // 맨 아래 배너는 shell 이 따로 붙인다
   const s = String(body || '');
   for (const re of [/<section\b/g, /<h2\b/g]) {
     const at = [...s.matchAll(re)].map((m) => m.index);
     if (at.length < 2) continue;
-    const picks = at.length >= 5
+    const picks = at.length >= 5 && maxPicks > 1
       ? [...new Set([Math.max(1, Math.round(at.length / 3)), Math.round((at.length * 2) / 3)])]
       : [Math.max(1, Math.floor(at.length * 0.4))];
     let out = s;
@@ -165,7 +165,7 @@ function shell(o) {
   if (o.modified) { ld.dateModified = o.modified; MODIFIED.set(o.url, o.modified); }
   const on = (k) => o.nav === k ? ' class="on"' : '';
   const _dyn = o.noDyn || /^\/(about|terms|privacy|method)\//.test(o.url || '') ? '' : DYN_BANNER;
-  const _mid = _dyn && !o.cpTop ? midInsert(o.body, _dyn) : null;
+  const _mid = _dyn && !o.cpTop ? midInsert(o.body, _dyn, o.dynMid || 2) : null;   /* dynMid: 1 — 본문에 상품 상자가 따로 있는 페이지는 중간 배너 하나만(2026-11-28 기저귀) */
   return `<!doctype html>
 <html lang="ko">
 <head>
