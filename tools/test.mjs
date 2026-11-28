@@ -11,6 +11,7 @@ import * as P from '../engine/pet.mjs';
 import * as CK from '../engine/checkup.mjs';
 import * as FV from '../engine/fever.mjs';
 import * as TP from '../engine/temp.mjs';
+import * as DP from '../engine/diaper.mjs';
 import { WEEKS } from '../data/pregnancy-weeks.mjs';
 import { MONTHS as BM } from '../data/baby-months.mjs';
 import { GUIDES, GUIDE_CATS } from '../data/guides.mjs';
@@ -261,6 +262,13 @@ ok(FV.feverDose('dexi', 60, 144).mg[1] === 300 && FV.feverDose('dexi', 60, 144).
   let bad = 0; for (let t = 34; t <= 42.001; t += 0.1) for (const s of TP.TEMP_SITES) { const ks = TP.TEMP_AGES.map((a) => TP.tempCheck(t, s.key, a.key).key); const rank = { low: 0, normal: 1, mild: 2, fever: 3, urgent: 4 };
     if (rank[ks[0]] < rank[ks[1]] || rank[ks[1]] < rank[ks[2]]) bad++; }
   ok(bad === 0, '체온 — 어린 나이일수록 판정이 가볍게 나오지 않음', bad); }
+
+/* 기저귀 단계 (2026-11-28) */
+{ ok(DP.diaperStep(3.3).main.key === 1 && DP.diaperStep(4.5).main.key === 2 && DP.diaperStep(6.5).main.key === 2 && DP.diaperStep(7).main.key === 3, '기저귀 — 겹치는 구간은 아래 단계 상한 1kg 안이면 위 단계', [DP.diaperStep(4.5).main.key, DP.diaperStep(6.5).main.key, DP.diaperStep(7).main.key].join());
+  ok(DP.diaperStep(30).over && DP.diaperStep(20).main.key === 6, '기저귀 — 범위 밖');
+  let gap = 0; for (let w = 0; w <= 25; w += 0.1) if (!DP.diaperStep(w).fits.length) gap++; ok(gap === 0, '기저귀 — 0~25kg 빈 구간 없음', gap);
+  const o = DP.diaperOutgrow(G, 'm', 4, 7); ok(o && o.month > 12 && o.month < 24 && o.step.key === 3, '기저귀 — 4개월 7kg 남아(3단계)는 1~2살 사이에 3단계 상한', JSON.stringify(o));
+  ok(DP.typicalStep(G, 'm', 12).main.key === 3 && DP.perDayFor(0).day[0] === 10 && DP.perDayFor(30).day[1] === 6, '기저귀 — 12개월 남아 보통 3단계 · 하루 개수'); }
 
 console.log(`test: ${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

@@ -27,6 +27,7 @@ import { buildBpLog } from './pages-bplog.mjs';
 import { buildChuseok, CHUSEOK_SLUGS } from './pages-chuseok.mjs';
 import { buildSeason, FLU, CHK } from './pages-season.mjs';
 import { buildFever } from './pages-fever.mjs';
+import { buildDiaper } from './pages-diaper.mjs';
 import * as FV from '../engine/fever.mjs';
 import { buildTemp } from './pages-temp.mjs';
 import * as TP from '../engine/temp.mjs';
@@ -220,7 +221,7 @@ const chips = (items) => `<div class="chips">${items.map((c) => c.on ? `<span cl
 const cells = (items, cols = 3) => `<div class="grid${cols === 2 ? ' grid-2' : cols === 4 ? ' grid-4' : ''}">${items.map((c) => c.on ? `<span class="cell on"><small>${c.label}</small><span class="num">${c.value}</span></span>` : `<a class="cell" href="${c.href}"><small>${c.label}</small><span class="num">${c.value}</span></a>`).join('')}</div>`;
 const list = (items) => `<div class="list">${items.map((i) => `<a href="${i.href}"><span class="t"><b>${i.title}</b>${i.sub ? `<small>${i.sub}</small>` : ''}</span>${i.value != null ? `<span class="num">${i.value}</span>` : CHEV}</a>`).join('')}</div>`;
 /* 아기·아이 계산 길 — 개월수·예방접종 → 분유량 → 개월별 발달 → 성장 백분위 → 아이 키 백분위 → 예상 키. 허브끼리 같은 줄로 잇는다 */
-const BABY_CHAIN = [['/baby/', '개월수·예방접종'], ['/baby/formula/', '분유량'], ['/baby/month/', '개월별 발달'], ['/baby/percentile/', '성장 백분위 (0~3세)'], ['/kids/', '아이 키 백분위 (3~18세)'], ['/child-height/', '부모 키로 예상 키']];
+const BABY_CHAIN = [['/baby/', '개월수·예방접종'], ['/baby/formula/', '분유량'], ['/baby/diaper/', '기저귀 단계'], ['/baby/month/', '개월별 발달'], ['/baby/percentile/', '성장 백분위 (0~3세)'], ['/kids/', '아이 키 백분위 (3~18세)'], ['/child-height/', '부모 키로 예상 키']];
 const babyChain = (cur) => `<section class="section"><h2>아기·아이 계산 이어 보기</h2><p class="sub">자라는 순서대로</p><div class="chips" style="flex-wrap:wrap;overflow:visible">${BABY_CHAIN.map(([h, t]) => h === cur ? `<span class="chip on" style="min-width:0;padding:4px 9px">${t}</span>` : `<a class="chip" style="min-width:0;padding:4px 9px" href="${h}">${t}</a>`).join('')}</div></section>`;
 const section = (title, sub, inner) => `<section class="section"><h2>${title}</h2>${sub ? `<p class="sub">${sub}</p>` : ''}${inner}</section>`;
 const ad = () => `<div class="adslot" aria-hidden="true"></div>`;
@@ -670,7 +671,7 @@ ${lead('아기의 생년월일을 넣으면 오늘 몇 개월 며칠인지, 100�
 ${Object.entries(byMonth).map(([k, list]) => section(k, null, `<div class="chips" style="flex-wrap:wrap;overflow:visible">${list.map((dt) => `<a class="chip" style="min-width:0;padding:4px 8px" href="${babyUrl(dt)}">${dt.getUTCDate()}일</a>`).join('')}</div>`)).join('\n')}
 ${ad()}
 ${babyChain('/baby/')}
-${section('함께 보면 좋은 것', null, list([{ href: '/baby/formula/', title: '분유 수유량 계산기', sub: '개월·몸무게로 1회량과 하루 총량' }, { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게·키가 또래 100명 중 몇 번째' }, { href: '/baby/month/', title: '개월별 발달', sub: '0~36개월' }, { href: '/kids/', title: '아이 키 백분위', sub: '만 3세부터 · 부모 키로 예상 키까지' }]))}`;
+${section('함께 보면 좋은 것', null, list([{ href: '/baby/formula/', title: '분유 수유량 계산기', sub: '개월·몸무게로 1회량과 하루 총량' }, { href: '/baby/diaper/', title: '기저귀 단계 몸무게표', sub: '몸무게로 맞는 단계 · 다음 단계는 언제' }, { href: '/baby/percentile/', title: '아기 성장 백분위', sub: '몸무게·키가 또래 100명 중 몇 번째' }, { href: '/baby/month/', title: '개월별 발달', sub: '0~36개월' }, { href: '/kids/', title: '아이 키 백분위', sub: '만 3세부터 · 부모 키로 예상 키까지' }]))}`;
   write('/baby/', shell({ url: '/baby/', modified: '2026-11-11', title: '아기 개월수 계산기 — 생년월일로 오늘 몇 개월·예방접종 일정·100일 돌', desc: '아기 생년월일을 넣으면 오늘 개월수와 생후 일수, 100일·첫돌 날짜, 국가예방접종 표준 일정 날짜가 나옵니다.', body, nav: 'baby', scripts: ['/js/engine.js', '/js/live.js'] }));
 }
 
@@ -708,6 +709,7 @@ ${section('임신과 아기', null, `<div class="dict">
 <a href="/baby/percentile/"><b>아기 성장 백분위</b><span>몸무게·키·머리둘레가 또래 100명 중 <span class="num">몇 번째</span>인지 · WHO·질병관리청</span></a>
 <a href="/kids/"><b>아이 키 백분위 (3~18세)</b><span>만 10세 남자 140cm → 또래 <span class="num">${KD.kidsRank(KD.kidsCheck('height', 'm', 126, 140).pct)}</span> · 나이별·학년별 평균 키</span></a>
 <a href="/baby/formula/"><b>분유 수유량</b><span>2개월 5.6kg → 1회 <span class="num">${FM.formulaPlan(76, 5.6).per}</span>ml × ${FM.formulaPlan(76, 5.6).feeds}회 · 하루 ${num(FM.formulaPlan(76, 5.6).daily)}ml</span></a>
+<a href="/baby/diaper/"><b>기저귀 단계 몸무게표</b><span>몸무게로 1~6단계 · 겹칠 때 고르는 법 · <span class="num">하루 개수</span></span></a>
 <a href="/baby/temperature/"><b>아기 정상 체온 · 열 기준</b><span>겨드랑이 37.3℃부터 미열 · <span class="num">${TP.FEVER_AT.toFixed(1)}℃</span>부터 열 · 3개월 미만은 바로 진료</span></a>
 <a href="/fever-medicine/"><b>어린이 해열제 용량</b><span>10kg → 아세트아미노펜 <span class="num">${FV.feverDose('apap', 10, 12).ml.join('~')}</span>mL · 이부프로펜·덱시부프로펜 · 번갈아 먹이기</span></a>
 <a href="/baby/card/"><b>아기 100일·돌 카드</b><span>D+100 · 첫돌까지 D-30 · 카톡·인스타용 이미지</span></a>
@@ -958,7 +960,7 @@ ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
 const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, babyChain, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
-buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX); buildFever(CTX); buildTemp(CTX);
+buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX); buildFever(CTX); buildTemp(CTX); buildDiaper(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
 toolPages();
