@@ -17,6 +17,8 @@ const L = {
   catFood: { href: 'https://link.coupang.com/a/hGdY2Urb3s', img: 'https://thumbnail9.coupangcdn.com/thumbnails/remote/212x212ex/image/vendor_inventory/04ba/a1bc4959876d2fe0142a25ac955787be30d58a04be47ab729f487f46f708.jpg', label: '캐츠랑 전연령 고양이 사료 5kg', note: '나이·몸무게에 맞는 사료 고를 때' },
   // 2026-11-25 '간편 링크'(주방 저울 검색 결과) — 목표 칼로리를 정한 사람은 음식 무게를 재야 해서 체중계보다 맞는다
   kitchenScale: { href: 'https://link.coupang.com/a/iWCwNM4ZTo', label: '주방 저울', note: '먹는 양을 그램으로 재 볼 때' },
+  // 2026-11-28 '간편 링크'(기저귀 검색 결과, 사용자 요청) — /baby/diaper/ 계산기 바로 아래. 단계가 브랜드마다 달라 상품 하나보다 검색 결과가 맞는다
+  diaper: { href: 'https://link.coupang.com/a/i2M5tLvqYD', label: '기저귀 (쿠팡 검색)', note: '브랜드·단계별로 비교해 보기' },
   glucose: { href: 'https://link.coupang.com/a/hF5cn9P72y', label: '혈당측정기', note: '집에서 공복·식후 혈당을 잴 때' },
   pedometer: { href: 'https://link.coupang.com/a/hGdZUsnVDg', img: 'https://thumbnail11.coupangcdn.com/thumbnails/remote/212x212ex/image/vendor_inventory/230e/feea8f5b1a9d54d48412599862c3d301ef609b10ae1fd31aebf1171cb9d7.png', label: '하네르 디지털 클립 만보기', note: '하루 걸음 수를 세어 볼 때' },
   bottle: { href: 'https://link.coupang.com/a/hGd0IVzzjg', img: 'https://t5a.coupangcdn.com/thumbnails/remote/212x212ex/image/retail/images/1136476493470109-65ce19d0-c8e7-4e7a-93a7-97572373828d.jpg', label: '락앤락 1L 물병', note: '하루 마신 물을 눈으로 셀 때' },
@@ -32,6 +34,7 @@ const RULES = [
   [/^\/(kcal-need|diet)\//, ['kitchenScale']],
   [/^\/(bmi|weight|bmr)\//, ['scale']],
   [/^\/baby\/formula\//, ['formula']],
+  [/^\/baby\/diaper\//, ['diaper']],
   [/^\/pet\/dog-(age|food)\//, ['dogFood', 'seniorDog']],
   [/^\/pet\/cat-(age|food)\//, ['catFood']],
   [/^\/(steps|exercise)\//, ['pedometer']],

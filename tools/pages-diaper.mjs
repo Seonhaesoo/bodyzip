@@ -11,7 +11,7 @@ const mLabel = (m) => (m === 0 ? '신생아' : m % 12 === 0 && m >= 24 ? `${m / 
 const stepText = (r) => (r.alt ? `${r.main.short} <small>(${r.alt.short}도 맞음)</small>` : r.main.short);
 
 export function buildDiaper(ctx) {
-  const { write, shell, crumb, tiles, list, section, table, lead, ad, babyChain } = ctx;
+  const { write, shell, crumb, tiles, list, section, table, lead, ad, babyChain, coupangBox } = ctx;
   const ex = { m: 4, sex: 'm', kg: 7 };
   const exR = DP.diaperStep(ex.kg), exO = DP.diaperOutgrow(G, ex.sex, ex.m, ex.kg);
   const at = (sex, m) => DP.typicalStep(G, sex, m);
@@ -48,6 +48,7 @@ ${tiles(DP.DIAPER_STEPS.slice(0, 3).map((s) => ({ label: s.label, value: DP.step
 ${section('단계별 몸무게', 'kg · 단계끼리 겹치는 것이 정상 · 남아·여아 칸은 보통 몸무게(50백분위) 아기가 그 단계로 넘어가는 개월', table(['단계', '몸무게', '남아', '여아'], stepRows) + '<p class="sub">같은 4단계라도 브랜드에 따라 8~13kg, 9~14kg처럼 범위가 다르고, 이름도 \'대형\'·\'L\'처럼 다르게 붙습니다. 이 표는 고를 때 어림잡는 용도이고, 사기 전에는 포장의 권장 체중을 확인하세요.</p>')}
 ${lead(`기저귀는 개월이 아니라 <b>몸무게</b>로 고릅니다. 단계 범위가 서로 겹쳐서 ${ex.kg}kg이면 ${exR.fits.map((s) => s.short).join('·')}가 모두 맞는데, 이럴 때는 <b>지금 단계에서 새거나 자국이 남기 시작하면</b> 올리면 됩니다. 아래 계산기에 몸무게와 개월을 넣으면 같은 백분위로 자랄 때 언제쯤 다음 단계가 필요한지도 셈합니다. 생후 ${ex.m}개월 남아 ${ex.kg}kg이면 ${exO && exO.month ? `생후 약 ${Math.round(exO.month)}개월에 ${exO.step.short} 상한(${exO.step.hi}kg)에 닿습니다` : '이번 단계를 한동안 씁니다'}.`)}
 ${form}
+${coupangBox ? coupangBox('/baby/diaper/', 1, '단계를 확인했다면 — 포장의 권장 체중을 보고 고르기') : ''}
 ${section('개월별 보통 몸무게와 단계', 'WHO 50백분위 · 범위가 겹치면 위 단계를 먼저 적고 아래 단계를 괄호에', table(['개월', '남아', '단계', '여아', '단계'], typRows))}
 ${ad()}
 ${section('하루에 몇 개, 한 달에 몇 개', '흔히 안내되는 어림값 · 한 달 = 30일', table(['시기', '하루', '한 달'], countRows) + '<p class="sub">신생아는 먹을 때마다 갈아 하루 10개를 넘기 쉽고, 크면서 소변을 모아 누어 줄어듭니다. 생후 1주가 지나 소변 기저귀가 하루 6개 이상이면 잘 먹고 있다는 신호입니다.</p>')}

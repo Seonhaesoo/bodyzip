@@ -959,7 +959,7 @@ dueIndex(); MONTHS.forEach(([m, d]) => duePage(m, d));
 ovIndex(); MONTHS.forEach(([m, d]) => ovPage(m, d));
 const babyDates = []; for (let k = 3 * 365; k >= 0; k--) babyDates.push(D.addDays(TODAY, -k));
 babyIndex(babyDates); babyDates.forEach(babyPage);
-const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, babyChain, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
+const CTX = { write, shell, crumb, tiles, list, section, table, lead, ad, hero, babyChain, coupangBox, TODAY, SISTERS, OUT, babyMin: D.addDays(TODAY, -3 * 365) };
 buildExtra(CTX); buildPet(CTX); buildMore(CTX); buildCheckup(CTX); buildKids(CTX); buildFormula(CTX); buildPregWeight(CTX); buildBpLog(CTX); buildChuseok(CTX); buildSeason(CTX); buildFever(CTX); buildTemp(CTX); buildDiaper(CTX);
 fs.writeFileSync(path.join(OUT, 'js', 'engine.js'), makeBundle());
 embedPages();
